@@ -465,6 +465,12 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .bh-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px}.bh-row>span:first-child{display:flex;flex-direction:column}
 .ls-bar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--cool) 35%,var(--surface));overflow:hidden}.ls-bar b{display:block;height:100%;background:var(--cool)}
 .ls-leg{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+/* ---------- v18 ---------- */
+.eroles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.erole{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.erole .rs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;font-size:12px}
+.erole .rs b{display:block;font:700 15px var(--f-display);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -565,6 +571,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <div class="ea-pick"><label for="eaPick" class="k">EA</label><select id="eaPick"></select><span id="eaVerdict" hidden></span></div>
   <div class="eh" id="eaHero"></div>
   <div class="ekpi" id="eaKpi"></div>
+  <div class="eroles" id="eaRoles" hidden></div>
   <section class="panel"><div class="ph"><span class="k">Equity of this EA only</span><div class="seg" id="eaTabs" role="group" aria-label="Chart"><button type="button" data-t="eq">Progress</button><button type="button" data-t="dd">Drawdown</button><button type="button" data-t="day">Daily P/L</button></div></div>
     <div class="chart" style="height:300px"><canvas id="cEAP" role="img" aria-label="Equity curve of the selected EA"></canvas></div><div class="estrip" id="eaStrip"></div></section>
   <section class="panel"><div class="ph"><div><h3>Monthly returns</h3><p class="muted" style="font-size:13px">Share of the EA's capital at the start of each month, or dollars</p></div><div class="seg" id="monthUnit" role="group" aria-label="Unit"></div></div><div class="scroll"><table class="mgrid" id="eaMonths"></table></div></section>
@@ -692,13 +699,16 @@ function exitOf(c){c=String(c||'');return /\bso:/i.test(c)?'so':/\[sl\b|^sl\b|\b
 function slipOf(t){if(t.ex!=='sl'||!t.sl||!t.op||!t.cp||t.cp===t.op)return 0;const px=t.side==='buy'?t.cp-t.sl:t.sl-t.cp,k=t.gross/(t.side==='buy'?t.cp-t.op:t.op-t.cp);
   return k>0&&Math.abs(px)<t.op*.05?Math.round(px*k*100)/100:0}
 // Magic numbers the user named by hand win over comment parsing
-const MAGIC_NAMES={'770045':'QC Auto'};
+const MAGIC_NAMES={'770045':'QC Auto','456321':'WSJ_Recovery'};
+// Magics whose comment marks a recovery leg (no comment = initial trade)
+const ROLE_MAGIC={'456321':1};
 // One EA per magic number (whatever symbols it trades), named by its most common comment family; families then merge across magics and accounts.
 const FAMMAP={};
 function assignFamilies(){
   const votes={};
   for(const t of S.trades){if(t.magic==='0'||!t.famRaw)continue;const k=t.acct+'|'+t.magic;(votes[k]=votes[k]||{})[t.famRaw]=(votes[k][t.famRaw]||0)+1}
   const best=FAMMAP;for(const k in votes) best[k]=Object.entries(votes[k]).sort((x,y)=>y[1]-x[1])[0][0];
+  for(const t of S.trades) t.role=ROLE_MAGIC[t.magic]?(t.famRaw?'Recovery':'Initial'):'';
   for(const t of S.trades) t.fam=MAGIC_NAMES[t.magic]||(t.magic!=='0'?best[t.acct+'|'+t.magic]:t.famRaw)||(t.magic==='0'?'Manual':'Magic '+t.magic);
 }
 function parseTime(s){const m=String(s||'').match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):NaN}
@@ -1968,6 +1978,14 @@ function renderProfile({T}){
   $('#eaKpi').innerHTML=K.map(([k,v,c,s])=>`<div class="ek"><span class="k">${k}</span><b class="${c}">${v}</b><span class="tag">${esc(s)}</span></div>`).join('');
   const days=new Set(ts.map(t=>dayKey(t.ct))).size,cal=Math.max(1,Math.round((last-ts[0].ot)/864e5));
   $('#eaStrip').innerHTML=[['Trading days',days+' d',cal+' calendar days'],['First trade',dstr(ts[0].ot),''],['Last trade',dstr(last),''],['Trades a day',fmt(ts.length/days,1),''],['Trades total',ts.length.toLocaleString(),'']].map(([k,v,s])=>`<div><span class="k">${k}</span><b>${v}</b>${s?`<span class="tag">${s}</span>`:''}</div>`).join('');
+  // Initial vs recovery legs (magics in ROLE_MAGIC: no comment = initial, comment = recovery)
+  {const R=$('#eaRoles'),by={};for(const t of ts) if(t.role)(by[t.role]=by[t.role]||[]).push(t);
+   const ks=['Initial','Recovery'].filter(k=>by[k]);R.hidden=!ks.length;
+   R.innerHTML=ks.map(k=>{const v=by[k],w=v.filter(t=>t.net>0),gw=w.reduce((s,t)=>s+t.net,0),gl=-v.filter(t=>t.net<0).reduce((s,t)=>s+t.net,0),n=v.reduce((s,t)=>s+t.net,0);
+     return `<div class="erole"><span class="k">${k==='Initial'?'Initial trades':'Recovery trades'} <span class="tag">${k==='Initial'?'no comment':'with comment'}</span></span><div class="rs">
+       <div><span class="tag">Trades</span><b>${v.length}</b></div><div><span class="tag">Net</span><b class="${cls(n)}">${n>=0?'+':''}${money(n,2)}</b></div>
+       <div><span class="tag">PF</span><b>${gl?fmt(gw/gl):gw?'∞':'–'}</b></div><div><span class="tag">Win rate</span><b>${pct(w.length/v.length,0)}</b></div>
+       <div><span class="tag">Avg</span><b class="${cls(n)}">${money(n/v.length,2)}</b></div></div></div>`}).join('')}
   renderEACurve(p);renderMonths(p);renderScore(p);renderBehaviour(p);
 }
 function sqnOf(ts){const v=ts.map(t=>t.net),s=std(v);return s?Math.sqrt(Math.min(v.length,100))*mean(v)/s:0}
@@ -2067,7 +2085,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v17';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v18';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
