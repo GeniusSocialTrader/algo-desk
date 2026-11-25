@@ -23,12 +23,24 @@ jobs:
           "installer exited: $($p.HasExited)  seconds: $(((Get-Date)-$t).TotalSeconds)"
           Get-ChildItem 'C:\Program Files\MetaTrader 5' | Select-Object Name, Length | Format-Table | Out-String | Write-Host
           Get-Process | Where-Object { $_.Name -like '*terminal*' -or $_.Name -like '*mt5*' } | Select-Object Name, Id | Format-Table | Out-String | Write-Host
-      - name: Probe MT4 installer availability
+      - name: Start terminal and look at it
         shell: pwsh
-        continue-on-error: true
         run: |
-          $r = Invoke-WebRequest https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe -OutFile mt4setup.exe -PassThru
-          "mt4setup bytes: $((Get-Item mt4setup.exe).Length)"
-          (Get-Item mt4setup.exe).VersionInfo | Format-List | Out-String | Write-Host
+          Copy-Item 'C:\Program Files\MetaTrader 5' -Destination D:\mt5 -Recurse
+          Start-Process D:\mt5\terminal64.exe -ArgumentList '/portable'
+          Start-Sleep 60
+          Get-Process terminal64 -ErrorAction SilentlyContinue | Select-Object Id, MainWindowTitle, Responding | Format-Table | Out-String | Write-Host
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save('D:\shot.png')
+          Get-ChildItem D:\mt5\Logs, D:\mt5\logs -ErrorAction SilentlyContinue | ForEach-Object { "== $($_.FullName)"; Get-Content $_.FullName -Encoding Unicode -ErrorAction SilentlyContinue | Select-Object -Last 40 }
+      - uses: actions/upload-artifact@v4
+        with: { name: shot, path: 'D:\shot.png' }
       - name: Probe Python bridge and broker logins
         run: python probe/probe.py
+      - name: Terminal log after Python
+        if: always()
+        shell: pwsh
+        run: Get-ChildItem D:\mt5\Logs -ErrorAction SilentlyContinue | ForEach-Object { "== $($_.FullName)"; Get-Content $_.FullName -Encoding Unicode | Select-Object -Last 60 }

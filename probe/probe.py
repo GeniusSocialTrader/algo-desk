@@ -1,7 +1,7 @@
 import time, MetaTrader5 as mt5
-P = r"C:\Program Files\MetaTrader 5\terminal64.exe"
+P = r"D:\mt5\terminal64.exe"
 t = time.time()
-ok = mt5.initialize(P, timeout=120000)
+ok = mt5.initialize(P, portable=True, timeout=180000)
 print("initialize(no login):", ok, mt5.last_error(), f"{time.time()-t:.1f}s")
 if ok:
     print("version:", mt5.version())
