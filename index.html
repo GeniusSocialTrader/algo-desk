@@ -758,17 +758,20 @@ function exitOf(c){c=String(c||'');return /\bso:/i.test(c)?'so':/\[sl\b|^sl\b|\b
 function slipOf(t){if(t.ex!=='sl'||!t.sl||!t.op||!t.cp||t.cp===t.op)return 0;const px=t.side==='buy'?t.cp-t.sl:t.sl-t.cp,k=t.gross/(t.side==='buy'?t.cp-t.op:t.op-t.cp);
   return k>0&&Math.abs(px)<t.op*.05?Math.round(px*k*100)/100:0}
 // Magic numbers the user named by hand win over comment parsing
-const MAGIC_NAMES={'770045':'QC Auto','456321':'WSJ_Recovery'};
-// Magics whose comment marks a recovery leg (no comment = initial trade)
-const ROLE_MAGIC={'456321':1};
+// key 'magic' applies on every account; 'account|magic' wins where a magic is reused by a different EA (888 is Vertex Strength on Darwinex_CBO).
+const MAGIC_NAMES={'770045':'QC Auto','456321':'WSJ_Recovery','8008':'AP_TGR','20260420':'DP','33612':'SMC_XAUUSD_Pym_Live','43612':'SMC_XAUUSD_Pym_Live','20260788':'SMC_XAUUSD_Live','52030268|888':'Buster_BTC_Live'};
+const magName=(acct,magic)=>MAGIC_NAMES[acct+'|'+magic]||MAGIC_NAMES[magic];
+// Magics with two kinds of legs: 'rec' = no comment is the initial trade, a comment marks a recovery leg; 'pyr' = 'Add#<position>' marks a pyramid layer on that base position.
+const ROLE_MAGIC={'456321':'rec','33612':'pyr','43612':'pyr'};
 // One EA per magic number (whatever symbols it trades), named by its most common comment family; families then merge across magics and accounts.
 const FAMMAP={};
 function assignFamilies(){
   const votes={};
   for(const t of S.trades){if(t.magic==='0'||!t.famRaw)continue;const k=t.acct+'|'+t.magic;(votes[k]=votes[k]||{})[t.famRaw]=(votes[k][t.famRaw]||0)+1}
   const best=FAMMAP;for(const k in votes) best[k]=Object.entries(votes[k]).sort((x,y)=>y[1]-x[1])[0][0];
-  for(const t of S.trades) t.role=ROLE_MAGIC[t.magic]?(t.famRaw?'Recovery':'Initial'):'';
-  for(const t of S.trades) t.fam=MAGIC_NAMES[t.magic]||(t.magic!=='0'?best[t.acct+'|'+t.magic]:t.famRaw)||(t.magic==='0'?'Manual':'Magic '+t.magic);
+  for(const t of S.trades){const r=ROLE_MAGIC[t.magic];t.role=r==='rec'?(t.famRaw?'Recovery':'Initial'):r==='pyr'?(/Add#\d+/i.test(t.comment)?'Add':'Base'):'';
+    if(r==='pyr'){const m=String(t.comment).match(/Add#(\d+)/i);t.camp=t.acct+'|'+(m?m[1]:t.pos)}}
+  for(const t of S.trades) t.fam=magName(t.acct,t.magic)||(t.magic!=='0'?best[t.acct+'|'+t.magic]:t.famRaw)||(t.magic==='0'?'Manual':'Magic '+t.magic);
 }
 function parseTime(s){const m=String(s||'').match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):NaN}
 // Strip what brokers append to comments so one strategy keeps one name.
@@ -811,7 +814,7 @@ function keyOf(t,mode){
   if(mode==='family') return 'f:'+t.fam;
   if(mode==='comment') return 'c:'+(t.comment||'(no comment)');
   if(mode==='magiccomment') return 'm:'+t.magic+'|'+(t.comment||'');
-  return t.magic!=='0'?'m:'+t.magic:'c:'+(t.comment||'(manual / no comment)');
+  return t.magic!=='0'?'m:'+t.magic+'|'+t.fam:'c:'+(t.comment||'(manual / no comment)');
 }
 function labelOf(key,trades){
   const [kind,rest]=[key.slice(0,1),key.slice(2)];
@@ -1557,7 +1560,7 @@ function showTab(k,scroll){
 
 
 /* ---------- Open trades: live positions, drawdown now / today / all time, grid layers ---------- */
-const famFor=(acct,magic,comment)=>MAGIC_NAMES[magic]||(magic!=='0'&&FAMMAP[acct+'|'+magic])||famOf(comment)||(magic==='0'?'Manual':'Magic '+magic);
+const famFor=(acct,magic,comment)=>magName(acct,magic)||(magic!=='0'&&FAMMAP[acct+'|'+magic])||famOf(comment)||(magic==='0'?'Manual':'Magic '+magic);
 // Most trades open at the same time, from closed-trade history (open and close times), per account+EA.
 // Also flags martingale when a later layer in a basket is >= 1.5x the first lot size.
 function layerStats(T){
@@ -2048,14 +2051,19 @@ function renderProfile({T}){
   $('#eaKpi').innerHTML=K.map(([k,v,c,s])=>`<div class="ek"><span class="k">${k}</span><b class="${c}">${v}</b><span class="tag">${esc(s)}</span></div>`).join('');
   const days=new Set(ts.map(t=>dayKey(t.ct))).size,cal=Math.max(1,Math.round((last-ts[0].ot)/864e5));
   $('#eaStrip').innerHTML=[['Trading days',days+' d',cal+' calendar days'],['First trade',dstr(ts[0].ot),''],['Last trade',dstr(last),''],['Trades a day',fmt(ts.length/days,1),''],['Trades total',ts.length.toLocaleString(),''],...(q=>q?[[q.days>60?'Stopped':'Gone quiet',q.days+' days',q.days>60?'no trades since, looks switched off':`usually trades every ${q.usual} day${q.usual>1?'s':''} or less`]]:[])(quietOf(ts)),...(o=>[['Costs paid',money(o.c,2),`${pct(o.share,0)} of gross wins · commission + swap`]])(costOf(ts))].map(([k,v,s])=>`<div><span class="k">${k}</span><b>${v}</b>${s?`<span class="tag">${s}</span>`:''}</div>`).join('');
-  // Initial vs recovery legs (magics in ROLE_MAGIC: no comment = initial, comment = recovery)
+  // Two-leg EAs (ROLE_MAGIC): WSJ initial vs recovery legs; SMC pyramid base entry vs Add# layers, plus whole positions (base + its layers)
   {const R=$('#eaRoles'),by={};for(const t of ts) if(t.role)(by[t.role]=by[t.role]||[]).push(t);
-   const ks=['Initial','Recovery'].filter(k=>by[k]);R.hidden=!ks.length;
-   R.innerHTML=ks.map(k=>{const v=by[k],w=v.filter(t=>t.net>0),gw=w.reduce((s,t)=>s+t.net,0),gl=-v.filter(t=>t.net<0).reduce((s,t)=>s+t.net,0),n=v.reduce((s,t)=>s+t.net,0);
-     return `<div class="erole"><span class="k">${k==='Initial'?'Initial trades':'Recovery trades'} <span class="tag">${k==='Initial'?'no comment':'with comment'}</span></span><div class="rs">
-       <div><span class="tag">Trades</span><b>${v.length}</b></div><div><span class="tag">Net</span><b class="${cls(n)}">${n>=0?'+':''}${money(n,2)}</b></div>
+   const LAB={Initial:['Initial trades','no comment'],Recovery:['Recovery trades','with comment'],Base:['Base entries','first entry'],Add:['Pyramid layers','Add# on a base']};
+   const card=(title,tag,v,unit)=>{const w=v.filter(x=>x.net>0),gw=w.reduce((s,x)=>s+x.net,0),gl=-v.filter(x=>x.net<0).reduce((s,x)=>s+x.net,0),n=v.reduce((s,x)=>s+x.net,0);
+     return `<div class="erole"><span class="k">${title} <span class="tag">${tag}</span></span><div class="rs">
+       <div><span class="tag">${unit}</span><b>${v.length}</b></div><div><span class="tag">Net</span><b class="${cls(n)}">${n>=0?'+':''}${money(n,2)}</b></div>
        <div><span class="tag">PF</span><b>${gl?fmt(gw/gl):gw?'∞':'–'}</b></div><div><span class="tag">Win rate</span><b>${pct(w.length/v.length,0)}</b></div>
-       <div><span class="tag">Avg</span><b class="${cls(n)}">${money(n/v.length,2)}</b></div></div></div>`}).join('')}
+       <div><span class="tag">Avg</span><b class="${cls(n)}">${money(n/v.length,2)}</b></div></div></div>`};
+   const ks=['Initial','Recovery','Base','Add'].filter(k=>by[k]);let html=ks.map(k=>card(LAB[k][0],LAB[k][1],by[k],'Trades')).join('');
+   // a pyramid position = its base entry plus every Add# layer on it; it wins or loses as one
+   const C={};for(const t of ts) if(t.camp)(C[t.camp]=C[t.camp]||{net:0,n:0}),C[t.camp].net+=t.net,C[t.camp].n++;
+   const cv=Object.values(C);if(cv.length){const lay=cv.reduce((s,c)=>s+c.n,0)/cv.length;html+=card('Whole positions',`base + layers, avg ${fmt(lay,1)} trades each`,cv,'Positions')}
+   R.hidden=!html;R.innerHTML=html}
   renderEACurve(p);renderMonths(p);renderScore(p);renderBehaviour(p);
 }
 function sqnOf(ts){const v=ts.map(t=>t.net),s=std(v);return s?Math.sqrt(Math.min(v.length,100))*mean(v)/s:0}
@@ -2275,7 +2283,7 @@ function syncAlertNames(){
   for(const t of S.trades){rows.set(t.acct+'|-1',[t.acct,-1,nm(t.acct)]);if(t.magic!=='0') rows.set(t.acct+'|'+t.magic,[t.acct,t.magic,t.fam])}
   const vals=[...rows.values()].filter(([a,m])=>/^\d+$/.test(String(a))&&/^-?\d+$/.test(String(m))).map(([a,m,n])=>[+a,+m,String(n).slice(0,80)]);
   if(!vals.length) return;
-  const js=JSON.stringify(vals),sig=js.length+':'+vals.length;let old='';try{old=localStorage.getItem('fx-alnames')||''}catch(e){}
+  const js=JSON.stringify(vals),sig=js;let old='';try{old=localStorage.getItem('fx-alnames')||''}catch(e){}
   if(sig===old) return;
   sql(`select public.alert_names_put('${js.replace(/'/g,"''")}'::jsonb) as n`).then(()=>{try{localStorage.setItem('fx-alnames',sig)}catch(e){}}).catch(()=>{});
 }
