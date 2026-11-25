@@ -511,6 +511,13 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .lab-arch-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px}
 .ea-card.arch{opacity:.75;padding:10px}
 .map-arch{font-size:11px;color:var(--muted);display:inline-flex;gap:4px;align-items:center;margin-top:4px}
+.ov-open{width:100%;border-collapse:collapse;font:13px var(--f-data)}
+.ov-open th,.ov-open td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.ov-open th:nth-child(-n+3),.ov-open td:nth-child(-n+3){text-align:left}
+.ov-open tfoot td{font-weight:600;border-bottom:0}
+.ov-dd{display:inline-block;vertical-align:middle;width:64px;height:6px;border-radius:3px;background:var(--line);margin-left:8px;overflow:hidden}
+.ov-dd i{display:block;height:100%;background:var(--neg);border-radius:3px}
+.eh-arch{margin-left:auto;font-size:12px;padding:4px 10px}
 </style>
 </head>
 <body>
@@ -568,6 +575,11 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <section class="panel"><header><h3>Accounts</h3><p>Open trades, floating P/L and drawdown: now, the worst point today and the worst point ever</p></header><div class="scroll"><table id="liveAcc"></table></div></section>
   <section class="panel"><header><h3>EAs with open trades or past floating drawdown</h3><p>Squares show open layers against the most this EA has ever had open at once. Grid means 3 or more trades open together; martingale means later layers use bigger lots.</p></header><div class="lea-list" id="liveEA"></div></section>
   <section class="panel"><header><h3>Every open trade</h3><p>MT5: each trade, rebuilt from the deals the EA sends. MT4: one line per EA from the 5-minute equity snapshot.</p></header><div class="scroll"><table id="livePos"></table></div></section>
+</section>
+
+<section class="sec" data-tab="overview" aria-labelledby="hOpen">
+  <div class="sec-h"><div><span class="kicker">Right now</span><h2 id="hOpen">Open trades</h2></div><p id="ovOpenSub">Every EA with a trade open, the account it is on, and how far it is down against that account's balance.</p></div>
+  <section class="panel"><div class="scroll"><table class="ov-open" id="ovOpen"></table></div></section>
 </section>
 
 <section class="sec" data-tab="overview" aria-labelledby="hMap">
@@ -1091,7 +1103,7 @@ function render(){
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -2038,7 +2050,8 @@ function renderLab({T}){
       ${miniSpark(cumOf(p.ts),260,44).replace('class="mspark"','class="mspark ec-spark"')}
       <span class="ec-stats"><span><i>PF</i><b>${fmt(M.pf)}</b></span><span><i>Max DD</i><b class="${p.S.ddp>.2?'neg':''}">${pct(p.S.ddp,1)}</b></span><span><i>Trades</i><b>${M.n.toLocaleString()}</b></span><span><i>Days</i><b>${p.V.days}</b></span></span>
     </button>`}).join('');
-  if(LA.length) el.innerHTML+=`<div class="lab-arch"><h4>Archived EAs (${LA.length})</h4><p class="muted">Switched off. Kept for their history; open one to see it. Un-archive in the EA map.</p><div class="lab-arch-list">${LA.map(p=>`<button type="button" class="ea-card arch" data-k="${esc(p.k)}" aria-label="Open ${esc(p.k)}"><span class="ec-top">${avatar(p.k,24)}<span class="ec-name"><b>${esc(p.k)}</b><span class="tag">${p.M.n} trades · last ${dstr(Math.max(...p.ts.map(t=>t.ct)))}</span></span></span><span class="ec-gain"><b class="${cls(p.M.net)}">${p.M.net>=0?'+':''}${money(p.M.net)}</b></span></button>`).join('')}</div></div>`;
+  if(LA.length) el.innerHTML+=`<details class="lab-arch"${UI.archOpen?' open':''}><summary><b>Archived EAs (${LA.length})</b> <span class="muted">switched off, history kept. Tap to show</span></summary><div class="lab-arch-list">${LA.map(p=>`<button type="button" class="ea-card arch" data-k="${esc(p.k)}" aria-label="Open ${esc(p.k)}"><span class="ec-top">${avatar(p.k,24)}<span class="ec-name"><b>${esc(p.k)}</b><span class="tag">${p.M.n} trades · last ${dstr(Math.max(...p.ts.map(t=>t.ct)))}</span></span></span><span class="ec-gain"><b class="${cls(p.M.net)}">${p.M.net>=0?'+':''}${money(p.M.net)}</b></span></button>`).join('')}</div></details>`;
+  {const dl=el.querySelector('.lab-arch');if(dl)dl.ontoggle=()=>{UI.archOpen=dl.open}}
   el.querySelectorAll('.ea-card').forEach(b=>b.onclick=()=>{UI.ea=b.dataset.k;render();document.getElementById('hDive').scrollIntoView({block:'start',behavior:'smooth'})});
 }
 $('#labSort')&&($('#labSort').onclick=e=>{const b=e.target.closest('[data-s]');if(b){UI.labSort=b.dataset.s;render()}});
@@ -2063,7 +2076,7 @@ function renderProfile({T}){
   const real=p.accts.filter(a=>!isDemoAcct(a)),demo=p.accts.filter(isDemoAcct),mg=[...new Set(ts.map(t=>t.magic))];
   el.style.setProperty('--c',col);
   el.innerHTML=`<div class="eh-top"><div class="eh-id">${avatar(p.k,44)}<div style="min-width:0"><div class="eh-chips">${bandChip(Sc.band)}<span class="chip ${p.kind==='Real'?'pass':''}">${p.kind}</span>${rc.isMart?'<span class="chip fail">Martingale</span>':rc.grid?'<span class="chip warn">Grid</span>':''}${p.syms.slice(0,6).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${p.syms.length>6?`<span class="chip">+${p.syms.length-6}</span>`:''}</div>
-      <h3 class="eh-name">${esc(p.k)}</h3><span class="muted">${mg[0]==='0'&&mg.length===1?'manual trades':'magic '+mg.slice(0,4).map(esc).join(', ')+(mg.length>4?' +'+(mg.length-4):'')} · ${p.accts.length} account${p.accts.length>1?'s':''} · capital ${money(base)}</span></div></div>
+      <h3 class="eh-name">${esc(p.k)}</h3><button type="button" class="eh-arch ghost" id="eaArchBtn" data-k="${esc(p.k)}">${EA_ARCH.has(p.k)?'Unarchive':'Archive this EA'}</button><span class="muted">${mg[0]==='0'&&mg.length===1?'manual trades':'magic '+mg.slice(0,4).map(esc).join(', ')+(mg.length>4?' +'+(mg.length-4):'')} · ${p.accts.length} account${p.accts.length>1?'s':''} · capital ${money(base)}</span></div></div>
       ${scoreRing(Sc.s,Sc.band,96)}</div>
     <div class="eh-stages"><span class="${demo.length?'on':''}">● Demo${demo.length?' · '+demo.map(nm).map(esc).join(', '):''}</span><span class="${real.length?'on':''}">● Real money${real.length?' · '+real.map(nm).map(esc).join(', '):''}</span></div>`;
   const K=[['Profit total',`${M.net>=0?'+':''}${money(M.net,2)}`,cls(M.net),`${M.net>=0?'+':''}${pct(M.net/base,1)} of its capital`],
@@ -2484,13 +2497,58 @@ function renderEAMap(){
     const m={},ar=[...el.querySelectorAll('[data-arch]')].filter(i=>i.checked).map(i=>i.dataset.arch);if(ar.length)m._archived=ar;
     for(const i of el.querySelectorAll('.map-in')){const v=i.value.trim();if(v){if(v.length>60||/['\\]/.test(v)){alMsg('Names cannot contain quotes or backslashes.',true,'#mapMsg');return}m[i.dataset.k]=v}}
     const b=$('#mapSave');b.disabled=true;b.textContent='Saving…';
-    try{if(S.live&&typeof mcp!=='undefined'&&mcp) await sql(`select public.ea_map_put('${JSON.stringify(m).replace(/'/g,"''")}'::jsonb) as r`);
-      EA_OVR=m;try{localStorage.setItem('fx-eamap',JSON.stringify(m))}catch(e){}
-      assignFamilies();for(const q of S.pos||[])q.fam=famFor(q.acct,q.magic,q.comment);try{localStorage.removeItem('fx-alnames')}catch(e){}if(S.live)loadAlerts(true);render();
+    try{await eaMapSave(m);
       alMsg(`✓ Saved at ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}. ${Object.keys(m).filter(k=>k!=='_archived').length} name${Object.keys(m).filter(k=>k!=='_archived').length===1?'':'s'} of yours, ${ar.length} archived.`,false,'#mapMsg')}
     catch(e){alMsg('Could not save: '+(e.message||e),true,'#mapMsg')}finally{const b2=$('#mapSave');if(b2){b2.disabled=false;b2.textContent='Save mapping'}}};
 }
 if($('#mapBtn')) $('#mapBtn').onclick=()=>{const d=document.querySelector('details.settings');if(d)d.open=false;showTab('map',true)};
+
+/* ---------- Overview: open trades right now (EA, account, drawdown) ---------- */
+// One line per account + EA. MT5 trades come rebuilt from deals (symbol, side, lots); every account sends each EA's
+// floating P/L every 5 minutes. Drawdown = the open loss against that account's balance.
+function openNowRows(a){
+  const G=(S.now||[]).filter(r=>r.magic!=='ALL'&&inSel(r.acct,a)),A={};
+  for(const r of (S.now||[])) if(r.magic==='ALL') A[r.acct]=r;
+  const R={},key=(ac,f)=>ac+'|'+f,row=(ac,f)=>R[key(ac,f)]=R[key(ac,f)]||{acct:ac,fam:f,fl:0,pos:[],syms:new Set(),side:new Set(),lots:0,ot:Infinity,magics:new Set(),age:null};
+  for(const g of G){const f=famFor(g.acct,g.magic,g.comment),r=row(g.acct,f);r.fl+=g.fl;r.known=true;r.magics.add(g.magic);r.age=Math.max(r.age||0,g.age||0)}
+  for(const p of (S.pos||[]).filter(p=>inSel(p.acct,a))){const r=row(p.acct,p.fam||famFor(p.acct,p.magic,p.comment));r.pos.push(p);r.syms.add(p.sym);r.side.add(p.side);r.lots+=p.lots;if(p.ot<r.ot)r.ot=p.ot;r.magics.add(p.magic)}
+  for(const r of Object.values(R)) if(!r.known&&r.pos.length&&r.pos.every(p=>p.fl!=null)){r.fl=r.pos.reduce((t,p)=>t+p.fl,0);r.known=true}
+  const lastSym=(ac,mg)=>{for(let i=S.trades.length-1;i>=0;i--){const t=S.trades[i];if(t.acct===ac&&mg.has(t.magic))return t.sym}return ''};
+  return Object.values(R).filter(r=>r.pos.length||Math.abs(r.fl)>=.005).map(r=>{const bal=(A[r.acct]&&A[r.acct].bal)||0;
+    if(!r.syms.size){const s=lastSym(r.acct,r.magics);if(s){r.syms.add(s);r.guess=true}}
+    const plat=(S.trades.find(t=>t.acct===r.acct)||{}).plat;return {...r,plat,bal,dd:bal&&r.known?r.fl/bal:0,demo:isDemoAcct(r.acct),stale:(r.age||0)>900}}).sort((x,y)=>x.dd-y.dd);
+}
+function renderOpenNow({a}){
+  const el=$('#ovOpen');if(!el) return;
+  if(!S.now||!S.now.length){el.innerHTML='<tbody><tr><td class="muted">Open trades show here once your accounts are synced.</td></tr></tbody>';return}
+  const R=openNowRows(a);
+  if(!R.length){el.innerHTML='<tbody><tr><td class="muted">No open trades right now.</td></tr></tbody>';return}
+  const tot=R.reduce((s,r)=>s+r.fl,0),accs=new Set(R.map(r=>r.acct)),worst=Math.min(...R.map(r=>r.dd));
+  const bar=v=>v<0?`<span class="ov-dd" title="${pct(-v,1)} of the account balance"><i style="width:${Math.min(100,-v*100/ .2)}%"></i></span>`:'';
+  el.innerHTML=`<thead><tr><th>EA</th><th>Account</th><th>Trade</th><th>Open</th><th>Open since</th><th>Floating P/L</th><th title="open loss as a share of that account's balance">Drawdown now</th></tr></thead><tbody>
+  ${R.map(r=>{const side=[...r.side].join('/').toUpperCase(),n=r.pos.length;
+    return `<tr><td>${avatar(r.fam,18)} <b>${esc(r.fam)}</b>${EA_ARCH.has(r.fam)?' <span class="chip">archived</span>':''}</td>
+    <td>${esc(nm(r.acct))} <span class="chip ${r.demo?'':'pass'}">${r.demo?'Demo':'Live'}</span>${r.stale?` <span class="chip warn" title="last update ${Math.round(r.age/60)} min ago">late</span>`:''}</td>
+    <td>${[...r.syms].map(s=>pairBadge(s,14)).join('')} ${esc([...r.syms].join(', '))}${side?` <span class="tag">${side}</span>`:''}${r.guess?' <span class="tag" title="MT4 sends floating P/L per EA, not each trade; this is the pair it traded last">likely</span>':''}</td>
+    <td>${n?`${n} · ${fmt(r.lots,2)} lot`:r.plat==='MT4'?'<span class="muted" title="MT4 sends one total per EA, not each trade">MT4 total</span>':'–'}</td>
+    <td class="muted">${n?dstr(r.ot)+' '+new Date(r.ot).toISOString().slice(11,16):'–'}</td>
+    <td class="${r.known?cls(r.fl):''}">${r.known?(r.fl>=0?'+':'')+money(r.fl,2):'<span class="muted" title="no 5-minute P/L snapshot for this EA yet">–</span>'}</td>
+    <td class="${r.dd<0?'neg':''}">${!r.known?'–':r.dd<0?pct(r.dd,2):'in profit'}${bar(r.dd)}</td></tr>`}).join('')}</tbody>
+  <tfoot><tr><td>${R.length} open</td><td>${accs.size} account${accs.size>1?'s':''}</td><td></td><td></td><td></td><td class="${cls(tot)}">${tot>=0?'+':''}${money(tot,2)}</td><td class="${worst<0?'neg':''}">worst ${worst<0?pct(worst,2):'0%'}</td></tr></tfoot>`;
+}
+
+// save Gaston's names + archived list (Supabase when live, this browser otherwise), then rebuild every view
+async function eaMapSave(m){
+  if(S.live&&typeof mcp!=='undefined'&&mcp) await sql(`select public.ea_map_put('${JSON.stringify(m).replace(/'/g,"''")}'::jsonb) as r`);
+  EA_OVR=m;try{localStorage.setItem('fx-eamap',JSON.stringify(m))}catch(e){}
+  assignFamilies();for(const q of S.pos||[])q.fam=famFor(q.acct,q.magic,q.comment);try{localStorage.removeItem('fx-alnames')}catch(e){}if(S.live)loadAlerts(true);render();
+}
+document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.closest('#eaArchBtn');if(!b) return;
+  const k=b.dataset.k,ar=new Set(Array.isArray(EA_OVR._archived)?EA_OVR._archived:[]),was=ar.has(k);was?ar.delete(k):ar.add(k);
+  const m={...EA_OVR};if(ar.size)m._archived=[...ar];else delete m._archived;
+  b.disabled=true;b.textContent='Saving…';
+  try{await eaMapSave(m);const b2=$('#eaArchBtn');if(b2)b2.insertAdjacentHTML('afterend',`<span class="muted" style="margin-left:8px">${was?'Back in the EA lab.':'Archived. It now sits under Archived EAs.'}</span>`)}
+  catch(err){b.disabled=false;b.textContent=was?'Unarchive':'Archive this EA';b.insertAdjacentHTML('afterend',`<span class="neg" style="margin-left:8px">Could not save: ${esc(err.message||err)}</span>`)}});
 
 function fillAccounts(){
   const sel=$('#acct'),cur=sel.value,acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
@@ -2582,7 +2640,7 @@ function show(c,note){
   S.srvNow=Math.max(0,...S.now.map(r=>r.t||0))||Date.now();
   const num=x=>x===''||x==null?null:+x;
   S.dd=(c.dd||[]).map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],flNow:num(v[4]),flToday:num(v[5]),flAll:num(v[6]),nToday:num(v[7]),nAll:num(v[8]),pToday:num(v[9]),pAll:num(v[10])}});
-  S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],fl:null,magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
+  S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],fl:v[10]===''||v[10]==null?null:(+v[10]||0)+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
   S.news=parseNews(c.nv||[]);
   fillAccounts();render();$('#syncBtn').hidden=false;
   const lastClose=c.tr.reduce((m,l)=>{const v=l.split(',')[9]||'';return v>m?v:m},'');
@@ -2610,7 +2668,7 @@ async function syncNow(){
       pageAll(`select to_char(date_trunc('hour',bucket),'YYYY.MM.DD HH24:MI:SS') as time,account,min(balance) as balance,min(equity_min) as equity,case when magic=-1 then 'ALL' else magic::text end as magic,min(floating_min) as floating,comment from public.equity group by 1,2,magic,comment`,EC,'equity','1,2,5,7'),
       pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,e.balance,e.equity_min as equity,e.floating_min as floating,to_char(e.bucket,'YYYY.MM.DD HH24:MI:SS') as bucket,extract(epoch from now()-e.received_at)::int as age from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account and l.b=e.bucket`,NC,'account snapshots','1,2'),
       // open MT5 positions rebuilt from the deals the EA already sends: entry deals not yet fully closed
-      pageAll(`select i.account,i.position as ticket,i.symbol,i.type,round((i.v-coalesce(o.v,0))::numeric,2) as lots,to_char(i.t,'YYYY.MM.DD HH24:MI:SS') as open_time,i.price as open_price,null as price,i.sl,null as tp,null as profit,null as swap,null as commission,i.magic,i.comment,null as age from (select account,position,min(time) t,sum(volume) v,(array_agg(type order by time,deal))[1] type,(array_agg(price order by time,deal))[1] price,(array_agg(sl order by time desc,deal desc))[1] sl,(array_agg(magic order by time,deal))[1] magic,(array_agg(comment order by time,deal))[1] comment,(array_agg(symbol))[1] symbol from public.deals where platform='MT5' and entry='in' and type in ('buy','sell') group by 1,2) i left join (select account,position,sum(volume) v from public.deals where platform='MT5' and entry in ('out','outby','inout') group by 1,2) o using (account,position) where i.v-coalesce(o.v,0)>1e-6`,PC,'open trades','1,6'),
+      pageAll(`select i.account,i.position as ticket,i.symbol,i.type,round((i.v-coalesce(o.v,0))::numeric,2) as lots,to_char(i.t,'YYYY.MM.DD HH24:MI:SS') as open_time,i.price as open_price,null as price,i.sl,null as tp,null as profit,null as swap,null as commission,i.magic,i.comment,null as age from (select account,position,min(time) t,sum(volume) v,(array_agg(type order by time,deal))[1] type,(array_agg(price order by time,deal))[1] price,(array_agg(sl order by time desc,deal desc))[1] sl,(array_agg(magic order by time,deal))[1] magic,(array_agg(comment order by time,deal))[1] comment,(array_agg(symbol))[1] symbol from public.deals where platform='MT5' and entry='in' and type in ('buy','sell') group by 1,2) i left join (select account,position,sum(volume) v from public.deals where platform='MT5' and entry in ('out','outby','inout') group by 1,2) o using (account,position) where i.v-coalesce(o.v,0)>1e-6 and i.account not in (select account from public.positions where updated_at>now()-interval '15 minutes') union all select account,ticket,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS'),open_price,price,sl,tp,profit,swap,commission,magic,comment,extract(epoch from now()-updated_at)::int from public.positions where updated_at>now()-interval '15 minutes'`,PC,'open trades','1,6'),
       pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,(array_agg(e.balance order by e.bucket desc))[1] as bal,(array_agg(e.floating_min order by e.bucket desc) filter (where e.bucket=l.b))[1] as fl_now,min(e.floating_min) filter (where ${DAY}) as fl_today,min(e.floating_min) as fl_all,max(e.open_max) filter (where ${DAY}) as n_today,max(e.open_max) as n_all,min(e.floating_min/nullif(e.balance,0)) filter (where ${DAY}) as p_today,min(e.floating_min/nullif(e.balance,0)) as p_all from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account group by 1,2,3`,DC,'drawdowns','1,2,3'),pageAll(NEWSQ,NVC,'news calendar','1,2,3').catch(()=>[]),sql('select public.ea_map_get() as r').then(r=>jget(r[0]&&r[0].r)).catch(()=>null)]);
     let all=tr;
     if(since){const key=l=>{const v=l.split(',');return v[0]+'|'+v[3]};const seen=new Set(tr.map(key));all=CACHE.tr.filter(l=>!seen.has(key(l))).concat(tr)}
