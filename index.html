@@ -2236,6 +2236,7 @@ function renderNewsHistory(T,N){
 
 /* ---------- Alerts (Telegram via Supabase) ---------- */
 const AL_KINDS={dd:['🔻','Open loss'],day:['📉','Daily loss'],off:['📴','Terminal offline'],so:['🛑','Stop-out'],ath:['🏆','New high'],quiet:['💤','EA gone quiet'],news:['📰','News while exposed']};
+const jget=v=>typeof v==='string'?JSON.parse(v):v;
 const tgHtml=m=>esc(m).replace(/&lt;(\/?)b&gt;/g,'<$1b>');
 let AL=null,alBusy=false;
 async function loadAlerts(force){
@@ -2244,10 +2245,10 @@ async function loadAlerts(force){
   if(AL&&!force){paintAlerts();return}
   if(alBusy) return;alBusy=true;
   try{
-    const [s]=await sql(`select enabled,chat_id is not null as linked,bot_name,float_dd_pct,day_loss_pct,offline_min,quiet_factor,quiet_min_days,stopouts,new_high,news_min,news_medium,muted::text as muted,exists(select 1 from vault.secrets where name='telegram_bot_token') as has_token from public.alert_settings where id=1`);
-    const now=await sql(`select c.key,c.kind,c.msg,coalesce(l.active,false) as sent from public.alert_conditions() c left join public.alert_log l using (key)`);
-    const log=await sql(`select kind,msg,to_char(at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"') as at,active,episode from public.alert_log order by at desc limit 30`);
-    AL={s,now,log};paintAlerts();syncAlertNames();
+    // one security-definer call: works through claude.ai and through the signed-in iPhone app alike
+    const [row]=await sql(`select public.alert_overview() as r`),o=jget(row&&row.r);
+    if(!o||!o.s) throw new Error('alert tables not found');
+    AL={s:o.s,now:o.now||[],log:o.log||[]};paintAlerts();syncAlertNames();
   }catch(e){el.innerHTML=`<p class="neg">Could not read the alert settings: ${esc(e.message||e)}</p>`}finally{alBusy=false}
 }
 function paintAlerts(){
@@ -2260,7 +2261,7 @@ function paintAlerts(){
   const f=$('#alForm');
   f.enabled.checked=s.enabled;f.float_dd_pct.value=+s.float_dd_pct;f.day_loss_pct.value=+s.day_loss_pct;f.offline_min.value=+s.offline_min;f.quiet_factor.value=+s.quiet_factor;f.quiet_min_days.value=+s.quiet_min_days;
   f.stopouts.checked=s.stopouts;f.new_high.checked=s.new_high;f.news_min.value=+s.news_min;f.news_medium.checked=s.news_medium;
-  const muted=new Set(String(s.muted||'').replace(/[{}]/g,'').split(',').filter(Boolean)),acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
+  const muted=new Set((Array.isArray(s.muted)?s.muted:String(s.muted||'').replace(/[{}]/g,'').split(',')).filter(v=>v!==''&&v!=null).map(String)),acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   $('#alMute').innerHTML=acc.map(a=>`<label class="al-acc"><input type="checkbox" value="${esc(a)}" ${muted.has(String(a))?'':'checked'}> ${esc(nm(a))}</label>`).join('');
   $('#alNow').innerHTML=now.length?now.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div><span class="chip ${r.sent?'pass':''}">${r.sent?'sent':'next check'}</span></div>`}).join(''):'<p class="muted">Nothing would alert right now. All quiet.</p>';
   $('#alLog').innerHTML=log.length?log.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l} · ${new Date(r.at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div>${r.episode?`<span class="chip ${r.active?'warn':''}">${r.active?'ongoing':'ended'}</span>`:''}</div>`}).join(''):'<p class="muted">No alerts yet.</p>';
@@ -2269,11 +2270,11 @@ function paintAlerts(){
 function syncAlertNames(){
   const rows=new Map();
   for(const t of S.trades){rows.set(t.acct+'|-1',[t.acct,-1,nm(t.acct)]);if(t.magic!=='0') rows.set(t.acct+'|'+t.magic,[t.acct,t.magic,t.fam])}
-  const vals=[...rows.values()].filter(([a,m])=>/^\d+$/.test(String(a))&&/^-?\d+$/.test(String(m))).map(([a,m,n])=>`(${a},${m},'${String(n).replace(/'/g,"''").slice(0,80)}')`);
+  const vals=[...rows.values()].filter(([a,m])=>/^\d+$/.test(String(a))&&/^-?\d+$/.test(String(m))).map(([a,m,n])=>[+a,+m,String(n).slice(0,80)]);
   if(!vals.length) return;
-  const sig=vals.join('|').length+':'+vals.length;let old='';try{old=localStorage.getItem('fx-alnames')||''}catch(e){}
+  const js=JSON.stringify(vals),sig=js.length+':'+vals.length;let old='';try{old=localStorage.getItem('fx-alnames')||''}catch(e){}
   if(sig===old) return;
-  sql(`insert into public.alert_names(account,magic,name) values ${vals.join(',')} on conflict (account,magic) do update set name=excluded.name where alert_names.name<>excluded.name`).then(()=>{try{localStorage.setItem('fx-alnames',sig)}catch(e){}}).catch(()=>{});
+  sql(`select public.alert_names_put('${js.replace(/'/g,"''")}'::jsonb) as n`).then(()=>{try{localStorage.setItem('fx-alnames',sig)}catch(e){}}).catch(()=>{});
 }
 function alMsg(t,bad){const m=$('#alMsg');m.textContent=t;m.className='al-msg '+(bad?'neg':'pos')}
 if($('#alForm')){
@@ -2281,7 +2282,7 @@ if($('#alForm')){
     const tok=$('#alTok').value.trim();
     if(tok&&!/^\d{5,}:[A-Za-z0-9_-]{30,}$/.test(tok)){alMsg('That does not look like a bot token. It looks like 123456789:AA…',true);return}
     alMsg('Connecting…');
-    try{const [r]=await sql(`select public.tg_connect('${tok}') as r`);const o=typeof r.r==='string'?JSON.parse(r.r):r.r;
+    try{const [r]=await sql(`select public.tg_connect('${tok}') as r`);const o=jget(r.r);
       if(o.ok){$('#alTok').value='';UI.alRelink=false;alMsg(`Connected to @${o.bot}. Check Telegram for the hello message.`);await loadAlerts(true)}else{alMsg(o.error||'Could not connect.',true);if(o.bot)await loadAlerts(true)}
     }catch(e){alMsg('Could not connect: '+(e.message||e),true)}
   };
@@ -2290,9 +2291,9 @@ if($('#alForm')){
   $('#alForm').onsubmit=async e=>{
     e.preventDefault();const f=e.target,n=(k,lo,hi)=>{const v=+f[k].value;if(!isFinite(v)||v<lo||v>hi) throw new Error(`${f[k].dataset.l} must be between ${lo} and ${hi}`);return v};
     try{
-      const acc=[...$('#alMute').querySelectorAll('input')],muted=acc.filter(i=>!i.checked).map(i=>i.value).filter(v=>/^\d+$/.test(v));
-      const q=`update public.alert_settings set enabled=${f.enabled.checked},float_dd_pct=${n('float_dd_pct',0,100)},day_loss_pct=${n('day_loss_pct',0,100)},offline_min=${Math.round(n('offline_min',0,1440))},quiet_factor=${n('quiet_factor',0,50)},quiet_min_days=${n('quiet_min_days',0,60)},stopouts=${f.stopouts.checked},new_high=${f.new_high.checked},news_min=${Math.round(n('news_min',0,240))},news_medium=${f.news_medium.checked},muted='{${muted.join(',')}}',updated_at=now() where id=1`;
-      alMsg('Saving…');await sql(q);alMsg('Saved. The next check uses these settings.');await loadAlerts(true);
+      const acc=[...$('#alMute').querySelectorAll('input')],muted=acc.filter(i=>!i.checked).map(i=>i.value).filter(v=>/^\d+$/.test(v)).map(Number);
+      const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,muted};
+      alMsg('Saving…');await sql(`select public.alert_save('${JSON.stringify(p)}'::jsonb) as ok`);alMsg('Saved. The next check uses these settings.');await loadAlerts(true);
     }catch(err){alMsg(err.message||String(err),true)}
   };
   $('#alRefresh').onclick=()=>loadAlerts(true);
