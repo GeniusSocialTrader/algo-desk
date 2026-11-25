@@ -578,6 +578,28 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .xp-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted);opacity:.6}
 .xp-v{text-align:right;color:var(--ink)}#liveExpo>p{font-size:12px;margin:10px 0 0}.xp-leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}.xp-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .eh-arch{margin-left:auto;font-size:12px;padding:4px 10px}
+
+/* v23 account detail */
+.ad-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}.ad-h h2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ad-h p{font-size:13px;margin-top:4px}
+.ad-h .dot{display:inline-block;vertical-align:middle}
+.ad-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:10px;margin-bottom:12px}
+.ad-t{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.ad-t .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.ad-t b{font:600 19px var(--f-data);letter-spacing:-.01em}.ad-t .tag{white-space:normal}
+.ad-open{margin:0 0 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.ad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px;margin-bottom:16px}
+#acctDetail>.panel{margin-bottom:16px}
+#acctDetail table{width:100%;border-collapse:collapse;font:12.5px var(--f-data)}
+#acctDetail th,#acctDetail td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+#acctDetail th:first-child,#acctDetail td:first-child{text-align:left}#acctDetail th{font:500 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ad-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:10px}.ad-stats .ad-t{background:var(--sunk);border:0}
+.ad-cal{display:flex;flex-direction:column;gap:4px}.ad-cr{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,1.1fr);gap:4px}
+.ad-cr span{border-radius:8px;padding:6px 7px;min-height:48px;display:flex;flex-direction:column;justify-content:space-between;background:var(--sunk);font:12px var(--f-data);min-width:0;overflow:hidden}
+.ad-cr span i{font-style:normal;color:var(--muted);font-size:10.5px}.ad-cr span b{font-weight:600;text-align:right;white-space:nowrap}
+.ad-cr.hd span{min-height:0;background:none;padding:0 2px;font:500 10.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ad-cr span.today{outline:2px solid var(--accent);outline-offset:-2px}.ad-cr span.fut{opacity:.35}.ad-cr span.wk{background:none;border:1px dashed var(--line)}
+.ad-mon td{font-size:12px}#adRecent td:nth-child(-n+4),#adRecent th:nth-child(-n+4){text-align:left}
+.ad-click{cursor:pointer}.ad-click:hover>td{background:var(--sunk)}.ad-click:focus-visible{outline:2px solid var(--c1);outline-offset:-2px}
+@media (max-width:600px){#adPer th:nth-child(n+5),#adPer td:nth-child(n+5){display:none}#adPer td:first-child{white-space:normal}#acctDetail table.tcards>tbody>tr>td{border:0;padding:0}.ad-t b{font-size:16px}.ad-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.ad-cr span{min-height:42px;padding:4px 5px;font-size:11px}.ad-cr span b{font-size:10.5px}}
 </style>
 </head>
 <body>
@@ -666,9 +688,11 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="accounts" aria-labelledby="hAcc">
-  <div class="sec-h"><div><span class="kicker">Side by side</span><h2 id="hAcc">Your accounts</h2></div><p>Tap a card to focus the whole page on that account. The first card is everything combined.</p></div>
+  <div class="sec-h"><div><span class="kicker">Side by side</span><h2 id="hAcc">Your accounts</h2></div><p>Tap a card to open that account: today, this week and month, every EA and symbol, and its latest trades. The first card is everything combined.</p></div>
   <div class="cards" id="cards"></div>
 </section>
+
+<section class="sec" data-tab="accounts" id="acctDetail" aria-labelledby="hAD" hidden></section>
 
 <section class="sec" data-tab="accounts" aria-labelledby="hNums">
   <div class="sec-h"><div><span class="kicker">In plain words</span><h2 id="hNums">Key numbers explained</h2></div><p>The green, amber or red dot says whether a value is healthy for an algo portfolio.</p></div>
@@ -1712,7 +1736,7 @@ function renderLive({T,a}){
   const lim=Math.max(cfg().ml,.01);
   const ddBar=p=>`<span class="hbar" style="width:70px;display:inline-block;vertical-align:middle"><b style="width:${Math.min(Math.abs(p)/lim,1)*100}%;background:var(${Math.abs(p)>=lim*.7?'--neg':'--warn'})"></b></span>`;
   $('#liveAcc').innerHTML=accRows.length?`<thead><tr><th>Account</th><th>Open</th><th>Floating</th><th>DD now</th><th>Max DD today</th><th>Max DD ever</th></tr></thead><tbody>`+
-    accRows.map(r=>`<tr><td><b>${esc(nm(r.ac))}</b> <span class="tag">${r.mt4?'MT4':'MT5'}</span>${r.age!=null&&r.age>900?` <span class="chip warn">${Math.round(r.age/60)} min old</span>`:''}</td><td data-l="Open">${r.n?(r.exact?'':'≥ ')+r.n:'0'}</td><td data-l="Floating" class="${cls(r.fl)}">${money(r.fl,2)}</td>
+    accRows.map(r=>`<tr data-a="${esc(r.ac)}" class="ad-click" tabindex="0" title="Open this account"><td><b>${esc(nm(r.ac))}</b> <span class="tag">${r.mt4?'MT4':'MT5'}</span>${r.age!=null&&r.age>900?` <span class="chip warn">${Math.round(r.age/60)} min old</span>`:''}</td><td data-l="Open">${r.n?(r.exact?'':'≥ ')+r.n:'0'}</td><td data-l="Floating" class="${cls(r.fl)}">${money(r.fl,2)}</td>
       <td data-l="DD now" class="${r.pNow<0?'neg':''}">${pct(r.pNow,2)} ${ddBar(r.pNow)}</td><td data-l="Max DD today" class="${r.pToday<0?'neg':''}">${pct(r.pToday,2)} <span class="tag">${money(r.flToday)}</span></td><td data-l="Max DD ever" class="${r.pAll<0?'neg':''}">${pct(r.pAll,2)} <span class="tag">${money(r.flAll)}</span></td></tr>`).join('')+'</tbody>'
     :'<tbody><tr><td class="muted">Shows once the EA has sent its first equity snapshot.</td></tr></tbody>';
   const kindChip=k=>k==='Single'?'':`<span class="chip ${k==='Martingale'?'fail':'warn'}">${k}</span>`;
@@ -2642,7 +2666,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v22';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v23';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2929,6 +2953,130 @@ function cardify(id){const t=document.getElementById(id);if(!t)return;t.classLis
   const lab=()=>{const h=t.tHead?[...t.tHead.rows[0].cells].map(c=>c.textContent.trim()):[];for(const r of (t.tBodies[0]||{rows:[]}).rows)[...r.cells].forEach((c,i)=>{if(i&&h[i]&&!c.dataset.l)c.dataset.l=h[i]})};
   lab();new MutationObserver(lab).observe(t,{childList:true})}
 cardify('riskEATbl');
+
+/* ---------- v23: account detail. Tap an account (Accounts cards, Live accounts table) for its own page ---------- */
+function openAcct(ac){$('#acct').value=ac;render();showTab('accounts');
+  requestAnimationFrame(()=>{const d=document.getElementById('acctDetail');if(d)d.scrollIntoView({block:'start',behavior:'smooth'})})}
+const _renderCards=renderCards;
+renderCards=function(ctx){_renderCards(ctx);
+  $('#cards').querySelectorAll('.acard').forEach(b=>b.onclick=()=>openAcct(b.dataset.a));
+  renderAcctDetail(ctx)};
+document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('#liveAcc tr[data-a]');if(tr)openAcct(tr.dataset.a)});
+
+function renderAcctDetail({a,c}){
+  const el=$('#acctDetail');if(!el)return;
+  const st=acctStats(a,c.cap);if(!st){el.hidden=true;return}el.hidden=false;
+  const T=st.T,M=st.M,D=M.D,one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
+  const now=S.srvNow||T[T.length-1].ct,today=dayKey(now),d0=Math.floor(now/DAY)*DAY;
+  const wd=(new Date(d0).getUTCDay()+6)%7,wk0=d0-wd*DAY,mo0=Date.UTC(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth(),1);
+  const pm=new Date(mo0-DAY),pmo0=Date.UTC(pm.getUTCFullYear(),pm.getUTCMonth(),1),yr0=Date.UTC(new Date(d0).getUTCFullYear(),0,1);
+  const prevDay=[...D].reverse().find(d=>d.d<d0&&d.pnl!==0);
+  // balance at the start of a period: the dense day series carries it
+  const startBal=t0=>{const d=D.find(x=>x.d>=t0);return d?d.start:(D.length?D[D.length-1].end:st.bal)};
+  const per=(lab,t0,t1)=>{const ts=T.filter(t=>t.ct>=t0&&t.ct<t1),p=ts.reduce((s,t)=>s+t.net,0),w=ts.filter(t=>t.net>0).length,sb=startBal(t0);
+    return {lab,p,g:sb>0?p/sb:null,n:ts.length,wr:ts.length?w/ts.length:null,lots:ts.reduce((s,t)=>s+t.lots,0),best:ts.length?Math.max(...ts.map(t=>t.net)):null,worst:ts.length?Math.min(...ts.map(t=>t.net)):null}};
+  const P=[per('Today',d0,d0+DAY),prevDay?per('Previous day · '+new Date(prevDay.d).toUTCString().slice(0,11),prevDay.d,prevDay.d+DAY):null,
+    per('This week',wk0,d0+DAY),per('Last week',wk0-7*DAY,wk0),per('This month',mo0,d0+DAY),per(MON[pm.getUTCMonth()]+' (last month)',pmo0,mo0),
+    per('This year',yr0,d0+DAY),per('All time',0,Infinity)].filter(Boolean);
+  P[P.length-1].g=st.base?M.net/st.base:null;
+
+  // live: open trades and drawdown from the balance peak
+  posValues(S.pos||[]);
+  const ps=(S.pos||[]).filter(p=>inSel(p.acct,a)),risk=ps.length?stopRisk(ps):null;
+  const live=ps.some(p=>isLiveAcct(p.acct))||(one&&isLiveAcct(a));
+  const fl=st.fl!=null?st.fl:ps.reduce((s,p)=>s+(p.fl||0),0);
+  // peak of the closed balance; trusted only when the trade history rebuilds today's balance (deposits all recorded)
+  const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal),st.bal):null;
+  const downPk=peak?((st.eq!=null?st.eq:st.bal)-peak)/peak:null;
+  const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0).reduce((s,x)=>s+x.amt,0);
+  const comm=T.reduce((s,t)=>s+(t.comm||0),0),swap=T.reduce((s,t)=>s+(t.swap||0),0);
+  const longs=T.filter(t=>t.side==='buy'),shorts=T.filter(t=>t.side==='sell'),wr=ts=>ts.length?ts.filter(t=>t.net>0).length/ts.length:null;
+  const bestT=T.reduce((b,t)=>t.net>b.net?t:b,T[0]),worstT=T.reduce((b,t)=>t.net<b.net?t:b,T[0]);
+  const hold=T.reduce((s,t)=>s+(t.ct-t.ot),0)/T.length/HOUR;
+  const holdTxt=h=>h<1?Math.round(h*60)+' min':h<48?fmt(h,1)+' h':fmt(h/24,1)+' days';
+  const days=D.filter(d=>d.pnl!==0),upDays=days.filter(d=>d.pnl>0).length;
+  const sign=v=>(v>0?'+':'')+money(v,2);
+
+  // daily calendar: the last 6 weeks, Monday to Friday, with a week total
+  const cal=[];for(let w=5;w>=0;w--){const ws=wk0-w*7*DAY,row=[];let tot=0;for(let i=0;i<5;i++){const t=ws+i*DAY,dd=D.find(x=>x.d===t),v=dd?dd.pnl:0;tot+=v;row.push({t,v,has:!!dd&&dd.pnl!==0,fut:t>d0,start:dd?dd.start:0})}cal.push({ws,row,tot})}
+  const big=Math.max(1,...cal.flatMap(w=>w.row.map(x=>Math.abs(x.v))));
+  const tint=v=>v?`background:color-mix(in srgb,var(${v>0?'--pos':'--neg'}) ${Math.round(12+48*Math.min(1,Math.abs(v)/big))}%,var(--surface))`:'';
+  // monthly returns, compounded from daily returns
+  const MR={},hasM=new Set(T.map(t=>dayKey(t.ct).slice(0,7)));for(const d of D){if(!hasM.has(d.key.slice(0,7)))continue;const y=d.key.slice(0,4),m=+d.key.slice(5,7)-1;const o=(MR[y]=MR[y]||{m:{},p:{}});o.m[m]=(o.m[m]==null?1:o.m[m])*(1+(d.start>0?d.pnl/d.start:0));o.p[m]=(o.p[m]||0)+d.pnl}
+  const years=Object.keys(MR).sort().reverse();
+  const mt=v=>v==null?'':`background:color-mix(in srgb,var(${v>0?'--pos':'--neg'}) ${Math.round(10+40*Math.min(1,Math.abs(v)/.1))}%,transparent)`;
+
+  // EAs and symbols on this account
+  const grp=(f)=>{const G={};for(const t of T){const k=f(t);(G[k]=G[k]||[]).push(t)}return Object.entries(G).map(([k,ts])=>{const n=ts.reduce((s,t)=>s+t.net,0),gp=ts.filter(t=>t.net>0).reduce((s,t)=>s+t.net,0),gl=-ts.filter(t=>t.net<0).reduce((s,t)=>s+t.net,0);
+    return {k,ts,n,wr:wr(ts),pf:gl?gp/gl:Infinity,today:ts.filter(t=>t.ct>=d0).reduce((s,t)=>s+t.net,0),mo:ts.filter(t=>t.ct>=mo0).reduce((s,t)=>s+t.net,0),last:ts[ts.length-1].ct,lots:ts.reduce((s,t)=>s+t.lots,0)}}).sort((x,y)=>y.n-x.n)};
+  const EA=grp(t=>t.fam),SY=grp(t=>t.sym);
+  const openBy=f=>{const o={};for(const p of ps){const k=f(p);o[k]=(o[k]||0)+(p.fl||0)}return o},oEA=openBy(p=>p.fam),oSY=openBy(p=>p.sym);
+  const cntEA={};for(const p of ps)cntEA[p.fam]=(cntEA[p.fam]||0)+1;
+  const pfT=v=>v===Infinity?'∞':fmt(v,2);
+  const label=a==='ALL'?'All accounts combined':a==='REAL'?'Real accounts combined':a==='DEMO'?'Demo accounts combined':nm(a);
+
+  const tile=(k,v,sub,c2)=>`<div class="ad-t"><span class="k">${k}</span><b class="${c2||''}">${v}</b>${sub?`<span class="tag">${sub}</span>`:''}</div>`;
+  el.innerHTML=`<div class="ad-h"><div><span class="kicker">${one?'Account':'Combined'}</span><h2 id="hAD">${esc(label)} ${one?`<span class="chip ${isDemoAcct(a)?'':'pass'}">${isDemoAcct(a)?'Demo':'Live'}</span>`:''}</h2>
+    <p class="muted">${one?`${esc(st.plat||'')} · #${esc(a)} · `:''}${T.length.toLocaleString()} closed trades since ${new Date(M.t0).toUTCString().slice(5,16)} · ${live?'<span class="dot"></span> live, updated every 30 seconds':st.age!=null?'last report '+Math.round(st.age/60)+' min ago':'no live feed'}</p></div>
+    ${a!=='ALL'?'<button type="button" class="btn" id="adAll">Show all accounts</button>':''}</div>
+  <div class="ad-strip">
+    ${tile('Balance',money(st.bal,2))}${tile('Equity',st.eq!=null?money(st.eq,2):'–',st.eq!=null?`${fl>=0?'+':''}${money(fl,2)} open`:'',st.eq!=null?cls(fl):'')}
+    ${tile('Today',sign(P[0].p),P[0].n?`${P[0].n} trade${P[0].n>1?'s':''} closed${P[0].g!=null?' · '+pct(P[0].g,2):''}`:'nothing closed yet',cls(P[0].p))}
+    ${tile('This month',sign(P.find(x=>x.lab==='This month').p),P.find(x=>x.lab==='This month').g!=null?pct(P.find(x=>x.lab==='This month').g,2):'',cls(P.find(x=>x.lab==='This month').p))}
+    ${tile('Net profit',sign(M.net),st.base?pct(M.net/st.base,1)+' gain':'',cls(M.net))}
+    ${tile('Open now',ps.length?`${ps.length} trade${ps.length>1?'s':''}`:'none',ps.length?`${sign(fl)}${risk&&risk.noSL<risk.n?` · if stops hit ${money(risk.sum,0)}`:risk?' · no stop losses':''}`:'',ps.length?cls(fl):'')}
+    ${peak?tile('Below peak',downPk<-0.0005?pct(downPk,2):'at peak',`equity vs peak balance ${money(peak,0)}`,downPk<-0.0005?'neg':'pos'):tile('Drawdown now',st.eq!=null&&st.bal?pct(Math.min(0,fl/st.bal),2):'–','open loss vs balance',fl<0?'neg':'')}
+    ${tile('Deposits',money(dep,0),wdr?`withdrawn ${money(wdr,0)}`:'no withdrawals')}
+  </div>
+  ${ps.length?`<p class="ad-open"><button type="button" class="btn" id="adOpen">See the ${ps.length} open trade${ps.length>1?'s':''}</button> <span class="muted">${Object.keys(cntEA).map(k=>`${esc(k)} ${cntEA[k]}`).join(' · ')}</span></p>`:''}
+
+  <div class="ad-grid">
+  <section class="panel"><header><h3>Profit by period</h3><p>Closed trades in broker server time. Gain is against the balance when the period began.</p></header>
+    <div class="scroll"><table id="adPer"><thead><tr><th>Period</th><th>Profit</th><th>Gain</th><th>Trades</th><th>Won</th><th>Lots</th><th>Best</th><th>Worst</th></tr></thead><tbody>${P.map(x=>`<tr><td>${esc(x.lab)}</td><td class="${cls(x.p)}"><b>${sign(x.p)}</b></td><td class="${cls(x.p)}">${x.g==null?'–':pct(x.g,2)}</td><td>${x.n}</td><td>${x.wr==null?'–':pct(x.wr,0)}</td><td>${fmt(x.lots,2)}</td><td class="${cls(x.best)}">${x.best==null?'–':money(x.best,2)}</td><td class="${cls(x.worst)}">${x.worst==null?'–':money(x.worst,2)}</td></tr>`).join('')}</tbody></table></div></section>
+
+  <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined.</p></header>
+    <div class="ad-cal" role="table" aria-label="Daily profit calendar"><div class="ad-cr hd" role="row">${['Mon','Tue','Wed','Thu','Fri','Week'].map(x=>`<span role="columnheader">${x}</span>`).join('')}</div>
+    ${cal.map(w=>`<div class="ad-cr" role="row">${w.row.map(x=>`<span role="cell" class="${x.t===d0?'today':''}${x.fut?' fut':''}" style="${tint(x.v)}" title="${dayKey(x.t)}: ${money(x.v,2)}${x.start?' ('+pct(x.v/x.start,2)+')':''}"><i>${new Date(x.t).getUTCDate()}</i>${x.has?`<b>${x.v>0?'+':''}${money(x.v,0)}</b>`:''}</span>`).join('')}<span role="cell" class="wk ${cls(w.tot)}"><i>&nbsp;</i><b>${w.tot?(w.tot>0?'+':'')+money(w.tot,0):'0'}</b></span></div>`).join('')}</div>
+    <p class="muted" style="font-size:12px">${upDays} of ${days.length} trading days in profit (${pct(days.length?upDays/days.length:0,0)}). Best day ${money(M.best.pnl,2)} on ${M.best.key}, worst ${money(M.worst.pnl,2)} on ${M.worst.key}.</p></section>
+  </div>
+
+  <section class="panel"><header><h3>Monthly returns</h3><p>Percent gain each month, compounded from the daily balance. Hover for the money amount.</p></header>
+    <div class="scroll"><table id="adMon" class="ad-mon"><thead><tr><th>Year</th>${MON.map(m=>`<th>${m}</th>`).join('')}<th>Year</th></tr></thead><tbody>${years.map(y=>{const o=MR[y];let yr=1,yp=0;for(const m in o.m){yr*=o.m[m];yp+=o.p[m]}
+      return `<tr><td><b>${y}</b></td>${MON.map((_,i)=>{const v=o.m[i]==null?null:o.m[i]-1;return `<td style="${mt(v)}" title="${v==null?'':money(o.p[i],2)}">${v==null?'':pct(v,1)}</td>`}).join('')}<td class="${cls(yr-1)}" title="${money(yp,2)}"><b>${pct(yr-1,1)}</b></td></tr>`}).join('')}</tbody></table></div></section>
+
+  <section class="panel"><header><h3>Trading statistics</h3><p>All closed trades on ${one?'this account':'these accounts'}.</p></header>
+    <div class="ad-stats">
+    ${tile('Trades',T.length.toLocaleString(),`${fmt(T.reduce((s,t)=>s+t.lots,0),2)} lots`)}
+    ${tile('Win rate',pct(M.wr,1),`${M.w} won · ${M.l} lost`)}
+    ${tile('Longs won',longs.length?pct(wr(longs),0):'–',`${longs.length} buys · ${money(longs.reduce((s,t)=>s+t.net,0),0)}`)}
+    ${tile('Shorts won',shorts.length?pct(wr(shorts),0):'–',`${shorts.length} sells · ${money(shorts.reduce((s,t)=>s+t.net,0),0)}`)}
+    ${tile('Profit factor',pfT(M.pf),'gross win ÷ gross loss',M.pf>=1.5?'pos':M.pf<1?'neg':'')}
+    ${tile('Expectancy',money(M.exp,2),'average per trade',cls(M.exp))}
+    ${tile('Average win',money(M.avgW,2),`average loss ${money(-M.avgL,2)}`,'pos')}
+    ${tile('Payoff',fmt(M.payoff,2),'average win ÷ average loss')}
+    ${tile('Best trade',money(bestT.net,2),`${esc(bestT.sym)} · ${dayKey(bestT.ct)}`,'pos')}
+    ${tile('Worst trade',money(worstT.net,2),`${esc(worstT.sym)} · ${dayKey(worstT.ct)}`,'neg')}
+    ${tile('Average hold',holdTxt(hold),`wins ${holdTxt(M.holdW)} · losses ${holdTxt(M.holdL)}`)}
+    ${tile('Max drawdown',pct(M.maxDDp,1),money(-M.maxDD,0)+' on closed balance','neg')}
+    ${tile('Losing run',M.maxL+' in a row',`winning run ${M.maxW}`)}
+    ${tile('Sharpe',fmt(M.sharpe,2),`Sortino ${fmt(M.sortino,2)}`)}
+    ${tile('Costs',money(comm+swap,2),`commission ${money(comm,0)} · swap ${money(swap,0)}`,cls(comm+swap))}
+    ${tile('Stop-outs',String(T.filter(t=>t.so).length),`no stop loss on ${pct(T.filter(t=>!t.sl).length/T.length,0)} of trades`,T.some(t=>t.so)?'neg':'')}
+    </div></section>
+
+  <section class="panel"><header><h3>EAs on ${one?'this account':'these accounts'}</h3><p>Tap an EA for its full report.</p></header>
+    <div class="scroll"><table id="adEA"><thead><tr><th>EA</th><th>Trades</th><th>Net</th><th>Today</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${EA.map(r=>`<tr data-ea="${esc(r.k)}" class="ad-click" tabindex="0"><td>${avatar(r.k,18)} <b>${esc(r.k)}</b><span class="tag"> last ${dayKey(r.last)}</span></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.today)}">${r.today?sign(r.today):'–'}</td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oEA[r.k]||0)}">${cntEA[r.k]?`${cntEA[r.k]} · ${sign(oEA[r.k])}`:'–'}</td></tr>`).join('')}</tbody></table></div></section>
+  <section class="panel"><header><h3>By symbol</h3><p>Where the money was made and lost${SY.length>12?`. Top 12 of ${SY.length} symbols`:''}.</p></header>
+    <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.slice(0,12).map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
+
+  <section class="panel"><header><h3>Latest closed trades</h3><p>The 15 most recent, newest first.</p></header>
+    <div class="scroll"><table id="adRecent"><thead><tr><th>Closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>P/L</th></tr></thead><tbody>${T.slice(-15).reverse().map(t=>`<tr><td>${shortT(t.ct)}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}${t.so?' <span class="chip fail">stop-out</span>':''}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td class="${cls(t.net)}"><b>${sign(t.net)}</b></td></tr>`).join('')}</tbody></table></div></section>`;
+
+  ['adEA','adSym','adRecent'].forEach(cardify);
+  const all=$('#adAll');if(all)all.onclick=()=>{$('#acct').value='ALL';render()};
+  const op=$('#adOpen');if(op)op.onclick=()=>{if(one)UI.ovX.add('A:'+a);showTab('overview');renderOpenNow({a});requestAnimationFrame(()=>$('#ovOpen').scrollIntoView({block:'start',behavior:'smooth'}))};
+  el.querySelectorAll('#adEA tr[data-ea]').forEach(tr=>{const go=()=>{UI.ea=tr.dataset.ea;showTab('eas');render();const d=document.getElementById('hDive');if(d)d.scrollIntoView({block:'start'})};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go()}}});
+}
 
 </script>
 
