@@ -681,7 +681,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
       <label><span>🏆 New all-time highs</span><input type="checkbox" name="new_high"></label>
       <div class="full"><span class="k">Accounts to watch</span><div class="al-mute" id="alMute"></div></div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="submit" class="al-btn primary">Save</button><button type="button" class="al-btn" id="alRefresh">Refresh</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="submit" class="al-btn primary" id="alSave">Save</button><button type="button" class="al-btn" id="alRefresh">Refresh</button><p class="al-msg" id="alSaveMsg" role="status" style="flex:1 1 200px"></p></div>
   </form>
   <section class="panel"><header><h3>True right now</h3><p>What the alert check sees at this moment. Anything already sent is not sent again until it clears.</p></header><div id="alNow"></div></section>
   <section class="panel"><header><h3>Recent alerts</h3></header><div id="alLog"></div></section>
@@ -2254,9 +2254,10 @@ async function loadAlerts(force){
 function paintAlerts(){
   const {s,now,log}=AL,el=$('#alStatus');
   el.innerHTML=s.linked?`<div class="al-ok"><span class="chip pass">Connected</span> <b>@${esc(s.bot_name||'your bot')}</b> sends your alerts. Checks run every 5 minutes in Supabase, so your computer can be off.</div>`:
+    s.has_token?`<div class="al-ok"><span class="chip warn">Almost there</span> Your token for <b>@${esc(s.bot_name||'your bot')}</b> is saved. Open the bot in Telegram, tap <b>Start</b>, then press Connect here (the box can stay empty).</div>`:
     `<ol class="al-steps"><li>In Telegram, open <b>@BotFather</b>, send <code>/newbot</code> and pick any name.</li><li>Open your new bot and press <b>Start</b>.</li><li>Paste the token BotFather gave you here and press Connect.</li></ol>`;
   $('#alForm').hidden=false;
-  $('#alTokRow').hidden=!!s.linked&&!UI.alRelink;
+  $('#alTokRow').hidden=!!s.linked&&!UI.alRelink;$('#alTok').placeholder=s.has_token&&!s.linked?'Token saved. Leave empty and press Connect':'Bot token, like 123456789:AA…';
   $('#alRelink').hidden=!s.linked;$('#alTest').hidden=!s.linked;
   const f=$('#alForm');
   f.enabled.checked=s.enabled;f.float_dd_pct.value=+s.float_dd_pct;f.day_loss_pct.value=+s.day_loss_pct;f.offline_min.value=+s.offline_min;f.quiet_factor.value=+s.quiet_factor;f.quiet_min_days.value=+s.quiet_min_days;
@@ -2276,7 +2277,7 @@ function syncAlertNames(){
   if(sig===old) return;
   sql(`select public.alert_names_put('${js.replace(/'/g,"''")}'::jsonb) as n`).then(()=>{try{localStorage.setItem('fx-alnames',sig)}catch(e){}}).catch(()=>{});
 }
-function alMsg(t,bad){const m=$('#alMsg');m.textContent=t;m.className='al-msg '+(bad?'neg':'pos')}
+function alMsg(t,bad,id){const m=$(id||'#alMsg');m.textContent=t;m.className='al-msg '+(bad?'neg':'pos')}
 if($('#alForm')){
   $('#alConnect').onclick=async()=>{
     const tok=$('#alTok').value.trim();
@@ -2293,8 +2294,11 @@ if($('#alForm')){
     try{
       const acc=[...$('#alMute').querySelectorAll('input')],muted=acc.filter(i=>!i.checked).map(i=>i.value).filter(v=>/^\d+$/.test(v)).map(Number);
       const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,muted};
-      alMsg('Saving…');await sql(`select public.alert_save('${JSON.stringify(p)}'::jsonb) as ok`);alMsg('Saved. The next check uses these settings.');await loadAlerts(true);
-    }catch(err){alMsg(err.message||String(err),true)}
+      const b=$('#alSave');b.disabled=true;b.textContent='Saving…';alMsg('','', '#alSaveMsg');
+      try{await sql(`select public.alert_save('${JSON.stringify(p)}'::jsonb) as ok`);await loadAlerts(true);
+        alMsg(`✓ Saved at ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}. The next check (within 5 minutes) uses these settings.`,false,'#alSaveMsg')}
+      finally{b.disabled=false;b.textContent='Save'}
+    }catch(err){alMsg('Not saved: '+(err.message||String(err)),true,'#alSaveMsg')}
   };
   $('#alRefresh').onclick=()=>loadAlerts(true);
 }
