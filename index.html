@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261125140505">
+<meta name="desk-build" content="20261125165307">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261125140505',busy=false;
+(function(){var mine='20261125165307',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -616,6 +616,18 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .dd-t tr.over td{background:color-mix(in srgb,var(--neg) 8%,transparent)}.dd-panel{margin-bottom:16px}#eaDD .dd-panel{margin-top:16px}
 #eaDD table,.dd-t{width:100%;border-collapse:collapse;font:12.5px var(--f-data)}.dd-t th,.dd-t td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}.dd-t th:first-child,.dd-t td:first-child{text-align:left}.dd-t th{font:500 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 @media (max-width:600px){.dd-t th:nth-child(n+4),.dd-t td:nth-child(n+4){display:none}.dd-t td:nth-child(4){width:auto}.dd-t td:nth-child(4){min-width:70px}}
+.adt-f{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}.adt-f label{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 140px;max-width:220px}
+.adt-f select{font:13px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 8px;width:100%;min-width:0}
+.adt-f .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.adt-s{margin:4px 0 0}
+.lbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}.lb{display:flex;flex-direction:column;gap:4px;min-width:0}.lb>.k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lb-r{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:8px;align-items:center;background:none;border:0;padding:4px 2px;border-radius:6px;font:12.5px var(--f-body);color:var(--ink);text-align:left;cursor:pointer}
+.lb-r:hover,.lb-r:focus-visible{background:var(--sunk)}.lb-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lb-b{height:7px;border-radius:4px;background:var(--sunk);overflow:hidden}.lb-b i{display:block;height:100%;background:var(--neg);border-radius:4px}.lb-r b{font:600 12.5px var(--f-data)}
+#adTr th:nth-child(-n+4),#adTr td:nth-child(-n+4),#adTr th:nth-child(9),#adTr td:nth-child(9){text-align:left}#adTr tr.lossr td:last-child{background:color-mix(in srgb,var(--neg) 7%,transparent)}
+.ad-day{cursor:pointer}.ad-cr span.ad-day:hover{outline:2px solid var(--ink);outline-offset:-2px}tr.ad-day:hover>td{background:var(--sunk)}
+@media (max-width:600px){.adt-f label{flex:1 1 calc(50% - 10px);max-width:none}
+ #adTr td:nth-child(6),#adTr td:nth-child(7),#adTr td:nth-child(10){display:none}
+ #adTr>tbody>tr>td:first-child{grid-column:1/3;font-weight:600}#adTr>tbody>tr>td:last-child{order:-1;grid-column:3;grid-row:1;text-align:right!important;font-size:14px;background:none}#adTr>tbody>tr>td:last-child::before{display:none}
+ #adTr>tbody>tr{gap:6px 10px;padding:10px 2px}#adTr tr.lossr{border-left:3px solid var(--neg);padding-left:8px}#adTr>tbody>tr.lossr>td:last-child{background:none}}
 </style>
 </head>
 <body>
@@ -2682,7 +2694,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v24';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v25';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2971,8 +2983,10 @@ function cardify(id){const t=document.getElementById(id);if(!t)return;t.classLis
 cardify('riskEATbl');
 
 /* ---------- v23: account detail. Tap an account (Accounts cards, Live accounts table) for its own page ---------- */
+// scroll below the sticky top bar
+function goTo(el){if(!el)return;const b=document.querySelector('.bar-top'),h=b?b.getBoundingClientRect().height:0;window.scrollTo({top:el.getBoundingClientRect().top+scrollY-h-8,behavior:'smooth'})}
 function openAcct(ac){$('#acct').value=ac;render();showTab('accounts');
-  requestAnimationFrame(()=>{const d=document.getElementById('acctDetail');if(d)d.scrollIntoView({block:'start',behavior:'smooth'})})}
+  requestAnimationFrame(()=>goTo(document.getElementById('acctDetail')))}
 const _renderCards=renderCards;
 renderCards=function(ctx){_renderCards(ctx);
   $('#cards').querySelectorAll('.acard').forEach(b=>b.onclick=()=>openAcct(b.dataset.a));
@@ -3050,9 +3064,9 @@ function renderAcctDetail({a,c}){
   <section class="panel"><header><h3>Profit by period</h3><p>Closed trades in broker server time. Gain is against the balance when the period began.</p></header>
     <div class="scroll"><table id="adPer"><thead><tr><th>Period</th><th>Profit</th><th>Gain</th><th>Trades</th><th>Won</th><th>Lots</th><th>Best</th><th>Worst</th></tr></thead><tbody>${P.map(x=>`<tr><td>${esc(x.lab)}</td><td class="${cls(x.p)}"><b>${sign(x.p)}</b></td><td class="${cls(x.p)}">${x.g==null?'–':pct(x.g,2)}</td><td>${x.n}</td><td>${x.wr==null?'–':pct(x.wr,0)}</td><td>${fmt(x.lots,2)}</td><td class="${cls(x.best)}">${x.best==null?'–':money(x.best,2)}</td><td class="${cls(x.worst)}">${x.worst==null?'–':money(x.worst,2)}</td></tr>`).join('')}</tbody></table></div></section>
 
-  <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined.</p></header>
+  <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined. Tap a day to see its trades.</p></header>
     <div class="ad-cal" role="table" aria-label="Daily profit calendar"><div class="ad-cr hd" role="row">${['Mon','Tue','Wed','Thu','Fri','Week'].map(x=>`<span role="columnheader">${x}</span>`).join('')}</div>
-    ${cal.map(w=>`<div class="ad-cr" role="row">${w.row.map(x=>`<span role="cell" class="${x.t===d0?'today':''}${x.fut?' fut':''}" style="${tint(x.v)}" title="${dayKey(x.t)}: ${money(x.v,2)}${x.start?' ('+pct(x.v/x.start,2)+')':''}"><i>${new Date(x.t).getUTCDate()}</i>${x.has?`<b>${x.v>0?'+':''}${money(x.v,0)}</b>`:''}</span>`).join('')}<span role="cell" class="wk ${cls(w.tot)}"><i>&nbsp;</i><b>${w.tot?(w.tot>0?'+':'')+money(w.tot,0):'0'}</b></span></div>`).join('')}</div>
+    ${cal.map(w=>`<div class="ad-cr" role="row">${w.row.map(x=>`<span role="cell" class="${x.t===d0?'today':''}${x.fut?' fut':''}${x.has?' ad-day':''}"${x.has?` data-day="${x.t}" tabindex="0"`:''} style="${tint(x.v)}" title="${dayKey(x.t)}: ${money(x.v,2)}${x.start?' ('+pct(x.v/x.start,2)+')':''}"><i>${new Date(x.t).getUTCDate()}</i>${x.has?`<b>${x.v>0?'+':''}${money(x.v,0)}</b>`:''}</span>`).join('')}<span role="cell" class="wk ${cls(w.tot)}"><i>&nbsp;</i><b>${w.tot?(w.tot>0?'+':'')+money(w.tot,0):'0'}</b></span></div>`).join('')}</div>
     <p class="muted" style="font-size:12px">${upDays} of ${days.length} trading days in profit (${pct(days.length?upDays/days.length:0,0)}). Best day ${money(M.best.pnl,2)} on ${M.best.key}, worst ${money(M.worst.pnl,2)} on ${M.worst.key}.</p></section>
   </div>
 
@@ -3085,10 +3099,10 @@ function renderAcctDetail({a,c}){
   <section class="panel"><header><h3>By symbol</h3><p>Where the money was made and lost${SY.length>12?`. Top 12 of ${SY.length} symbols`:''}.</p></header>
     <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.slice(0,12).map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
 
-  <section class="panel"><header><h3>Latest closed trades</h3><p>The 15 most recent, newest first.</p></header>
-    <div class="scroll"><table id="adRecent"><thead><tr><th>Closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>P/L</th></tr></thead><tbody>${T.slice(-15).reverse().map(t=>`<tr><td>${shortT(t.ct)}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}${t.so?' <span class="chip fail">stop-out</span>':''}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td class="${cls(t.net)}"><b>${sign(t.net)}</b></td></tr>`).join('')}</tbody></table></div></section>`;
+  <section class="panel" id="adTrades" aria-labelledby="hADT"></section>`;
 
-  ['adEA','adSym','adRecent'].forEach(cardify);
+  ['adEA','adSym'].forEach(cardify);
+  renderAdTrades(a);
   const all=$('#adAll');if(all)all.onclick=()=>{$('#acct').value='ALL';render()};
   const op=$('#adOpen');if(op)op.onclick=()=>{if(one)UI.ovX.add('A:'+a);showTab('overview');renderOpenNow({a});requestAnimationFrame(()=>$('#ovOpen').scrollIntoView({block:'start',behavior:'smooth'}))};
   el.querySelectorAll('#adEA tr[data-ea]').forEach(tr=>{const go=()=>{UI.ea=tr.dataset.ea;showTab('eas');render();const d=document.getElementById('hDive');if(d)d.scrollIntoView({block:'start'})};tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go()}}});
@@ -3132,7 +3146,7 @@ function ddPanel(rows,title,sub){
   const big=Math.max(lim,...rows.slice(0,30).map(r=>r.ddp),.0001);
   return `<section class="panel dd-panel"><header><h3>${title}</h3><p>${sub} Your daily loss limit in Settings is ${pct(lim,0)}.</p></header>
   <div class="ad-strip">${tile('Today',td,td?(td.at?'low at '+new Date(td.at).toISOString().slice(11,16):''):'')}${tile(yd&&yd.d===now-DAY?'Yesterday':'Previous day',yd,yd?dn(yd.d):'')}${tile('Worst, last 30 days',w30,w30?dn(w30.d):'')}${tile('Worst ever',wAll,wAll?dn(wAll.d)+(wAll.src==='closed'?' · closed only':''):'')}</div>
-  <div class="scroll"><table class="dd-t"><thead><tr><th>Day</th><th>Daily drawdown</th><th>%</th><th></th><th title="how much worse it got during the day, against the equity the day started with (open trades carried over excluded)">From day-start equity</th><th>Closed P/L</th><th>Trades</th><th>Based on</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr class="${r.ddp>=lim?'over':''}">
+  <div class="scroll"><table class="dd-t"><thead><tr><th>Day</th><th>Daily drawdown</th><th>%</th><th></th><th title="how much worse it got during the day, against the equity the day started with (open trades carried over excluded)">From day-start equity</th><th>Closed P/L</th><th>Trades</th><th>Based on</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr class="${r.ddp>=lim?'over':''}${r.n?' ad-day':''}"${r.n?` data-day="${r.d}" tabindex="0" title="Show this day's trades"`:''}>
     <td>${r.d===now?'<b>Today</b>':r===yd&&r.d===now-DAY?'<b>Yesterday</b>':dn(r.d)}</td><td class="${r.dd>0.005?'neg':''}">${r.dd>0.005?money(-r.dd,2):'0.00'}</td><td class="${r.dd>0.005?'neg':''}"><b>${r.dd>0.005?ddPct(r.ddp):'0.00%'}</b></td>
     <td><span class="dd-bar" title="${pct(r.ddp,2)} of ${money(r.base,0)}"><i style="width:${Math.min(100,r.ddp/big*100)}%"></i><s style="left:${Math.min(100,lim/big*100)}%"></s></span></td>
     <td class="${r.ddE>0.005?'neg':''}">${r.src==='equity'?(r.ddE>0.005?money(-r.ddE,2)+' · −'+ddPct(r.ddEp):'0.00'):'<span class="muted">–</span>'}</td><td class="${cls(r.pnl)}">${r.n?(r.pnl>0?'+':'')+money(r.pnl,2):'–'}</td><td>${r.n||'–'}</td><td>${tag(r)}</td></tr>`).join('')}</tbody></table></div>
@@ -3152,6 +3166,65 @@ const _renderProfile=renderProfile;
 renderProfile=function(ctx){_renderProfile(ctx);let el=$('#eaDD');
   if(!el){const k=$('#eaKpi');if(!k)return;k.insertAdjacentHTML('afterend','<div id="eaDD"></div>');el=$('#eaDD')}
   el.innerHTML=UI.ea?ddPanel(eaDD(UI.ea,ctx.a),'Daily drawdown of this EA','How far this EA fell each day below where the day started, on its accounts together, as a share of their balance.'):''};
+
+
+/* ---------- v25: every closed trade of the account, filterable, with where the losses came from ---------- */
+UI.adF={acct:null};
+function adTradesOf(a){return S.trades.filter(t=>inSel(t.acct,a))}
+function renderAdTrades(a){
+  const el=$('#adTrades');if(!el)return;
+  let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:50};
+  const all=adTradesOf(a),now=S.srvNow||Date.now(),d0=Math.floor(now/DAY)*DAY,one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
+  const wd=(new Date(d0).getUTCDay()+6)%7,mo0=Date.UTC(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth(),1);
+  const PER={today:['Today',d0],yday:['Yesterday',d0-DAY],week:['This week',d0-wd*DAY],'7':['Last 7 days',d0-6*DAY],'30':['Last 30 days',d0-29*DAY],month:['This month',mo0],'90':['Last 90 days',d0-89*DAY],all:['All time',0]};
+  const inPer=t=>F.day!=null?t.ct>=F.day&&t.ct<F.day+DAY:F.per==='yday'?t.ct>=d0-DAY&&t.ct<d0:t.ct>=PER[F.per][1];
+  const EXN={so:'Stop-out',sl:'Stop loss hit',tp:'Take profit hit',ea:'Closed by EA or by hand'};
+  const base=all.filter(inPer);
+  const T=base.filter(t=>(!F.ea||t.fam===F.ea)&&(!F.sym||t.sym===F.sym)&&(!F.res||(F.res==='loss'?t.net<0:t.net>0))&&(!F.ex||t.ex===F.ex));
+  const S2={new:(x,y)=>y.ct-x.ct,old:(x,y)=>x.ct-y.ct,loss:(x,y)=>x.net-y.net,win:(x,y)=>y.net-x.net,lots:(x,y)=>y.lots-x.lots,held:(x,y)=>(y.ct-y.ot)-(x.ct-x.ot)};
+  const L=T.slice().sort(S2[F.sort]);
+  const sum=f=>T.filter(f).reduce((s,t)=>s+t.net,0),los=T.filter(t=>t.net<0),win=T.filter(t=>t.net>0);
+  const gl=-los.reduce((s,t)=>s+t.net,0),gw=win.reduce((s,t)=>s+t.net,0),net=gw-gl,cost=T.reduce((s,t)=>s+(t.comm||0)+(t.swap||0),0);
+  const holdTxt=h=>h<1?Math.round(h*60)+' min':h<48?fmt(h,1)+' h':fmt(h/24,1)+' d';
+  const opts=(arr,sel,lab)=>`<option value="">${lab}</option>`+arr.map(([v,n])=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(v)} (${n})</option>`).join('');
+  const cnt=f=>{const o={};for(const t of base)o[f(t)]=(o[f(t)]||0)+1;return Object.entries(o).sort((x,y)=>y[1]-x[1])};
+  // where the losses came from, inside the current filter
+  const brk=(f,name)=>{const o={};for(const t of los){const k=f(t);(o[k]=o[k]||{n:0,v:0}).n++;o[k].v+=t.net}const r=Object.entries(o).sort((x,y)=>x[1].v-y[1].v).slice(0,5);
+    return r.length?`<div class="lb"><span class="k">${name}</span>${r.map(([k,x])=>`<button type="button" class="lb-r" data-f="${name==='By EA'?'ea':name==='By symbol'?'sym':'ex'}" data-v="${esc(name==='How they closed'?Object.keys(EXN).find(e=>EXN[e]===k)||k:k)}"><span class="lb-n">${esc(k)} <span class="tag">${x.n}</span></span><span class="lb-b"><i style="width:${Math.max(2,x.v/(-gl||1)*100)}%"></i></span><b class="neg">${money(x.v,2)}</b></button>`).join('')}</div>`:''};
+  const big=los.length?los.reduce((b,t)=>t.net<b.net?t:b,los[0]):null,top3=los.slice().sort((x,y)=>x.net-y.net).slice(0,3).reduce((s,t)=>s+t.net,0);
+  const perLab=F.day!=null?new Date(F.day).toUTCString().slice(0,11):PER[F.per][0];
+  el.innerHTML=`<header class="adt-h"><div><h3 id="hADT">Closed trades</h3><p>Every closed trade on ${one?'this account':'these accounts'}. Filter to find what caused a loss; tap a day in the calendar or the drawdown list to jump here.</p></div></header>
+  <div class="adt-f">
+    <label><span class="k">Period</span><select data-k="per">${Object.entries(PER).map(([k,[n]])=>`<option value="${k}"${F.day==null&&F.per===k?' selected':''}>${n}</option>`).join('')}${F.day!=null?`<option value="" selected>${esc(perLab)}</option>`:''}</select></label>
+    <label><span class="k">EA</span><select data-k="ea">${opts(cnt(t=>t.fam),F.ea,'All EAs')}</select></label>
+    <label><span class="k">Symbol</span><select data-k="sym">${opts(cnt(t=>t.sym),F.sym,'All symbols')}</select></label>
+    <label><span class="k">Result</span><select data-k="res"><option value="">Wins and losses</option><option value="loss"${F.res==='loss'?' selected':''}>Losses only</option><option value="win"${F.res==='win'?' selected':''}>Wins only</option></select></label>
+    <label><span class="k">Closed by</span><select data-k="ex"><option value="">Any</option>${Object.entries(EXN).map(([k,n])=>`<option value="${k}"${F.ex===k?' selected':''}>${n}</option>`).join('')}</select></label>
+    <label><span class="k">Sort</span><select data-k="sort">${[['new','Newest first'],['old','Oldest first'],['loss','Biggest loss first'],['win','Biggest win first'],['lots','Largest lots'],['held','Held longest']].map(([k,n])=>`<option value="${k}"${F.sort===k?' selected':''}>${n}</option>`).join('')}</select></label>
+    ${F.day!=null||F.ea||F.sym||F.res||F.ex||F.per!=='30'?'<button type="button" class="btn" data-k="reset">Clear filters</button>':''}
+  </div>
+  <div class="ad-strip adt-s">
+    <div class="ad-t"><span class="k">${esc(perLab)}</span><b class="${cls(net)}">${net>0?'+':''}${money(net,2)}</b><span class="tag">${T.length} trade${T.length===1?'':'s'}</span></div>
+    <div class="ad-t"><span class="k">Losses</span><b class="neg">${money(-gl,2)}</b><span class="tag">${los.length} losing trade${los.length===1?'':'s'}${los.length?' · avg '+money(-gl/los.length,2):''}</span></div>
+    <div class="ad-t"><span class="k">Wins</span><b class="pos">+${money(gw,2)}</b><span class="tag">${win.length} winning${win.length?' · avg '+money(gw/win.length,2):''}</span></div>
+    <div class="ad-t"><span class="k">Biggest loss</span><b class="neg">${big?money(big.net,2):'–'}</b><span class="tag">${big?`${esc(big.fam)} · ${esc(big.sym)} · ${shortT(big.ct)}`:'none'}</span></div>
+    <div class="ad-t"><span class="k">3 worst trades</span><b class="neg">${los.length?money(top3,2):'–'}</b><span class="tag">${gl?pct(-top3/gl,0)+' of all losses':''}</span></div>
+    <div class="ad-t"><span class="k">Costs</span><b class="${cls(cost)}">${money(cost,2)}</b><span class="tag">commission and swap</span></div>
+  </div>
+  ${los.length?`<div class="lbs">${brk(t=>t.fam,'By EA')}${brk(t=>t.sym,'By symbol')}${brk(t=>EXN[t.ex]||t.ex,'How they closed')}</div><p class="muted" style="font-size:12px;margin:0">Tap a bar to filter to it.</p>`:''}
+  <div class="scroll"><table id="adTr"><thead><tr><th>Closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>Closed by</th><th>Costs</th><th>P/L</th></tr></thead><tbody>${L.slice(0,F.n).map(t=>`<tr class="${t.net<0?'lossr':''}"><td>${shortT(t.ct)}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td>${t.ex==='so'?'<span class="chip fail">stop-out</span>':t.ex==='sl'?'<span class="chip warn">stop loss</span>':t.ex==='tp'?'<span class="chip pass">target</span>':'<span class="muted">EA / hand</span>'}</td><td class="${cls((t.comm||0)+(t.swap||0))}">${(t.comm||0)+(t.swap||0)?money((t.comm||0)+(t.swap||0),2):'–'}</td><td class="${cls(t.net)}"><b>${t.net>0?'+':''}${money(t.net,2)}</b></td></tr>`).join('')||'<tr><td class="muted">No closed trades match these filters.</td></tr>'}</tbody></table></div>
+  ${L.length>F.n?`<button type="button" class="more" data-k="more">Show ${Math.min(100,L.length-F.n)} more of ${L.length-F.n}</button>`:L.length?`<p class="muted" style="font-size:12px;margin:0">All ${L.length} trades shown.</p>`:''}`;
+  cardify('adTr');
+  const set=(k,v)=>{if(k==='per'){F.day=null;F.per=v||F.per}else F[k]=v;F.n=50;renderAdTrades(a)};
+  el.querySelectorAll('select[data-k]').forEach(s=>s.onchange=()=>set(s.dataset.k,s.value));
+  el.querySelectorAll('.lb-r').forEach(b=>b.onclick=()=>{F.res='loss';set(b.dataset.f,b.dataset.v)});
+  const r=el.querySelector('[data-k=reset]');if(r)r.onclick=()=>{UI.adF={acct:null};renderAdTrades(a)};
+  const m=el.querySelector('[data-k=more]');if(m)m.onclick=()=>{F.n+=100;renderAdTrades(a)};
+}
+document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]');if(!c)return;
+  const a=$('#acct').value;if(UI.adF.acct!==a)renderAdTrades(a);Object.assign(UI.adF,{day:+c.dataset.day,ea:'',sym:'',ex:'',res:'',sort:'loss',n:50});renderAdTrades(a);
+  goTo($('#adTrades'))});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]')){e.preventDefault();e.target.click()}});
 
 </script>
 
