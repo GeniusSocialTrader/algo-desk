@@ -520,19 +520,19 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .ov-dd i{display:block;height:100%;background:var(--neg);border-radius:3px}
 
 @media (max-width:600px){
- .ov-open>thead{display:none}.ov-open .ph{display:inline}.ov-open,.ov-open tbody,.ov-open tfoot{display:block;width:100%}
+ .ov-open>thead{display:none}.ov-open,.ov-open tbody,.ov-open tfoot{display:block;width:100%}.ov-open .ph{display:inline}
  .ov-open tr.ov-row,.ov-open tfoot tr{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;padding:10px 4px;border-bottom:1px solid var(--line)}
  .ov-open tr.ov-row td,.ov-open tfoot td{border:0;padding:0!important;white-space:normal;min-width:0}
- .ov-open tr.ov-row td:nth-child(4),.ov-open tr.ov-row td:nth-child(5),.ov-open tfoot td:nth-child(3),.ov-open tfoot td:nth-child(2){display:none}
- .ov-open tr.ov-row td:nth-child(1),.ov-open tfoot td:nth-child(1){order:1;text-align:left}.ov-open tr.ov-row td:nth-child(6),.ov-open tfoot td:nth-child(4){order:2;text-align:right}
- .ov-open tr.ov-row td:nth-child(2){order:3;text-align:left}.ov-open tr.ov-row td:nth-child(7),.ov-open tfoot td:nth-child(5){order:4;text-align:right}
- .ov-open tr.ov-row td:nth-child(3){order:5;text-align:left;font-size:12px}.ov-open tr.ov-row td:nth-child(8),.ov-open tfoot td:nth-child(6){order:6;text-align:right}
- .ov-open tfoot td:nth-child(5),.ov-open tfoot td:nth-child(6){grid-column:2}
+ .ov-open tr.ov-row td:nth-child(2),.ov-open tr.ov-row td:nth-child(4),.ov-open tfoot td:nth-child(2){display:none}
+ .ov-open tr.ov-row td:nth-child(1),.ov-open tfoot td:nth-child(1){order:1;text-align:left}.ov-open tr.ov-row td:nth-child(5),.ov-open tfoot td:nth-child(4){order:2;text-align:right}
+ .ov-open tr.ov-row td:nth-child(3),.ov-open tfoot td:nth-child(3){order:3;text-align:left;font-size:12px}.ov-open tr.ov-row td:nth-child(6),.ov-open tfoot td:nth-child(5){order:4;text-align:right}
+ .ov-open tr.ov-row td:nth-child(7),.ov-open tfoot td:nth-child(6){order:6;text-align:right;grid-column:2}
+ .ov-open tr.ov-ea{padding-left:18px;background:color-mix(in srgb,var(--sunk) 55%,transparent)}.ov-open tr.ov-ea td{background:none}.ov-open tr.ov-ea td:first-child{padding-left:0!important}
  .ov-open tr.ov-det{display:block}.ov-open tr.ov-det>td{display:block;max-width:none}
- .ov-open td:nth-child(3){min-width:0}
 }
 .ov-open .ph{display:none}.ov-click{cursor:pointer}.ov-click:hover td{background:var(--sunk)}.ov-click:focus-visible{outline:2px solid var(--c1);outline-offset:-2px}
 .ov-car{display:inline-block;width:14px;color:var(--muted)}
+.ov-acc td{font-weight:500}.ov-acc .tag{display:block;font-weight:400}.ov-ea td{background:color-mix(in srgb,var(--sunk) 55%,transparent)}.ov-ea td:first-child{padding-left:28px!important}
 .ov-det>td{background:var(--sunk);padding:6px 10px 12px!important;text-align:left!important}
 .ov-det>td{max-width:0}.ov-tk{overflow-x:auto}.ov-tk table{border-collapse:collapse;font:12px var(--f-data);width:100%}
 .ov-open tfoot td.ov-note{font:12px var(--f-body);font-weight:400;color:var(--muted);white-space:normal}
@@ -609,7 +609,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="overview" aria-labelledby="hOpen">
-  <div class="sec-h"><div><span class="kicker">Right now</span><h2 id="hOpen">Open trades</h2></div><p id="ovOpenSub">Every EA with a trade open, the account it is on, and how far it is down against that account's balance.</p></div>
+  <div class="sec-h"><div><span class="kicker">Right now</span><h2 id="hOpen">Open trades</h2></div><p id="ovOpenSub">Each account with trades open: its total floating P/L and drawdown against its balance. Tap an account to see its EAs, and an EA to see every trade.</p></div>
   <section class="panel"><div class="scroll"><table class="ov-open" id="ovOpen"></table></div></section>
 </section>
 
@@ -2784,27 +2784,40 @@ function renderOpenNow({a}){
   const el=$('#ovOpen');if(!el) return;
   if(!S.now||!S.now.length){el.innerHTML='<tbody><tr><td class="muted">Open trades show here once your accounts are synced.</td></tr></tbody>';return}
   const R=openNowRows(a);
-  if(!R.length){el.innerHTML='<tbody><tr><td class="muted">No open trades right now.</td></tr></tbody>';return}
-  const tot=R.reduce((s,r)=>s+r.fl,0),accs=new Set(R.map(r=>r.acct)),worst=Math.min(...R.map(r=>r.dd)),live=R.some(r=>r.live);
-  const allP=R.flatMap(r=>r.pos),risk=allP.length?stopRisk(allP):null;
+  const bal={};for(const r of S.now) if(r.magic==='ALL') bal[r.acct]=r.bal;
+  // one block per account: overall floating P/L and drawdown, its EAs underneath
+  const AC={};for(const r of R)(AC[r.acct]=AC[r.acct]||{acct:r.acct,eas:[],fl:0,known:false,n:0,lots:0,pos:[],stale:false,demo:r.demo}).eas.push(r);
+  for(const x of Object.values(AC)){for(const r of x.eas){x.fl+=r.fl;x.known=x.known||r.known;x.n+=r.pos.length;x.lots+=r.lots;x.pos.push(...r.pos);x.stale=x.stale||r.stale;x.live=x.live||r.live}
+    x.bal=bal[x.acct]||0;x.dd=x.bal?x.fl/x.bal:0;x.risk=x.pos.length?stopRisk(x.pos):null;x.eas.sort((p,q)=>p.fl-q.fl)}
+  const A=Object.values(AC).sort((x,y)=>x.dd-y.dd);
+  const flat=Object.keys(bal).filter(ac=>inSel(ac,a)&&!AC[ac]).map(nm).sort();
+  if(!A.length){el.innerHTML=`<tbody><tr><td class="muted">No open trades right now${flat.length?' on '+flat.length+' accounts':''}.</td></tr></tbody>`;return}
+  const tot=A.reduce((s,x)=>s+x.fl,0),worst=Math.min(...A.map(x=>x.dd)),live=A.some(x=>x.live),allP=A.flatMap(x=>x.pos),risk=allP.length?stopRisk(allP):null;
   const bar=v=>v<0?`<span class="ov-dd" title="${pct(-v,1)} of the account balance"><i style="width:${Math.min(100,-v*100/ .2)}%"></i></span>`:'';
-  const det=r=>{const ps=r.pos.slice().sort((x,y)=>x.ot-y.ot);
-    return `<tr class="ov-det"><td colspan="8"><div class="ov-tk"><table><thead><tr><th>Ticket</th><th>Side</th><th>Lots</th><th>Opened</th><th>Open</th><th>Now</th><th>Stop</th><th>Target</th><th>P/L</th><th>At stop</th></tr></thead><tbody>${ps.map(p=>`<tr>
+  const flC=(v,k)=>k?`<b class="${cls(v)}">${v>=0?'+':''}${money(v,2)}</b>`:'<span class="muted">–</span>';
+  const ddC=(v,k)=>`<span class="${v<0?'neg':''}">${!k?'–':v<0?pct(v,2):'in profit'}</span>${bar(v)}`;
+  const car=o=>`<span class="ov-car">${o?'▾':'▸'}</span>`;
+  const tickets=r=>{const ps=r.pos.slice().sort((x,y)=>x.ot-y.ot);
+    return `<tr class="ov-det"><td colspan="7"><div class="ov-tk"><table><thead><tr><th>Ticket</th><th>Side</th><th>Lots</th><th>Opened</th><th>Open</th><th>Now</th><th>Stop</th><th>Target</th><th>P/L</th><th>At stop</th></tr></thead><tbody>${ps.map(p=>`<tr>
       <td>${esc(p.ticket)}</td><td><span class="chip ${p.side==='buy'?'pass':'fail'}">${p.side}</span></td><td>${fmt(p.lots,2)}</td><td>${shortT(p.ot)}</td>
       <td>${pxFmt(p.op)}</td><td>${p.px?pxFmt(p.px):'–'}</td><td>${p.sl?pxFmt(p.sl):'<span class="chip warn">none</span>'}</td><td>${p.tp?pxFmt(p.tp):'–'}</td>
       <td class="${p.fl==null?'':cls(p.fl)}">${p.fl==null?'–':money(p.fl,2)}</td><td class="${p.atSL?cls(p.atSL):''}">${p.atSL==null?'–':p.atSL===undefined?'?':money(p.atSL,0)}</td></tr>`).join('')}</tbody></table>
       ${r.be?`<p class="muted">Break-even for all ${ps.length} trades: <b>${pxFmt(r.be)}</b>${ps[0].px?`, ${pct(Math.abs(r.be-ps[0].px)/ps[0].px,2)} ${r.be>ps[0].px?'above':'below'} the price now`:''}.</p>`:''}</div></td></tr>`};
-  el.innerHTML=`<thead><tr><th>EA</th><th>Account</th><th>Trade</th><th>Open</th><th>Open since</th><th>Floating P/L</th><th title="open loss as a share of that account's balance">Drawdown now</th><th title="P/L if every stop loss fills">If stops hit</th></tr></thead><tbody>
-  ${R.map(r=>{const side=[...r.side].join('/').toUpperCase(),n=r.pos.length,open=UI.ovX.has(r.key);
-    return `<tr class="ov-row${n?' ov-click':''}" data-k="${esc(r.key)}"${n?` tabindex="0" role="button" aria-expanded="${open}"`:''}><td>${n?`<span class="ov-car">${open?'▾':'▸'}</span>`:''}${avatar(r.fam,18)} <b>${esc(r.fam)}</b>${EA_ARCH.has(r.fam)?' <span class="chip">archived</span>':''}</td>
-    <td>${esc(nm(r.acct))} <span class="chip ${r.demo?'':'pass'}">${r.demo?'Demo':'Live'}</span>${r.stale?` <span class="chip warn" title="last update ${Math.round(r.age/60)} min ago">late</span>`:''}</td>
-    <td>${[...r.syms].map(s=>pairBadge(s,14)).join('')} ${esc([...r.syms].join(', '))}${side?` <span class="tag">${side}</span>`:''}${r.guess?' <span class="tag" title="this account has no per-trade feed yet; this is the pair it traded last">likely</span>':''}</td>
+  const eaRow=r=>{const n=r.pos.length,k='E:'+r.key,o=UI.ovX.has(k),side=[...r.side].join('/').toUpperCase();
+    return `<tr class="ov-row ov-ea${n?' ov-click':''}" data-k="${esc(k)}"${n?` tabindex="0" role="button" aria-expanded="${o}"`:''}>
+    <td>${n?car(o):'<span class="ov-car"></span>'}${avatar(r.fam,18)} <b>${esc(r.fam)}</b>${EA_ARCH.has(r.fam)?' <span class="chip">archived</span>':''}</td>
     <td>${n?`${n} · ${fmt(r.lots,2)} lot`:'<span class="muted" title="per-EA total from the 5-minute snapshot">EA total</span>'}</td>
-    <td class="muted">${n?shortT(r.ot):'–'}</td>
-    <td class="${r.known?cls(r.fl):''}">${r.known?(r.fl>=0?'+':'')+money(r.fl,2):'<span class="muted" title="no P/L snapshot for this EA yet">–</span>'}</td>
-    <td class="${r.dd<0?'neg':''}">${!r.known?'–':r.dd<0?pct(r.dd,2):'in profit'}${bar(r.dd)}</td>
-    <td>${riskCell(r.risk)}</td></tr>${open&&n?det(r):''}`}).join('')}</tbody>
-  <tfoot><tr><td>${R.length} open</td><td>${accs.size} account${accs.size>1?'s':''}</td><td colspan="3" class="ov-note" style="text-align:left">${live?'Live, updated every 30 seconds. Tap a row for each trade.':''}</td><td class="${cls(tot)}">${tot>=0?'+':''}${money(tot,2)}</td><td class="${worst<0?'neg':''}">worst ${worst<0?pct(worst,2):'0%'}</td><td>${risk?riskCell(risk):''}</td></tr></tfoot>`;
+    <td>${[...r.syms].map(s=>pairBadge(s,14)).join('')} ${esc([...r.syms].join(', '))}${side?` <span class="tag">${side}</span>`:''}${r.guess?' <span class="tag" title="no per-trade feed for this account; the pair it traded last">likely</span>':''}</td>
+    <td class="muted">${n?shortT(r.ot):'–'}</td><td>${flC(r.fl,r.known)}</td><td>${ddC(r.dd,r.known)}</td><td>${riskCell(r.risk)}</td></tr>${o&&n?tickets(r):''}`};
+  el.innerHTML=`<thead><tr><th>Account / EA</th><th>Open</th><th>Trading</th><th>Open since</th><th>Floating P/L</th><th title="open loss as a share of the account balance">Drawdown now</th><th title="P/L if every stop loss fills">If stops hit</th></tr></thead><tbody>
+  ${A.map(x=>{const k='A:'+x.acct,o=UI.ovX.has(k),ot=Math.min(...x.eas.map(r=>r.ot));
+    return `<tr class="ov-row ov-acc ov-click" data-k="${esc(k)}" tabindex="0" role="button" aria-expanded="${o}">
+    <td>${car(o)}<b>${esc(nm(x.acct))}</b> <span class="chip ${x.demo?'':'pass'}">${x.demo?'Demo':'Live'}</span>${x.stale?' <span class="chip warn">late</span>':''}</td>
+    <td>${x.n?`${x.n} · ${fmt(x.lots,2)} lot`:'–'}</td>
+    <td>${x.eas.slice(0,5).map(r=>avatar(r.fam,18)).join('')} <span class="muted">${x.eas.length} EA${x.eas.length>1?'s':''}</span></td>
+    <td class="muted">${isFinite(ot)?shortT(ot):'–'}</td><td>${flC(x.fl,x.known)}</td><td>${ddC(x.dd,x.known)}${x.bal?`<div class="tag">of ${money(x.bal,0)} balance</div>`:''}</td><td>${riskCell(x.risk)}</td></tr>
+    ${o?x.eas.map(eaRow).join(''):''}`}).join('')}</tbody>
+  <tfoot><tr><td>${A.length} account${A.length>1?'s':''} with open trades</td><td>${allP.length} trades</td><td colspan="2" class="ov-note" style="text-align:left">${live?'Live, updated every 30 seconds. Tap an account for its EAs, an EA for each trade.':''}${flat.length?` No open trades: ${esc(flat.join(', '))}.`:''}</td><td class="${cls(tot)}">${tot>=0?'+':''}${money(tot,2)}</td><td class="${worst<0?'neg':''}">worst ${worst<0?pct(worst,2):'0%'}</td><td>${risk?riskCell(risk):''}</td></tr></tfoot>`;
 }
 document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('#ovOpen .ov-click');if(!tr)return;const k=tr.dataset.k;UI.ovX.has(k)?UI.ovX.delete(k):UI.ovX.add(k);renderOpenNow({a:$('#acct').value})});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('#ovOpen .ov-click')){e.preventDefault();e.target.click()}});
