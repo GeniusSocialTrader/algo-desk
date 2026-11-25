@@ -1,0 +1,34 @@
+name: mt5-probe
+on:
+  push:
+    branches: [probe/mt5-runner]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Install MetaTrader5 package
+        run: pip install MetaTrader5
+      - name: Install MT5 terminal silently
+        shell: pwsh
+        run: |
+          $t = Get-Date
+          Invoke-WebRequest https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe -OutFile mt5setup.exe
+          $p = Start-Process .\mt5setup.exe -ArgumentList '/auto' -PassThru
+          $p | Wait-Process -Timeout 400 -ErrorAction SilentlyContinue
+          "installer exited: $($p.HasExited)  seconds: $(((Get-Date)-$t).TotalSeconds)"
+          Get-ChildItem 'C:\Program Files\MetaTrader 5' | Select-Object Name, Length | Format-Table | Out-String | Write-Host
+          Get-Process | Where-Object { $_.Name -like '*terminal*' -or $_.Name -like '*mt5*' } | Select-Object Name, Id | Format-Table | Out-String | Write-Host
+      - name: Probe MT4 installer availability
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $r = Invoke-WebRequest https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe -OutFile mt4setup.exe -PassThru
+          "mt4setup bytes: $((Get-Item mt4setup.exe).Length)"
+          (Get-Item mt4setup.exe).VersionInfo | Format-List | Out-String | Write-Host
+      - name: Probe Python bridge and broker logins
+        run: python probe/probe.py
