@@ -1,17 +1,43 @@
+# Delton's Desk: free sync on GitHub Actions. Put this file in your repository at .github/workflows/sync.yml
 name: mt5-probe
 on:
   push:
     branches: [probe/mt5-runner]
-  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write               # only used by the last step, which keeps the schedule switched on
+concurrency:
+  group: desk-sync
+  cancel-in-progress: false
 jobs:
-  probe:
+  sync:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: pip install MetaTrader5
-      - name: Broker installers, then a wrong-password login on each broker's server
-        timeout-minutes: 20
-        run: python probe/probe.py
+      - name: Install the MetaTrader5 Python package
+        run: pip install --disable-pip-version-check -q MetaTrader5
+      - name: Install MetaTrader 5
+        shell: pwsh
+        env:
+          INSTALLER: ${{ vars.MT5_INSTALLER_URL }}
+        run: |
+          $url = if ($env:INSTALLER) { $env:INSTALLER } else { 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe' }
+          Invoke-WebRequest $url -OutFile mt5setup.exe
+          $p = Start-Process .\mt5setup.exe -ArgumentList '/auto', '/path:C:\MT5' -PassThru
+          $p | Wait-Process -Timeout 400 -ErrorAction SilentlyContinue
+          Start-Sleep 5
+          Get-Process terminal64 -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not (Test-Path C:\MT5\terminal64.exe)) { throw 'MetaTrader 5 did not install. Check the MT5_INSTALLER_URL variable.' }
+      - name: Sync trades to the database
+        env:
+          SUPABASE_URL: https://example.invalid
+          SUPABASE_KEY: test
+          MT5_ACCOUNTS: '12345678 | wrong-pass-1 | MetaQuotes-Demo'
+        run: python sync_mt5.py
+      - name: Keep the schedule switched on
+        if: github.event_name == 'schedule'
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/sync.yml/enable"
