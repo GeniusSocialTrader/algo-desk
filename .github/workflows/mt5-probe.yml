@@ -20,32 +20,6 @@ jobs:
           $p | Wait-Process -Timeout 400 -ErrorAction SilentlyContinue
           Start-Sleep 5
           Get-Process terminal64 -ErrorAction SilentlyContinue | Stop-Process -Force
-          Copy-Item 'C:\Program Files\MetaTrader 5' -Destination D:\mt5a -Recurse
-          Copy-Item 'C:\Program Files\MetaTrader 5' -Destination D:\mt5b -Recurse
-      - name: A - terminal started by Python with login details
-        timeout-minutes: 6
-        run: python probe/probe.py A
-      - name: Windows on screen
-        if: always()
-        shell: pwsh
-        run: |
-          Add-Type @"
-          using System; using System.Text; using System.Runtime.InteropServices;
-          public class W { public delegate bool P(IntPtr h, IntPtr l);
-            [DllImport("user32.dll")] public static extern bool EnumWindows(P p, IntPtr l);
-            [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
-            [DllImport("user32.dll")] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
-            public static void Dump(){ EnumWindows((h,l)=>{ if(IsWindowVisible(h)){var s=new StringBuilder(256);GetWindowText(h,s,256);if(s.Length>0)Console.WriteLine("window: "+s);} return true;}, IntPtr.Zero);} }
-          "@
-          [W]::Dump()
-          Get-ChildItem D:\mt5a\logs\*.log -ErrorAction SilentlyContinue | Where-Object Name -ne 'metaeditor.log' | ForEach-Object { "== $($_.Name)"; Get-Content $_.FullName -Encoding Unicode | Select-Object -Last 30 }
-          Get-Process terminal64 -ErrorAction SilentlyContinue | Stop-Process -Force
-      - name: B - terminal started with a start-up config (login in ini), then Python attaches
-        timeout-minutes: 8
-        shell: pwsh
-        run: |
-          Set-Content D:\mt5b\start.ini "[Common]`r`nLogin=12345678`r`nPassword=wrong-pass-1`r`nServer=MetaQuotes-Demo`r`nNewsEnable=0`r`n" -Encoding Unicode
-          Start-Process D:\mt5b\terminal64.exe -ArgumentList '/portable','/config:D:\mt5b\start.ini'
-          Start-Sleep 90
-          python probe/probe.py B
-          Get-ChildItem D:\mt5b\logs\*.log -ErrorAction SilentlyContinue | Where-Object Name -ne 'metaeditor.log' | ForEach-Object { "== $($_.Name)"; Get-Content $_.FullName -Encoding Unicode | Select-Object -Last 30 }
+      - name: Which broker servers can a fresh terminal find by name
+        timeout-minutes: 15
+        run: python probe/probe.py
