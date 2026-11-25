@@ -507,6 +507,10 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .cmp-p .rs b{display:block;font:600 15px var(--f-data)}
 .btn-sm{font-size:12px;padding:3px 10px;margin-left:6px}
 #eaMap h4{margin:18px 0 4px}
+.lab-arch{grid-column:1/-1;margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+.lab-arch-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px}
+.ea-card.arch{opacity:.75;padding:10px}
+.map-arch{font-size:11px;color:var(--muted);display:inline-flex;gap:4px;align-items:center;margin-top:4px}
 </style>
 </head>
 <body>
@@ -2021,7 +2025,8 @@ function renderLab({T}){
   EB={};PROF={};NOW_T=T.length?Math.max(...T.slice(-200).map(t=>t.ct)):0;
   const el=$('#lab');if(!el) return;
   const fams={};for(const t of T)(fams[t.fam]=fams[t.fam]||[]).push(t);
-  const L=Object.entries(fams).filter(([,ts])=>ts.length>=2).map(([k,ts])=>profileOf(k,ts)).sort((x,y)=>SORTS[UI.labSort](x)-SORTS[UI.labSort](y));
+  const L0=Object.entries(fams).filter(([,ts])=>ts.length>=2).map(([k,ts])=>profileOf(k,ts)).sort((x,y)=>SORTS[UI.labSort](x)-SORTS[UI.labSort](y));
+  const L=L0.filter(p=>!EA_ARCH.has(p.k)),LA=L0.filter(p=>EA_ARCH.has(p.k));
   const cnt={Keep:0,Watch:0,Review:0,'Too early':0};for(const p of L) cnt[p.S.band]++;
   $('#labSum').innerHTML=Object.entries(cnt).map(([b,n])=>`<span class="lab-pill" style="--c:var(${BANDC[b]})"><i></i><b>${n}</b> ${b}</span>`).join('');
   $('#labSort').innerHTML=[['score','Score'],['profit','Profit'],['dd','Smallest drawdown']].map(([k,l])=>`<button type="button" aria-pressed="${UI.labSort===k}" data-s="${k}">${l}</button>`).join('');
@@ -2033,6 +2038,7 @@ function renderLab({T}){
       ${miniSpark(cumOf(p.ts),260,44).replace('class="mspark"','class="mspark ec-spark"')}
       <span class="ec-stats"><span><i>PF</i><b>${fmt(M.pf)}</b></span><span><i>Max DD</i><b class="${p.S.ddp>.2?'neg':''}">${pct(p.S.ddp,1)}</b></span><span><i>Trades</i><b>${M.n.toLocaleString()}</b></span><span><i>Days</i><b>${p.V.days}</b></span></span>
     </button>`}).join('');
+  if(LA.length) el.innerHTML+=`<div class="lab-arch"><h4>Archived EAs (${LA.length})</h4><p class="muted">Switched off. Kept for their history; open one to see it. Un-archive in the EA map.</p><div class="lab-arch-list">${LA.map(p=>`<button type="button" class="ea-card arch" data-k="${esc(p.k)}" aria-label="Open ${esc(p.k)}"><span class="ec-top">${avatar(p.k,24)}<span class="ec-name"><b>${esc(p.k)}</b><span class="tag">${p.M.n} trades · last ${dstr(Math.max(...p.ts.map(t=>t.ct)))}</span></span></span><span class="ec-gain"><b class="${cls(p.M.net)}">${p.M.net>=0?'+':''}${money(p.M.net)}</b></span></button>`).join('')}</div></div>`;
   el.querySelectorAll('.ea-card').forEach(b=>b.onclick=()=>{UI.ea=b.dataset.k;render();document.getElementById('hDive').scrollIntoView({block:'start',behavior:'smooth'})});
 }
 $('#labSort')&&($('#labSort').onclick=e=>{const b=e.target.closest('[data-s]');if(b){UI.labSort=b.dataset.s;render()}});
@@ -2346,7 +2352,10 @@ if($('#alForm')){
 // Function declarations and var only: assignFamilies() can run before this part's top level has run.
 var EA_OVR={};          // 'acct|magic' -> EA name, set by Gaston in Settings > EA mapping (Supabase ea_map)
 var EA_LINKS=[];        // timing matches between account+magic groups, for the mapping page
-var EA_ALIAS={};        // family -> canonical family, from high-confidence timing matches
+var EA_ALIAS={};
+var EA_ARCH=new Set();  // archived EA names (EA map tab); hidden from the EA lab and alerts, history kept
+// Gaston's names for families that are one EA: TGR/AP_TGR/CBO is CBO; ICML_MS is Mon Scalper
+var FAMILY_NAMES={'TGR':'CBO','ICML_MS':'Mon Scalper'};        // family -> canonical family, from high-confidence timing matches
 function symRoot(s){s=String(s||'').toUpperCase().replace(/[^A-Z0-9].*$/,'');return s==='GOLD'?'XAUUSD':/^(DE40|DAX40|GER40)$/.test(s)?'GER30':/^(WS30|DJ30)$/.test(s)?'US30':s}
 // 1-to-1 entry matching: same symbol root and side, entries <=60s apart, entry price within 0.15%.
 // A and B are sorted by open time. Returns matched pairs [a,b].
@@ -2388,11 +2397,12 @@ function eaAliases(trades,links){
 function eaIdentity(){
   const T=S.trades.filter(t=>t.magic!=='0');
   try{EA_LINKS=eaLinks(T);EA_ALIAS=eaAliases(T,EA_LINKS)}catch(e){EA_LINKS=[];EA_ALIAS={}}
-  for(const t of S.trades){t.fam0=t.fam;if(EA_ALIAS[t.fam])t.fam=EA_ALIAS[t.fam]}
+  for(const t of S.trades){t.fam0=t.fam;if(EA_ALIAS[t.fam])t.fam=EA_ALIAS[t.fam];if(FAMILY_NAMES[t.fam])t.fam=FAMILY_NAMES[t.fam]}
   // a name ending in _Live never labels an EA that also runs on a demo account
   const demoIn={};for(const t of S.trades) if(isDemoAcct(t.acct)) demoIn[t.fam]=1;
   for(const t of S.trades) if(demoIn[t.fam]&&/_Live$/i.test(t.fam)) t.fam=t.fam.replace(/_Live$/i,'');
   for(const t of S.trades){const o=EA_OVR[t.acct+'|'+t.magic];if(o)t.fam=o}
+  EA_ARCH=new Set(Array.isArray(EA_OVR._archived)?EA_OVR._archived:[]);
   const v={};for(const t of S.trades){if(t.magic==='0')continue;const k=t.acct+'|'+t.magic;(v[k]=v[k]||{})[t.fam]=(v[k][t.fam]||0)+1}
   for(const k in v) FAMMAP[k]=Object.entries(v[k]).sort((x,y)=>y[1]-x[1])[0][0];
 }
@@ -2458,8 +2468,9 @@ function renderEAMap(){
   const maybe=EA_LINKS.filter(l=>(l.conf==='medium'||l.clash)&&(FAMMAP[l.a.acct+'|'+l.a.magic]!==FAMMAP[l.b.acct+'|'+l.b.magic]));
   const chip=c=>`<span class="chip ${c==='high'?'pass':c==='you'?'info':''}">${c==='high'?'timing':c==='you'?'yours':'name'}</span>`;
   const single=R.filter(e=>!multi.includes(e));
-  const table=list=>`<div class="tblwrap"><table class="map-t"><thead><tr><th>EA</th><th>Account</th><th>Magic</th><th>Comment names</th><th>Trades</th><th>Matched by</th><th>Your name</th></tr></thead><tbody>${list.map(e=>e.gs.map((g,i)=>{const [c,why]=eaHow(g);return `<tr class="${i?'':'map-first'}"><td>${i?'':`<b>${esc(e.name)}</b>`}</td><td>${esc(nm(g.acct))} <span class="chip ${isDemoAcct(g.acct)?'':'pass'}">${isDemoAcct(g.acct)?'Demo':'Live'}</span></td><td>${esc(g.magic)}</td><td class="muted cw">${esc(Object.keys(g.raw).join(', '))} · ${esc([...g.syms].join('/'))}</td><td>${g.n}</td><td title="${esc(why)}">${chip(c)}</td><td><input class="map-in" data-k="${esc(g.k)}" value="${esc(EA_OVR[g.k]||'')}" placeholder="${esc(e.name)}" maxlength="60" aria-label="Your name for ${esc(nm(g.acct))} magic ${esc(g.magic)}"></td></tr>`}).join('')).join('')}</tbody></table></div>`;
-  el.innerHTML=`<p class="muted">${R.length} EAs. ${multi.length} run on more than one account. Rename any account + magic below and press Save; your names win over everything else and apply in the artifact, the iPhone app and Telegram.</p>
+  const arch=new Set(EA_ARCH),last=e=>Math.max(...S.trades.filter(t=>t.fam===e.name).map(t=>t.ct)),idle=e=>Math.round((NOW_T-last(e))/864e5);
+  const table=list=>`<div class="tblwrap"><table class="map-t"><thead><tr><th>EA</th><th>Account</th><th>Magic</th><th>Comment names</th><th>Trades</th><th>Matched by</th><th>Your name</th></tr></thead><tbody>${list.map(e=>e.gs.map((g,i)=>{const [c,why]=eaHow(g);return `<tr class="${i?'':'map-first'}"><td>${i?'':`<b>${esc(e.name)}</b><br><label class="map-arch"><input type="checkbox" data-arch="${esc(e.name)}" ${arch.has(e.name)?'checked':''}> Archived</label>${idle(e)>60?`<span class="muted"> · idle ${idle(e)} d</span>`:''}`}</td><td>${esc(nm(g.acct))} <span class="chip ${isDemoAcct(g.acct)?'':'pass'}">${isDemoAcct(g.acct)?'Demo':'Live'}</span></td><td>${esc(g.magic)}</td><td class="muted cw">${esc(Object.keys(g.raw).join(', '))} · ${esc([...g.syms].join('/'))}</td><td>${g.n}</td><td title="${esc(why)}">${chip(c)}</td><td><input class="map-in" data-k="${esc(g.k)}" value="${esc(EA_OVR[g.k]||'')}" placeholder="${esc(e.name)}" maxlength="60" aria-label="Your name for ${esc(nm(g.acct))} magic ${esc(g.magic)}"></td></tr>`}).join('')).join('')}</tbody></table></div>`;
+  el.innerHTML=`<p class="muted">${R.length} EAs. ${multi.length} run on more than one account. Tick Archived for an EA you stopped: it leaves the EA lab and alerts, and its history stays under Archived EAs. Rename any account + magic below and press Save; your names win over everything else and apply in the artifact, the iPhone app and Telegram.</p>
   <h4>Running on more than one account (${multi.length})</h4>${table(multi)}
   <details class="fold"><summary>One account only (${single.length})</summary>${table(single)}</details>
   ${maybe.length?`<h4>Possible matches to check</h4><p class="muted">These trade in the same minute fairly often but not clearly enough to merge on their own. Press "Same EA" to merge one into the other.</p>
@@ -2470,12 +2481,13 @@ function renderEAMap(){
     alMsg(`Set to ${to}. Press Save mapping to keep it.`,false,'#mapMsg')});
   $('#mapReset').onclick=()=>{el.querySelectorAll('.map-in').forEach(i=>i.value='');alMsg('Cleared. Press Save mapping to keep it.',false,'#mapMsg')};
   $('#mapSave').onclick=async()=>{
-    const m={};for(const i of el.querySelectorAll('.map-in')){const v=i.value.trim();if(v){if(v.length>60||/['\\]/.test(v)){alMsg('Names cannot contain quotes or backslashes.',true,'#mapMsg');return}m[i.dataset.k]=v}}
+    const m={},ar=[...el.querySelectorAll('[data-arch]')].filter(i=>i.checked).map(i=>i.dataset.arch);if(ar.length)m._archived=ar;
+    for(const i of el.querySelectorAll('.map-in')){const v=i.value.trim();if(v){if(v.length>60||/['\\]/.test(v)){alMsg('Names cannot contain quotes or backslashes.',true,'#mapMsg');return}m[i.dataset.k]=v}}
     const b=$('#mapSave');b.disabled=true;b.textContent='Saving…';
     try{if(S.live&&typeof mcp!=='undefined'&&mcp) await sql(`select public.ea_map_put('${JSON.stringify(m).replace(/'/g,"''")}'::jsonb) as r`);
       EA_OVR=m;try{localStorage.setItem('fx-eamap',JSON.stringify(m))}catch(e){}
       assignFamilies();for(const q of S.pos||[])q.fam=famFor(q.acct,q.magic,q.comment);try{localStorage.removeItem('fx-alnames')}catch(e){}if(S.live)loadAlerts(true);render();
-      alMsg(`✓ Saved at ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}. ${Object.keys(m).length} name${Object.keys(m).length===1?'':'s'} of yours in use.`,false,'#mapMsg')}
+      alMsg(`✓ Saved at ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}. ${Object.keys(m).filter(k=>k!=='_archived').length} name${Object.keys(m).filter(k=>k!=='_archived').length===1?'':'s'} of yours, ${ar.length} archived.`,false,'#mapMsg')}
     catch(e){alMsg('Could not save: '+(e.message||e),true,'#mapMsg')}finally{const b2=$('#mapSave');if(b2){b2.disabled=false;b2.textContent='Save mapping'}}};
 }
 if($('#mapBtn')) $('#mapBtn').onclick=()=>{const d=document.querySelector('details.settings');if(d)d.open=false;showTab('map',true)};
