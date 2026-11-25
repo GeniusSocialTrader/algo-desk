@@ -403,6 +403,68 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .atypes{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
 .atype{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
 .atype select{max-width:130px}
+
+/* ---------- v17 EA lab and report ---------- */
+.lab-bar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.lab-sum{display:flex;gap:8px;flex-wrap:wrap}
+.lab-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px}
+.lab-pill i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.lab{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:14px}
+.ea-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);position:relative;overflow:hidden;min-width:0;
+  background-image:linear-gradient(160deg,color-mix(in srgb,var(--c) 13%,transparent),transparent 55%);animation:rise .5s var(--d) both;transition:transform .18s,box-shadow .18s,border-color .18s}
+.ea-card::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--c)}
+.ea-card:hover,.ea-card:focus-visible{transform:translateY(-3px);border-color:color-mix(in srgb,var(--c) 55%,var(--line));box-shadow:0 14px 30px -18px color-mix(in srgb,var(--c) 70%,transparent)}
+.ea-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ec-top{display:flex;align-items:center;gap:8px}.ec-name{display:flex;flex-direction:column;min-width:0;flex:1}.ec-name b{font:600 17px var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ec-chips,.eh-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.ec-gain{display:flex;align-items:baseline;gap:8px}.ec-gain b{font:700 26px var(--f-display);letter-spacing:-.01em}.ec-gain span{font:600 13px var(--f-data)}
+.ec-spark{width:100%;height:44px}
+.ec-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.ec-stats span{display:flex;flex-direction:column;gap:1px}.ec-stats i{font-style:normal;font-size:10.5px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}.ec-stats b{font:600 14px var(--f-data)}
+.sring .sarc{transition:stroke-dasharray .9s cubic-bezier(.2,.8,.2,1)}
+.ea-pick{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ea-pick select{font:600 15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+.eh{position:relative;border-radius:20px;padding:22px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));overflow:hidden;display:flex;flex-direction:column;gap:16px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 22%,var(--surface)),var(--surface) 70%)}
+.eh::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(color-mix(in srgb,var(--c) 30%,transparent),transparent 70%);pointer-events:none}
+.eh-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.eh-id{display:flex;gap:14px;align-items:flex-start;min-width:0}
+.eh-name{font:700 clamp(28px,5vw,44px)/1.05 var(--f-display);letter-spacing:-.02em;margin:6px 0 4px}
+.eh-stages{display:grid;grid-template-columns:1fr 1fr;gap:6px;border:1px solid var(--line);border-radius:12px;padding:5px;background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.eh-stages span{padding:8px 12px;border-radius:8px;font:600 12px var(--f-data);letter-spacing:.04em;color:var(--muted);text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eh-stages .on{background:color-mix(in srgb,var(--c) 22%,var(--surface));color:var(--ink)}
+.ekpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:12px}
+.ek{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ek b{font:700 24px var(--f-display);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.estrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));border-top:1px solid var(--line);padding-top:12px;gap:10px}
+.estrip div{display:flex;flex-direction:column;gap:2px}.estrip b{font:600 18px var(--f-body)}
+.mgrid{border-collapse:separate;border-spacing:4px;width:100%;min-width:720px}
+.mgrid th{font:600 11px var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:2px}
+.mgrid tbody th{text-align:left;color:var(--ink);font-size:13px}
+.mc{text-align:center;padding:9px 4px;border-radius:7px;font:600 12.5px var(--f-data);color:var(--ink)}
+.mc.mnone{color:var(--muted);background:none;border:1px dashed var(--line)}
+.mc.yr{background:var(--sunk)}
+.sc{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.sc{grid-template-columns:1fr}}
+.sc-l,.sc-r{border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.sc-big{display:flex;align-items:center;gap:12px}.sc-big b{font:700 64px/1 var(--f-display)}
+.sc-scale{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--neg) 0 45%,var(--warn) 45% 70%,var(--pos) 70%)}
+.sc-scale i{position:absolute;top:-4px;width:4px;height:16px;margin-left:-2px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 2px var(--surface)}
+.sc-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.sc-sub{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:14px}.sc-sub .hbar{grid-column:1/-1}.sc-sub .tag{grid-column:1/-1}
+.sc-crit{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+.sc-row{display:grid;grid-template-columns:18px 1fr auto;gap:8px;font-size:14px;align-items:center}
+.sc-why{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sc-why>div{display:flex;flex-direction:column;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 12px}.sc-why>div b{font:700 24px var(--f-display)}.sc-why>div span{font-size:11px;color:var(--muted)}
+.sc-why .cap{border-color:var(--neg)}.sc-why .cap b{color:var(--neg)}.sc-why p{flex:1;min-width:200px;font-size:14px}
+.sc-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media (max-width:640px){.sc-cols{grid-template-columns:1fr}}
+.sc-li{display:flex;gap:8px;font-size:14px;margin:6px 0}.sc-li i{font-style:normal;font-weight:700;width:18px;height:18px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--sunk)}
+.bhs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.bh{border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bh-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:8px;align-items:center;font-size:14px}.bh-row>span:first-child{display:flex;flex-direction:column}
+.ls-bar{height:10px;border-radius:5px;background:color-mix(in srgb,var(--cool) 35%,var(--surface));overflow:hidden}.ls-bar b{display:block;height:100%;background:var(--cool)}
+.ls-leg{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -491,11 +553,32 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="eas" aria-labelledby="hEA">
-  <div class="sec-h"><div><span class="kicker">Leaderboard</span><h2 id="hEA">Your EAs, best to worst</h2></div><p>Bars grow right for profit and left for loss. Tap an EA to see each symbol it trades.</p></div>
-  <div class="panel"><div class="board" id="board"></div>
-    <button type="button" class="more" id="boardMore" hidden>Show all EAs</button>
-    <details class="fold"><summary>Full statistics table</summary><div class="scroll"><table id="eaTable"></table></div></details>
+  <div class="sec-h"><div><span class="kicker">EA lab</span><h2 id="hEA">Every EA, scored and judged</h2></div><p>One card per EA across all its accounts and magic numbers. The 0 to 100 score weighs profitability, risk, consistency and evidence. Broker stop-outs or a drawdown over 30% keep it under 45 whatever the rest looks like. Tap a card for the full report.</p></div>
+  <div class="lab-bar"><div class="lab-sum" id="labSum"></div><div class="seg" id="labSort" role="group" aria-label="Sort EAs"></div></div>
+  <div class="lab" id="lab"></div>
+  <details class="fold panel"><summary>Ranking list and full statistics</summary><div class="board" id="board"></div><button type="button" class="more" id="boardMore" hidden>Show all EAs</button>
+    <details class="fold"><summary>Full statistics table</summary><div class="scroll"><table id="eaTable"></table></div></details></details>
+</section>
+
+<section class="sec" data-tab="eas" aria-labelledby="hDive">
+  <div class="sec-h"><div><span class="kicker">EA report</span><h2 id="hDive">One EA, in full</h2></div><p>Pick an EA here or tap a card above. Trades merge across magic numbers and accounts by EA name, so RBO_US30 and DEL_AFP_RBO_XAUUSD both count as RBO.</p></div>
+  <div class="ea-pick"><label for="eaPick" class="k">EA</label><select id="eaPick"></select><span id="eaVerdict" hidden></span></div>
+  <div class="eh" id="eaHero"></div>
+  <div class="ekpi" id="eaKpi"></div>
+  <section class="panel"><div class="ph"><span class="k">Equity of this EA only</span><div class="seg" id="eaTabs" role="group" aria-label="Chart"><button type="button" data-t="eq">Progress</button><button type="button" data-t="dd">Drawdown</button><button type="button" data-t="day">Daily P/L</button></div></div>
+    <div class="chart" style="height:300px"><canvas id="cEAP" role="img" aria-label="Equity curve of the selected EA"></canvas></div><div class="estrip" id="eaStrip"></div></section>
+  <section class="panel"><div class="ph"><div><h3>Monthly returns</h3><p class="muted" style="font-size:13px">Share of the EA's capital at the start of each month, or dollars</p></div><div class="seg" id="monthUnit" role="group" aria-label="Unit"></div></div><div class="scroll"><table class="mgrid" id="eaMonths"></table></div></section>
+  <section class="panel"><header><h3>Score</h3><p>How the verdict is reached, and what speaks for and against this EA</p></header><div class="sc"><div class="sc-l" id="eaScoreL"></div><div class="sc-r" id="eaScoreR"></div></div></section>
+  <section class="panel"><header><h3>Behaviour</h3><p>When it trades, which direction pays, how long it holds</p></header><div class="bhs" id="eaBehave"></div></section>
+  <div class="g2">
+    <section class="panel"><header><h3>Pairs inside this EA</h3></header><div class="board" id="eaPairs"></div></section>
+    <section class="panel"><header><h3>By account</h3></header><div class="checks" id="eaAccts"></div><div class="explain" id="eaText"></div></section>
   </div>
+  <div class="g2">
+    <section class="panel"><header><h3>How its trades close</h3></header><div class="meter" id="eaExitBar" style="height:16px"></div><div class="checks" id="eaExit"></div></section>
+    <section class="panel"><header><h3>By hour of entry</h3><p>Server time</p></header><div class="chart sm"><canvas id="cEAHour"></canvas></div></section>
+  </div>
+  <details class="fold panel"><summary>All statistics</summary><div class="nums" id="eaNums"></div><div hidden><canvas id="cEA"></canvas></div></details>
 </section>
 
 <section class="sec" data-tab="eas" aria-labelledby="hFair">
@@ -505,26 +588,6 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <div class="explain" id="fairNote" style="margin:0"></div>
     <details class="fold"><summary>Equal-risk table</summary><div class="scroll"><table id="fairTbl"></table></div></details>
   </section>
-</section>
-
-<section class="sec" data-tab="eas" aria-labelledby="hDive">
-  <div class="sec-h"><div><span class="kicker">EA deep dive</span><h2 id="hDive">One EA, every pair</h2></div><p>Pick an EA. Trades are merged across magic numbers and accounts by the EA name in the comment, so RBO_US30 and DEL_AFP_RBO_XAUUSD both count as RBO.</p></div>
-  <div class="panel">
-    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between">
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0"><label for="eaPick" class="k">EA</label><select id="eaPick" style="font:600 15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%"></select></div>
-      <div id="eaVerdict" style="display:flex;gap:10px;align-items:center"></div>
-    </div>
-    <div class="nums" id="eaNums"></div>
-    <div style="min-width:0"><span class="k">How its trades close</span><div class="meter" id="eaExitBar" style="height:16px;margin-top:6px"></div><div class="checks" id="eaExit" style="margin-top:8px"></div></div>
-    <div class="g2">
-      <div style="min-width:0"><span class="k">Cumulative net profit</span><div class="chart"><canvas id="cEA"></canvas></div></div>
-      <div style="min-width:0"><span class="k">Pairs inside this EA</span><div class="board" id="eaPairs" style="margin-top:6px"></div></div>
-    </div>
-    <div class="g2">
-      <div style="min-width:0"><span class="k">By hour of entry</span><div class="chart sm"><canvas id="cEAHour"></canvas></div></div>
-      <div style="min-width:0"><span class="k">By account</span><div class="checks" id="eaAccts"></div><div class="explain" id="eaText" style="margin-top:8px"></div></div>
-    </div>
-  </div>
 </section>
 
 <section class="sec" data-tab="timing" aria-labelledby="hTime">
@@ -935,7 +998,7 @@ function render(){
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -1805,6 +1868,184 @@ function renderEqualRisk({EAs,P,base}){
 }
 $('#varSeg')&&($('#varSeg').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;UI.var=+b.dataset.v;render()});
 
+
+/* ---------- v17: EA lab (cards) and EA profile. Layout ideas from EAProof's EA report, monthly grid from Myfxbook/MQL5 Signals ---------- */
+UI.labSort='score';UI.eaTab='eq';UI.monthUnit='%';
+const SESS=[['Asia',0,8],['Europe',8,16],['US',16,24]];
+let EB={};
+// capital behind an EA = starting capital of the accounts it trades on
+function eaBase(ts){const c=cfg().cap;return [...new Set(ts.map(t=>t.acct))].reduce((s,a)=>s+(EB[a]??=((acctStats(a,c)||{}).base||c)),0)}
+const clamp01=x=>Math.max(0,Math.min(1,x));
+const dowOf=t=>new Date(t).getUTCDay();
+// grid, martingale, averaging down, hedging, stop use, weekend holds: from open/close overlap of its own positions
+function riskChars(ts){
+  const uniq=new Map();for(const t of ts){const k=t.acct+'|'+(t.pos||t.id);if(!uniq.has(k))uniq.set(k,t)}
+  const P=[...uniq.values()],by={};for(const t of P)(by[t.acct+'|'+t.sym]=by[t.acct+'|'+t.sym]||[]).push(t);
+  let maxOpen=0,mart=1,avgDown=0,hedge=0,wk=0;
+  for(const a of Object.values(by)){
+    const ev=[];for(const t of a){ev.push([t.ot,1,t.side]);ev.push([t.ct,-1,t.side])}
+    ev.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);let n=0,nb=0,ns=0;
+    for(const [,d,s] of ev){n+=d;if(s==='buy')nb+=d;else ns+=d;if(n>maxOpen)maxOpen=n;if(d>0&&nb>0&&ns>0)hedge++}
+    for(const side of ['buy','sell']){const s=a.filter(t=>t.side===side).sort((x,y)=>x.ot-y.ot);let end=-1,first=null;
+      for(const t of s){if(t.ot>end) first=t;else if(first){if(first.lots>0)mart=Math.max(mart,t.lots/first.lots);if(t.op&&first.op&&(side==='buy'?t.op<first.op:t.op>first.op))avgDown++}end=Math.max(end,t.ct)}}
+  }
+  for(const t of P){if(t.ct-t.ot>=6*864e5){wk++;continue}let d=t.ot-t.ot%864e5;while(d<=t.ct){if(dowOf(d)===6){wk++;break}d+=864e5}}
+  return {maxOpen,mart,avgDown,hedge,wk,n:P.length,grid:maxOpen>=3,isMart:mart>=1.5&&maxOpen>=2,sl:ts.filter(t=>t.sl).length/ts.length};
+}
+// 0-100 score: profitability, risk, consistency, significance; hard rules cap it below 45
+function scoreOf(ts,base,V,rc){
+  const M=metrics(ts,[],base,base),ddp=M.maxDD/base;
+  const prof=clamp01((Math.min(M.pf,5)-.9)/1.1)*(M.net>0?100:40);
+  const risk=clamp01(1-ddp/.3)*100*(rc.isMart?.7:rc.grid?.85:1);
+  const t0=ts[0].ct,bl={};for(const t of ts){const k=Math.floor((t.ct-t0)/(30*864e5));bl[k]=(bl[k]||0)+t.net}
+  const bv=Object.values(bl),up=bv.filter(v=>v>0).length,cons=bv.length>=2?up/bv.length*100:50;
+  const sig=(isFinite(V.psr)?V.psr:0)*Math.min(1,ts.length/100)*100;
+  const raw=Math.round(.3*prof+.3*risk+.2*cons+.2*sig),caps=[];
+  const so=ts.filter(t=>t.so).length;
+  if(so) caps.push(`${so} broker stop-out${so>1?'s':''}`);
+  if(ddp>.3) caps.push(`drawdown ${pct(ddp,1)} of its capital, over the 30% limit`);
+  if(V.v==='Review') caps.push(...V.why);
+  const s=caps.length?Math.min(raw,44):raw;
+  const band=V.v==='Too early'?'Too early':s<45?'Review':s<70?'Watch':'Keep';
+  return {s,raw,caps,band,prof:Math.round(prof),risk:Math.round(risk),cons:Math.round(cons),sig:Math.round(sig),blocks:[up,bv.length],M,ddp};
+}
+const BANDC={Keep:'--pos',Watch:'--warn',Review:'--neg','Too early':'--muted'};
+function scoreRing(s,band,sz=64){const r=sz/2-5,C=2*Math.PI*r,col=`var(${BANDC[band]})`;
+  return `<svg class="sring" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" role="img" aria-label="Score ${s} of 100, ${band}"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="5"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C*s/100} ${C}" transform="rotate(-90 ${sz/2} ${sz/2})" class="sarc"/><text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" fill="var(--ink)" style="font:700 ${sz*.34}px var(--f-display)">${band==='Too early'?'–':s}</text></svg>`}
+const bandChip=b=>`<span class="chip ${{Keep:'pass',Watch:'warn',Review:'fail'}[b]||''}">${{Keep:'✓',Watch:'👀',Review:'⚠','Too early':'⏳'}[b]} ${b}</span>`;
+// one profile object per EA family, cached per render
+let PROF={};
+function profileOf(k,ts){
+  if(PROF[k]) return PROF[k];
+  ts=ts.slice().sort((x,y)=>x.ct-y.ct);
+  const base=eaBase(ts),V=verdictOf(ts),rc=riskChars(ts),S=scoreOf(ts,base,V,rc);
+  const accts=[...new Set(ts.map(t=>t.acct))],demo=accts.filter(isDemoAcct).length;
+  return PROF[k]={k,ts,base,V,rc,S,M:S.M,accts,kind:demo===accts.length?'Demo':demo?'Real + demo':'Real',syms:[...new Set(ts.map(t=>t.sym))]};
+}
+const SORTS={score:p=>-(p.S.band==='Too early'?-1:p.S.s),profit:p=>-p.M.net,dd:p=>p.S.ddp};
+
+/* ---------- EA lab: one card per EA ---------- */
+function renderLab({T}){
+  EB={};PROF={};
+  const el=$('#lab');if(!el) return;
+  const fams={};for(const t of T)(fams[t.fam]=fams[t.fam]||[]).push(t);
+  const L=Object.entries(fams).filter(([,ts])=>ts.length>=2).map(([k,ts])=>profileOf(k,ts)).sort((x,y)=>SORTS[UI.labSort](x)-SORTS[UI.labSort](y));
+  const cnt={Keep:0,Watch:0,Review:0,'Too early':0};for(const p of L) cnt[p.S.band]++;
+  $('#labSum').innerHTML=Object.entries(cnt).map(([b,n])=>`<span class="lab-pill" style="--c:var(${BANDC[b]})"><i></i><b>${n}</b> ${b}</span>`).join('');
+  $('#labSort').innerHTML=[['score','Score'],['profit','Profit'],['dd','Smallest drawdown']].map(([k,l])=>`<button type="button" aria-pressed="${UI.labSort===k}" data-s="${k}">${l}</button>`).join('');
+  el.innerHTML=L.map((p,i)=>{const M=p.M,col=`var(${BANDC[p.S.band]})`;
+    return `<button type="button" class="ea-card" data-k="${esc(p.k)}" style="--c:${col};--d:${i*40}ms" aria-label="Open ${esc(p.k)}">
+      <span class="ec-top">${avatar(p.k,30)}<span class="ec-name"><b>${esc(p.k)}</b><span class="tag">${p.accts.length} account${p.accts.length>1?'s':''} · ${p.syms.slice(0,2).map(s=>pairBadge(s,14)).join('')}${p.syms.length>2?' +'+(p.syms.length-2):''}</span></span>${scoreRing(p.S.s,p.S.band,52)}</span>
+      <span class="ec-chips">${bandChip(p.S.band)}<span class="chip ${p.kind==='Real'?'pass':''}">${p.kind}</span>${p.rc.isMart?'<span class="chip fail">Martingale</span>':p.rc.grid?'<span class="chip warn">Grid</span>':''}</span>
+      <span class="ec-gain"><b class="${cls(M.net)}">${M.net>=0?'+':''}${money(M.net)}</b><span class="${cls(M.net)}">${M.net>=0?'+':''}${pct(M.net/p.base,1)}</span></span>
+      ${miniSpark(cumOf(p.ts),260,44).replace('class="mspark"','class="mspark ec-spark"')}
+      <span class="ec-stats"><span><i>PF</i><b>${fmt(M.pf)}</b></span><span><i>Max DD</i><b class="${p.S.ddp>.2?'neg':''}">${pct(p.S.ddp,1)}</b></span><span><i>Trades</i><b>${M.n.toLocaleString()}</b></span><span><i>Days</i><b>${p.V.days}</b></span></span>
+    </button>`}).join('');
+  el.querySelectorAll('.ea-card').forEach(b=>b.onclick=()=>{UI.ea=b.dataset.k;render();document.getElementById('hDive').scrollIntoView({block:'start',behavior:'smooth'})});
+}
+$('#labSort')&&($('#labSort').onclick=e=>{const b=e.target.closest('[data-s]');if(b){UI.labSort=b.dataset.s;render()}});
+
+/* ---------- EA profile ---------- */
+function renderProfile({T}){
+  const el=$('#eaHero');if(!el||!UI.ea) return;
+  const ts0=T.filter(t=>t.fam===UI.ea);if(ts0.length<2){el.innerHTML='';return}
+  const p=profileOf(UI.ea,ts0),{ts,M,S:Sc,V,rc,base}=p,col=`var(${BANDC[Sc.band]})`;
+  const last=ts[ts.length-1].ct,day=dayKey(last),today=ts.filter(t=>dayKey(t.ct)===day).reduce((s,t)=>s+t.net,0);
+  const G=(S.now||[]).filter(r=>r.magic!=='ALL'&&p.accts.includes(r.acct)&&famFor(r.acct,r.magic,r.comment)===UI.ea),fl=G.reduce((s,r)=>s+r.fl,0);
+  let c=0,pk=0,dd=0,ddT=0;for(const t of ts){c+=t.net;if(c>pk)pk=c;if(pk-c>dd){dd=pk-c;ddT=t.ct}}
+  const real=p.accts.filter(a=>!isDemoAcct(a)),demo=p.accts.filter(isDemoAcct),mg=[...new Set(ts.map(t=>t.magic))];
+  el.style.setProperty('--c',col);
+  el.innerHTML=`<div class="eh-top"><div class="eh-id">${avatar(p.k,44)}<div style="min-width:0"><div class="eh-chips">${bandChip(Sc.band)}<span class="chip ${p.kind==='Real'?'pass':''}">${p.kind}</span>${rc.isMart?'<span class="chip fail">Martingale</span>':rc.grid?'<span class="chip warn">Grid</span>':''}${p.syms.slice(0,6).map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${p.syms.length>6?`<span class="chip">+${p.syms.length-6}</span>`:''}</div>
+      <h3 class="eh-name">${esc(p.k)}</h3><span class="muted">${mg[0]==='0'&&mg.length===1?'manual trades':'magic '+mg.slice(0,4).map(esc).join(', ')+(mg.length>4?' +'+(mg.length-4):'')} · ${p.accts.length} account${p.accts.length>1?'s':''} · capital ${money(base)}</span></div></div>
+      ${scoreRing(Sc.s,Sc.band,96)}</div>
+    <div class="eh-stages"><span class="${demo.length?'on':''}">● Demo${demo.length?' · '+demo.map(nm).map(esc).join(', '):''}</span><span class="${real.length?'on':''}">● Real money${real.length?' · '+real.map(nm).map(esc).join(', '):''}</span></div>`;
+  const K=[['Profit total',`${M.net>=0?'+':''}${money(M.net,2)}`,cls(M.net),`${M.net>=0?'+':''}${pct(M.net/base,1)} of its capital`],
+    ['Last day',`${today>=0?'+':''}${money(today,2)}`,cls(today),day],
+    ['Open right now',G.length?money(fl,2):'–',G.length?cls(fl):'',G.length?`${G.length} open group${G.length>1?'s':''}`:'no open trades reported'],
+    ['Max drawdown',pct(Sc.ddp,1),Sc.ddp>.2?'neg':'',`${money(-dd)} · ${ddT?dstr(ddT):''}`],
+    ['Profit factor',fmt(M.pf),M.pf>=1.2?'pos':M.pf<1?'neg':'',`${pct(M.wr,0)} wins`],
+    ['SQN',fmt(sqnOf(ts),2),sqnOf(ts)>=2?'pos':sqnOf(ts)<1?'neg':'',sqnOf(ts)>=2?'dependable system':sqnOf(ts)>=1?'average':'weak or noisy']];
+  $('#eaKpi').innerHTML=K.map(([k,v,c,s])=>`<div class="ek"><span class="k">${k}</span><b class="${c}">${v}</b><span class="tag">${esc(s)}</span></div>`).join('');
+  const days=new Set(ts.map(t=>dayKey(t.ct))).size,cal=Math.max(1,Math.round((last-ts[0].ot)/864e5));
+  $('#eaStrip').innerHTML=[['Trading days',days+' d',cal+' calendar days'],['First trade',dstr(ts[0].ot),''],['Last trade',dstr(last),''],['Trades a day',fmt(ts.length/days,1),''],['Trades total',ts.length.toLocaleString(),'']].map(([k,v,s])=>`<div><span class="k">${k}</span><b>${v}</b>${s?`<span class="tag">${s}</span>`:''}</div>`).join('');
+  renderEACurve(p);renderMonths(p);renderScore(p);renderBehaviour(p);
+}
+function sqnOf(ts){const v=ts.map(t=>t.net),s=std(v);return s?Math.sqrt(Math.min(v.length,100))*mean(v)/s:0}
+function renderEACurve(p){
+  document.querySelectorAll('#eaTabs [data-t]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===UI.eaTab));
+  const {ts,base,M}=p,pos=css('--pos'),neg=css('--neg'),x={type:'linear',min:ts[0].ot,max:ts[ts.length-1].ct,grid:{display:false},ticks:{callback:dateTick,maxTicksLimit:6}};
+  let c=0,pk=0;const pts=ts.map(t=>{c+=t.net;if(c>pk)pk=c;return {t:t.ct,v:c,d:-(pk-c)/base*100}});
+  if(UI.eaTab==='dd'){chart('cEAP',{type:'line',data:{datasets:[{data:sample(pts,700,'d').map(q=>({x:q.t,y:q.d})),borderColor:neg,backgroundColor:neg+'30',fill:'origin',borderWidth:1.5,pointRadius:0}]},
+    options:baseOpts({animation:{duration:600},scales:{x,y:{max:0,grid:{color:css('--line')},ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:false},tooltip:{...tipT,callbacks:{...tipT.callbacks,label:i=>fmt(i.raw.y,2)+'% below its high'}}}})});return}
+  if(UI.eaTab==='day'){const by={};for(const t of ts){const k=dayKey(t.ct);by[k]=(by[k]||0)+t.net}const ks=Object.keys(by).sort().slice(-120);
+    chart('cEAP',{type:'bar',data:{labels:ks,datasets:[{data:ks.map(k=>by[k]),backgroundColor:ks.map(k=>by[k]>=0?pos:neg),borderRadius:2,borderSkipped:false}]},
+      options:baseOpts({animation:{duration:600},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:6}},y:{grid:{color:css('--line')},ticks:{callback:v=>money(v)}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>money(i.raw,2)}}}})});return}
+  const col=M.net>=0?pos:neg;
+  chart('cEAP',{type:'line',data:{datasets:[{data:sample(pts,800,'v').map(q=>({x:q.t,y:q.v})),borderColor:col,backgroundColor:col+'26',fill:'origin',borderWidth:2,pointRadius:0}]},
+    options:baseOpts({animation:{duration:900},scales:{x,y:{grid:{color:css('--line')},ticks:{callback:v=>money(v)}}},plugins:{legend:{display:false},tooltip:{...tipT,callbacks:{...tipT.callbacks,label:i=>money(i.raw.y,2)}}}})});
+}
+$('#eaTabs')&&($('#eaTabs').onclick=e=>{const b=e.target.closest('[data-t]');if(b){UI.eaTab=b.dataset.t;render()}});
+function renderMonths(p){
+  const {ts,base}=p,mo={};let cum=0;const startBal={};
+  for(const t of ts){const k=dayKey(t.ct).slice(0,7);if(!(k in startBal))startBal[k]=base+cum;mo[k]=(mo[k]||0)+t.net;cum+=t.net}
+  const yrs=[...new Set(Object.keys(mo).map(k=>k.slice(0,4)))].sort().reverse(),pc=UI.monthUnit==='%';
+  const mx=Math.max(...Object.entries(mo).map(([k,v])=>Math.abs(pc?v/startBal[k]:v)),1e-9);
+  const cell=(v,s)=>v==null?'<td class="mc mnone">–</td>':`<td class="mc" style="background:color-mix(in srgb,var(${v>=0?'--pos':'--neg'}) ${Math.round(10+45*Math.sqrt(Math.abs(s)/mx))}%,var(--surface))">${pc?(s>=0?'+':'')+fmt(s*100,1)+'%':(v>=0?'+':'')+money(v)}</td>`;
+  $('#monthUnit').innerHTML=['%','$'].map(u=>`<button type="button" aria-pressed="${UI.monthUnit===u}" data-u="${u}">${u}</button>`).join('');
+  $('#eaMonths').innerHTML=`<thead><tr><th></th>${MN.map(m=>`<th>${m}</th>`).join('')}<th>Year</th></tr></thead><tbody>`+yrs.map(y=>{
+    let yv=0,first=null;const cells=MN.map((_,i)=>{const k=`${y}-${String(i+1).padStart(2,'0')}`;if(!(k in mo))return cell(null);yv+=mo[k];if(first==null)first=startBal[k];return cell(mo[k],pc?mo[k]/startBal[k]:mo[k])}).join('');
+    const ys=pc?yv/first:yv;return `<tr><th>${y}</th>${cells}<td class="mc yr ${cls(yv)}"><b>${pc?(ys>=0?'+':'')+fmt(ys*100,1)+'%':(yv>=0?'+':'')+money(yv)}</b></td></tr>`}).join('')+'</tbody>';
+}
+$('#monthUnit')&&($('#monthUnit').onclick=e=>{const b=e.target.closest('[data-u]');if(b){UI.monthUnit=b.dataset.u;render()}});
+function renderScore(p){
+  const {S:Sc,M,V,rc,ts}=p,col=`var(${BANDC[Sc.band]})`;
+  const bar=(l,v,tip)=>`<div class="sc-sub"><span>${l}</span><b>${v}</b><span class="hbar"><b style="width:${v}%;background:var(${v>=70?'--pos':v>=45?'--warn':'--neg'})"></b></span><span class="tag">${tip}</span></div>`;
+  const days=Math.round((ts[ts.length-1].ct-ts[0].ot)/864e5);
+  const crit=[[`Running ≥ 90 days`,days+' d',days>=90],['Trades ≥ 60',ts.length.toLocaleString(),ts.length>=60],['Profit factor ≥ 1.2',fmt(M.pf),M.pf>=1.2],['Max drawdown ≤ 20%',pct(Sc.ddp,1),Sc.ddp<=.2],['No broker stop-outs',String(ts.filter(t=>t.so).length),!ts.some(t=>t.so)]];
+  const met=crit.filter(c=>c[2]).length;
+  $('#eaScoreL').innerHTML=`<div class="sc-big"><b style="color:${col}">${Sc.band==='Too early'?'–':Sc.s}</b>${bandChip(Sc.band)}</div>
+    <div class="sc-scale"><i style="left:${Sc.s}%"></i></div><div class="sc-legend"><span>review below 45</span><span>watch</span><span>keep from 70</span></div>
+    ${bar('Profitability',Sc.prof,'profit factor, net result')}${bar('Risk',Sc.risk,'drawdown vs capital'+(rc.isMart||rc.grid?', grid penalty':''))}${bar('Consistency',Sc.cons,`${Sc.blocks[0]} of ${Sc.blocks[1]} 30-day blocks in profit`)}${bar('Evidence',Sc.sig,'edge confidence × trade count')}
+    <div class="sc-crit"><span class="k">Checks</span><span class="chip ${met===crit.length?'pass':met>=3?'warn':'fail'}">${met} of ${crit.length} met</span></div>
+    ${crit.map(([l,v,ok])=>`<div class="sc-row"><span class="${ok?'pos':'neg'}">${ok?'✓':'✗'}</span><span>${l}</span><b class="${ok?'':'neg'}">${v}</b></div>`).join('')}`;
+  // for and against
+  const F=[],A=[],gp=ts.filter(t=>t.net>0),gl=ts.filter(t=>t.net<0);
+  (M.pf>=1.2?F:A).push(`Profit factor <b>${fmt(M.pf)}</b>: ${fmt(M.pf)} earned for every 1 lost`);
+  if(M.payoff) (M.payoff>=1||M.wr>=.6&&M.payoff>=.6?F:A).push(`Win rate <b>${pct(M.wr,0)}</b>, average win ${money(M.avgW,2)} vs average loss ${money(M.avgL,2)}`);
+  const q=sqnOf(ts);(q>=2?F:q<1?A:F).push(`SQN <b>${fmt(q,2)}</b>: ${q>=2?'statistically dependable':q>=1?'average system quality':'results are noisy'}`);
+  (Sc.blocks[0]/Math.max(Sc.blocks[1],1)>=.6?F:A).push(`<b>${Sc.blocks[0]} of ${Sc.blocks[1]}</b> 30-day blocks in profit`);
+  const L=ts.filter(t=>t.side==='buy').reduce((s,t)=>s+t.net,0),Sh=ts.filter(t=>t.side==='sell').reduce((s,t)=>s+t.net,0);
+  if(L>0&&Sh>0) F.push('Long and short both profitable, not a one-way bet');else if(L<0||Sh<0) A.push(`${L<0?'Longs':'Shorts'} lose <b>${money(Math.min(L,Sh))}</b>`);
+  if(isFinite(V.psr)) (V.psr>=.9?F:A).push(`<b>${pct(V.psr,0)}</b> sure the edge is real${V.need?`, needs ${V.need} more trading days for 95%`:''}`);
+  if(V.cusum&&V.cusum.alarm) A.push('Recent trades run below its early results (decay alarm)');
+  if(rc.isMart) A.push(`<b>Martingale</b>: later layers up to ${fmt(rc.mart,1)}× the first lot, risk sits in open baskets`);else if(rc.grid) A.push(`<b>Grid</b>: up to ${rc.maxOpen} trades open at once`);
+  const so=ts.filter(t=>t.so);if(so.length) A.push(`<b>${so.length} broker stop-out${so.length>1?'s':''}</b> costing ${money(so.reduce((s,t)=>s+t.net,0))}`);
+  if(Sc.ddp>.2) A.push(`Drawdown <b>${pct(Sc.ddp,1)}</b> of its capital is above the 20% limit`);
+  if(rc.sl<.5) A.push(`Only ${pct(rc.sl,0)} of trades carry a stop loss`);else if(rc.sl>=.9) F.push(`Fixed stop loss on ${pct(rc.sl,0)} of trades`);
+  if(V.days<90) A.push(`Only ${V.days} trading days so far`);
+  const why=Sc.caps.length?`<div class="sc-why"><div><b>${Sc.raw}</b><span>base score</span></div><span>→</span><div class="cap"><b>${Sc.s}</b><span>capped</span></div><p>${esc(Sc.caps.join('; '))}. Any one of these keeps the score under 45, whatever the rest looks like.</p></div>`
+    :`<div class="sc-why"><div><b>${Sc.raw}</b><span>score</span></div><p>Weighted 30% profitability, 30% risk, 20% consistency, 20% evidence. No hard rule was broken.</p></div>`;
+  const chipY=(l,y,d)=>`<span class="chip ${y?'warn':''}">${l} · ${y?'YES':'NO'}${d?` (${d})`:''}</span>`;
+  $('#eaScoreR').innerHTML=`<span class="k">Why ${Sc.band==='Too early'?'no score yet':Sc.s}?</span>${why}
+    <div class="sc-cols"><div><span class="k pos">Speaks for it</span>${F.map(x=>`<p class="sc-li"><i class="pos">+</i><span>${x}</span></p>`).join('')||'<p class="muted">Nothing stands out yet.</p>'}</div>
+    <div><span class="k neg">Speaks against it</span>${A.map(x=>`<p class="sc-li"><i class="neg">−</i><span>${x}</span></p>`).join('')||'<p class="muted">No warning signs.</p>'}</div></div>
+    <span class="k">Risk profile</span><div class="eh-chips">${chipY('Grid',rc.grid,rc.grid?'max '+rc.maxOpen+' open':'')}${chipY('Martingale',rc.isMart,rc.isMart?fmt(rc.mart,1)+'× lots':'')}${chipY('Averaging down',rc.avgDown>0,rc.avgDown?rc.avgDown+'×':'')}${chipY('Hedging',rc.hedge>0,rc.hedge?rc.hedge+'×':'')}${chipY('Held over weekend',rc.wk>0,rc.wk?rc.wk+' trades':'')}<span class="chip ${rc.sl>=.9?'pass':rc.sl<.5?'warn':''}">Stop loss · ${pct(rc.sl,0)} of trades</span></div>`;
+}
+function renderBehaviour(p){
+  const {ts}=p,h=t=>new Date(t.ot).getUTCHours();
+  const se=SESS.map(([n,a,b])=>{const x=ts.filter(t=>h(t)>=a&&h(t)<b);return {n,a,b,net:x.reduce((s,t)=>s+t.net,0),k:x.length}}),mxs=Math.max(...se.map(s=>Math.abs(s.net)),1),best=se.slice().sort((x,y)=>y.net-x.net)[0];
+  const side=s=>{const x=ts.filter(t=>t.side===s);return {k:x.length,net:x.reduce((q,t)=>q+t.net,0),wr:x.length?x.filter(t=>t.net>0).length/x.length:0}},Lg=side('buy'),Sh=side('sell'),lp=Lg.k/Math.max(ts.length,1);
+  const hold={Intraday:[],Overnight:[],Weekend:[]};for(const t of ts){const d0=dayKey(t.ot),d1=dayKey(t.ct);let wk=false;if(d0!==d1){let d=t.ot-t.ot%864e5;while(d<=t.ct&&!wk){if(dowOf(d)===6)wk=true;d+=864e5}}hold[d0===d1?'Intraday':wk?'Weekend':'Overnight'].push(t)}
+  const hs=Object.entries(hold).map(([k,x])=>({k,n:x.length,net:x.reduce((s,t)=>s+t.net,0)})),mxh=Math.max(...hs.map(x=>Math.abs(x.net)),1);
+  const row=(l,sub,v,mx)=>`<div class="bh-row"><span>${l}<span class="tag">${sub}</span></span><span class="div-bar" style="height:12px"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/mx*50}%;background:var(${v>=0?'--pos':'--neg'})"></b></span><b class="num ${cls(v)}">${money(v)}</b></div>`;
+  $('#eaBehave').innerHTML=`<div class="bh"><span class="k">Sessions · server time</span>${se.map(s=>row(s.n,`${String(s.a).padStart(2,'0')}–${String(s.b).padStart(2,'0')} · ${s.k}`,s.net,mxs)).join('')}<p class="tag">${best.net>=0?'Best':'Least bad'} session: ${best.n} (${money(best.net)})</p></div>
+    <div class="bh"><span class="k">Long versus short</span><div class="ls-bar"><b style="width:${lp*100}%"></b></div><div class="ls-leg"><span>Long ${pct(lp,0)} · ${Lg.k}</span><span>Short ${pct(1-lp,0)} · ${Sh.k}</span></div>
+      ${row('Long',`${pct(Lg.wr,0)} wins`,Lg.net,Math.max(Math.abs(Lg.net),Math.abs(Sh.net),1))}${row('Short',`${pct(Sh.wr,0)} wins`,Sh.net,Math.max(Math.abs(Lg.net),Math.abs(Sh.net),1))}</div>
+    <div class="bh"><span class="k">Holding time</span>${hs.map(x=>row(x.k,x.n+' trades',x.net,mxh)).join('')}<p class="tag">${hs[2].n?`${hs[2].n} trades held over a weekend: gap risk.`:'Never held over a weekend.'}</p></div>`;
+}
+// keep the leaderboard, Good to know and equal-risk badges in step with the score band
+function syncBands(EAs){for(const e of EAs){const p=PROF[e.name];if(p&&p.S.band!==e.V.v) e.V={...e.V,v:p.S.band,why:p.S.caps.length?p.S.caps:e.V.why}}}
+
 function fillAccounts(){
   const sel=$('#acct'),cur=sel.value,acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   sel.innerHTML='<option value="ALL">All accounts</option><option value="REAL">Real money accounts</option><option value="DEMO">Demo accounts</option>'+acc.map(a=>`<option value="${esc(a)}">${esc(nmFull(a))}</option>`).join('');
@@ -1826,7 +2067,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v16';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v17';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
