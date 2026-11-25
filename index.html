@@ -514,9 +514,36 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .ov-open{width:100%;border-collapse:collapse;font:13px var(--f-data)}
 .ov-open th,.ov-open td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .ov-open th:nth-child(-n+3),.ov-open td:nth-child(-n+3){text-align:left}
+.ov-open td:nth-child(3){white-space:normal;min-width:150px}.ov-open th,.ov-open td{padding:8px 8px}
 .ov-open tfoot td{font-weight:600;border-bottom:0}
 .ov-dd{display:inline-block;vertical-align:middle;width:64px;height:6px;border-radius:3px;background:var(--line);margin-left:8px;overflow:hidden}
 .ov-dd i{display:block;height:100%;background:var(--neg);border-radius:3px}
+
+@media (max-width:600px){
+ .ov-open>thead{display:none}.ov-open .ph{display:inline}.ov-open,.ov-open tbody,.ov-open tfoot{display:block;width:100%}
+ .ov-open tr.ov-row,.ov-open tfoot tr{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:2px;padding:10px 4px;border-bottom:1px solid var(--line)}
+ .ov-open tr.ov-row td,.ov-open tfoot td{border:0;padding:0!important;white-space:normal;min-width:0}
+ .ov-open tr.ov-row td:nth-child(4),.ov-open tr.ov-row td:nth-child(5),.ov-open tfoot td:nth-child(3),.ov-open tfoot td:nth-child(2){display:none}
+ .ov-open tr.ov-row td:nth-child(1),.ov-open tfoot td:nth-child(1){order:1;text-align:left}.ov-open tr.ov-row td:nth-child(6),.ov-open tfoot td:nth-child(4){order:2;text-align:right}
+ .ov-open tr.ov-row td:nth-child(2){order:3;text-align:left}.ov-open tr.ov-row td:nth-child(7),.ov-open tfoot td:nth-child(5){order:4;text-align:right}
+ .ov-open tr.ov-row td:nth-child(3){order:5;text-align:left;font-size:12px}.ov-open tr.ov-row td:nth-child(8),.ov-open tfoot td:nth-child(6){order:6;text-align:right}
+ .ov-open tfoot td:nth-child(5),.ov-open tfoot td:nth-child(6){grid-column:2}
+ .ov-open tr.ov-det{display:block}.ov-open tr.ov-det>td{display:block;max-width:none}
+ .ov-open td:nth-child(3){min-width:0}
+}
+.ov-open .ph{display:none}.ov-click{cursor:pointer}.ov-click:hover td{background:var(--sunk)}.ov-click:focus-visible{outline:2px solid var(--c1);outline-offset:-2px}
+.ov-car{display:inline-block;width:14px;color:var(--muted)}
+.ov-det>td{background:var(--sunk);padding:6px 10px 12px!important;text-align:left!important}
+.ov-det>td{max-width:0}.ov-tk{overflow-x:auto}.ov-tk table{border-collapse:collapse;font:12px var(--f-data);width:100%}
+.ov-open tfoot td.ov-note{font:12px var(--f-body);font-weight:400;color:var(--muted);white-space:normal}
+.ov-tk th,.ov-tk td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.ov-tk th:first-child,.ov-tk td:first-child{text-align:left}.ov-tk p{margin:8px 0 0}
+@media (max-width:600px){#liveRisk .hm{display:none}#liveRisk th,#liveRisk td{padding-left:6px;padding-right:6px}}
+.live-risk{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:16px}.live-risk .panel{min-width:0}
+.xp{display:grid;gap:8px;margin-top:6px}.xp-r{display:grid;grid-template-columns:52px 1fr minmax(96px,auto);gap:10px;align-items:center;font:13px var(--f-data)}
+.xp-t{position:relative;height:12px;background:var(--sunk);border-radius:6px;overflow:hidden}.xp-t i{position:absolute;top:0;bottom:0;border-radius:4px}
+.xp-mid{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted);opacity:.6}
+.xp-v{text-align:right;color:var(--ink)}#liveExpo>p{font-size:12px;margin:10px 0 0}.xp-leg{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}.xp-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .eh-arch{margin-left:auto;font-size:12px;padding:4px 10px}
 </style>
 </head>
@@ -573,8 +600,12 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <div class="sec-h"><div><span class="kicker">Live</span><h2 id="hLive">Open trades and drawdown</h2></div><p>Drawdown here is how far equity sits below balance because of open trades. "Ever" counts from when the EA was attached.</p></div>
   <div class="nums" id="liveKpi"></div>
   <section class="panel"><header><h3>Accounts</h3><p>Open trades, floating P/L and drawdown: now, the worst point today and the worst point ever</p></header><div class="scroll"><table id="liveAcc"></table></div></section>
-  <section class="panel"><header><h3>EAs with open trades or past floating drawdown</h3><p>Squares show open layers against the most this EA has ever had open at once. Grid means 3 or more trades open together; martingale means later layers use bigger lots.</p></header><div class="lea-list" id="liveEA"></div></section>
-  <section class="panel"><header><h3>Every open trade</h3><p>MT5: each trade, rebuilt from the deals the EA sends. MT4: one line per EA from the 5-minute equity snapshot.</p></header><div class="scroll"><table id="livePos"></table></div></section>
+  <section class="panel"><header><h3>EAs with open trades or past floating drawdown</h3><p>Squares show open layers against the most this EA has ever had open at once. Grid means 3 or more trades stacked on one pair at once; martingale means later layers use bigger lots.</p></header><div class="lea-list" id="liveEA"></div></section>
+  <div class="live-risk">
+  <section class="panel"><header><h3>If every stop loss hits</h3><p>What each account would be left with if every open trade closed at its stop, swap and commission included. Trades without a stop count at today's P/L, so the real loss could be bigger.</p></header><div class="scroll"><table id="liveRisk"></table></div></section>
+  <section class="panel"><header><h3>Currency exposure</h3><p>Which currencies and markets your open trades are betting on, netted across all accounts.</p></header><div id="liveExpo"></div></section>
+  </div>
+  <section class="panel"><header><h3>Every open trade</h3><p>Every account sends each open trade every 30 seconds. "At stop" is that trade's P/L if its stop loss fills.</p></header><div class="scroll"><table id="livePos"></table></div></section>
 </section>
 
 <section class="sec" data-tab="overview" aria-labelledby="hOpen">
@@ -1103,7 +1134,7 @@ function render(){
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRiskNow(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -1606,9 +1637,11 @@ function layerStats(T){
     ev.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
     let c=0,all=0,today=0;for(const [tm,d] of ev){c+=d;if(c>all)all=c;if(tm>=day0&&c>today)today=c}
     // baskets: same symbol and side, overlapping in time
-    let mart=1;const bs={};for(const t of ts)(bs[t.sym+t.side]=bs[t.sym+t.side]||[]).push(t);
+    let mart=1,stack=0;const bs={};for(const t of ts)(bs[t.sym+t.side]=bs[t.sym+t.side]||[]).push(t);
+    // grid = several trades stacked on ONE pair and side at once (an EA trading three pairs is not a grid)
+    for(const a of Object.values(bs)){const e2=[];for(const t of a){e2.push([t.ot,1]);e2.push([t.ct,-1])}e2.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);let c2=0;for(const [,d] of e2){c2+=d;if(c2>stack)stack=c2}}
     for(const a of Object.values(bs)){a.sort((x,y)=>x.ot-y.ot);let end=-1,first=0;for(const t of a){if(t.ot>end){first=t.lots}else if(first>0)mart=Math.max(mart,t.lots/first);end=Math.max(end,t.ct)}}
-    out[k]={all,today,mart};
+    out[k]={all,today,mart,stack};
   }
   return out;
 }
@@ -1617,21 +1650,21 @@ function renderLive({T,a}){
   const D=(S.dd||[]).filter(f),L=layerStats(T),G=(S.now||[]).filter(r=>r.magic!=='ALL'&&f(r));
   const gk=r=>r.acct+'|'+r.magic+'|'+(r.comment||'');
   // MT5 trades come from deals; each gets its group's floating P/L when it is the only trade in that magic+comment group
-  const P=(S.pos||[]).filter(f).map(p=>({...p})),inG={};for(const p of P)(inG[gk(p)]=inG[gk(p)]||[]).push(p);
-  for(const g of G){const ps=inG[gk(g)];if(ps&&ps.length===1) ps[0].fl=g.fl}
+  const P=posValues((S.pos||[]).filter(f).map(p=>({...p}))),inG={};for(const p of P)(inG[gk(p)]=inG[gk(p)]||[]).push(p);
+  for(const g of G){const ps=inG[gk(g)];if(ps&&ps.length===1&&ps[0].fl==null) ps[0].fl=g.fl}
   // MT4 (and any group with no matching deal) shows as one line per EA group from the equity snapshot
-  const grpOnly=G.filter(g=>!inG[gk(g)]).map(g=>({acct:g.acct,magic:g.magic,comment:g.comment,fam:famFor(g.acct,g.magic,g.comment),fl:g.fl,group:true}));
+  const grpOnly=G.filter(g=>!inG[gk(g)]&&!isLiveAcct(g.acct)).map(g=>({acct:g.acct,magic:g.magic,comment:g.comment,fam:famFor(g.acct,g.magic,g.comment),fl:g.fl,group:true}));
   const rows=P.concat(grpOnly);
   const accts=[...new Set(D.filter(d=>d.magic==='ALL').map(d=>d.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   const accRows=accts.map(ac=>{const d=D.find(x=>x.acct===ac&&x.magic==='ALL')||{},n0=(S.now||[]).find(r=>r.acct===ac&&r.magic==='ALL'),ps=P.filter(p=>p.acct===ac),gs=grpOnly.filter(g=>g.acct===ac);
-    const fl=n0?n0.fl:(d.flNow||0),bal=d.bal||(n0&&n0.bal)||0;
-    return {ac,n:ps.length+gs.length,exact:!gs.length,lots:ps.reduce((s,p)=>s+p.lots,0),fl,bal,pNow:bal?Math.min(fl,0)/bal:0,pToday:d.pToday||0,pAll:d.pAll||0,flToday:d.flToday||0,flAll:d.flAll||0,age:n0?n0.age:null,mt4:plat[ac]==='MT4'}});
-  const fams={};const F=k=>fams[k]=fams[k]||{k,rows:[],flToday:0,flAll:0,accts:new Set(),lay:{all:0,today:0,mart:1}};
+    const lv=isLiveAcct(ac)?ps.reduce((s,p)=>s+(p.fl||0),0):null,fl=lv!=null?lv:n0?n0.fl:(d.flNow||0),bal=d.bal||(n0&&n0.bal)||0;
+    return {ac,n:ps.length+gs.length,exact:!gs.length,lots:ps.reduce((s,p)=>s+p.lots,0),fl,bal,pNow:bal?Math.min(fl,0)/bal:0,pToday:d.pToday||0,pAll:d.pAll||0,flToday:d.flToday||0,flAll:d.flAll||0,age:isLiveAcct(ac)?S.seen[ac]:n0?n0.age:null,mt4:plat[ac]==='MT4'}});
+  const fams={};const F=k=>fams[k]=fams[k]||{k,rows:[],flToday:0,flAll:0,accts:new Set(),lay:{all:0,today:0,mart:1,stack:0}};
   for(const r of rows){const e=F(r.fam);e.rows.push(r);e.accts.add(r.acct)}
   for(const d of D.filter(d=>d.magic!=='ALL')){const e=F(famFor(d.acct,d.magic,d.comment));e.flToday+=Math.min(d.flToday||0,0);e.flAll+=Math.min(d.flAll||0,0);e.accts.add(d.acct)}
-  for(const [k,v] of Object.entries(L)){const i=k.indexOf('|'),ac=k.slice(0,i),e=fams[k.slice(i+1)];if(!e||!e.accts.has(ac))continue;e.lay.all=Math.max(e.lay.all,v.all);e.lay.today=Math.max(e.lay.today,v.today);e.lay.mart=Math.max(e.lay.mart,v.mart)}
-  const EAo=Object.values(fams).map(e=>{const fl=G.filter(g=>famFor(g.acct,g.magic,g.comment)===e.k).reduce((s,g)=>s+g.fl,0),open=e.rows.length,exact=!e.rows.some(r=>r.group);
-    const maxAll=Math.max(e.lay.all,open),maxToday=Math.max(e.lay.today,open),kind=e.lay.mart>=1.5&&maxAll>=2?'Martingale':maxAll>=3?'Grid':'Single';
+  for(const [k,v] of Object.entries(L)){const i=k.indexOf('|'),ac=k.slice(0,i),e=fams[k.slice(i+1)];if(!e||!e.accts.has(ac))continue;e.lay.all=Math.max(e.lay.all,v.all);e.lay.today=Math.max(e.lay.today,v.today);e.lay.mart=Math.max(e.lay.mart,v.mart);e.lay.stack=Math.max(e.lay.stack,v.stack)}
+  const EAo=Object.values(fams).map(e=>{const fl=e.rows.length&&e.rows.every(r=>r.fl!=null)?e.rows.reduce((s,r)=>s+r.fl,0):G.filter(g=>famFor(g.acct,g.magic,g.comment)===e.k).reduce((s,g)=>s+g.fl,0),open=e.rows.length,exact=!e.rows.some(r=>r.group);
+    const maxAll=Math.max(e.lay.all,open),maxToday=Math.max(e.lay.today,open),stk={};for(const r of e.rows){const q=r.acct+'|'+r.sym+'|'+r.side;stk[q]=(stk[q]||0)+1}const stack=Math.max(e.lay.stack,...Object.values(stk),0),kind=e.lay.mart>=1.5&&stack>=2?'Martingale':stack>=3?'Grid':'Single';
     return {...e,fl,open,exact,maxAll,maxToday,kind}}).filter(e=>e.open||e.flAll<0).sort((x,y)=>x.fl-y.fl);
   const totFl=accRows.reduce((s,r)=>s+r.fl,0),nOpen=accRows.reduce((s,r)=>s+r.n,0),allExact=accRows.every(r=>r.exact);
   const worst=key=>accRows.reduce((m,r)=>r[key]<m[0]?[r[key],nm(r.ac)]:m,[0,'']);
@@ -1661,11 +1694,11 @@ function renderLive({T,a}){
       <div><span class="k">Most open ever</span><b>${e.maxAll}</b>${e.kind==='Martingale'?`<span class="tag">lots grow up to ${fmt(e.lay.mart,1)}×</span>`:''}</div>
     </div>${e.maxAll>1?`<div class="layers" role="img" aria-label="${e.open} of ${e.maxAll} layers open">${Array.from({length:Math.min(e.maxAll,40)},(_,i)=>`<i class="${i<e.open?'on':''}"></i>`).join('')}</div>`:''}</div>`}).join('')
     :emptyArt('No open trades and no floating drawdown recorded yet. Calm seas.');
-  $('#livePos').innerHTML=rows.length?`<thead><tr><th>EA</th><th>Account</th><th>Pair</th><th>Side</th><th>Lots</th><th>Open price</th><th>Open for</th><th>Stop loss</th><th>Floating</th></tr></thead><tbody>`+
-    rows.slice().sort((x,y)=>x.fam.localeCompare(y.fam)||(x.ot||0)-(y.ot||0)).map(p=>{if(p.group) return `<tr><td><b>${esc(p.fam)}</b></td><td>${esc(nm(p.acct))}</td><td style="text-align:left" colspan="6"><span class="tag">magic ${esc(p.magic)}${p.comment?' · '+esc(p.comment):''} · MT4 sends the EA's total, not each trade</span></td><td class="${cls(p.fl)}">${money(p.fl,2)}</td></tr>`;
+  $('#livePos').innerHTML=rows.length?`<thead><tr><th>EA</th><th>Account</th><th>Pair</th><th>Side</th><th>Lots</th><th>Open price</th><th>Open for</th><th>Price now</th><th>Stop loss</th><th>Floating</th><th>At stop</th></tr></thead><tbody>`+
+    rows.slice().sort((x,y)=>x.fam.localeCompare(y.fam)||(x.ot||0)-(y.ot||0)).map(p=>{if(p.group) return `<tr><td><b>${esc(p.fam)}</b></td><td>${esc(nm(p.acct))}</td><td style="text-align:left" colspan="7"><span class="tag">magic ${esc(p.magic)}${p.comment?' · '+esc(p.comment):''} · EA total from the 5-minute snapshot</span></td><td class="${cls(p.fl)}">${money(p.fl,2)}</td><td></td></tr>`;
       const h=(S.srvNow-p.ot)/36e5;return `<tr><td><b>${esc(p.fam)}</b></td><td>${esc(nm(p.acct))}</td><td style="text-align:left">${symCell(p.sym)}</td>
       <td><span class="chip ${p.side==='buy'?'pass':'fail'}">${p.side}</span></td><td>${fmt(p.lots)}</td><td>${fmt(p.op,p.op>100?2:5)}</td><td>${isFinite(h)&&h>=0?(h<48?fmt(h,1)+' h':fmt(h/24,1)+' d'):'–'}</td>
-      <td>${p.sl?fmt(p.sl,p.sl>100?2:5):'<span class="chip warn">none</span>'}</td><td class="${p.fl==null?'':cls(p.fl)}">${p.fl==null?'<span class="tag">in EA total</span>':money(p.fl,2)}</td></tr>`}).join('')+'</tbody>'
+      <td>${p.px?pxFmt(p.px):'–'}</td><td>${p.sl?fmt(p.sl,p.sl>100?2:5):'<span class="chip warn">none</span>'}</td><td class="${p.fl==null?'':cls(p.fl)}">${p.fl==null?'<span class="tag">in EA total</span>':money(p.fl,2)}</td><td class="${p.atSL?cls(p.atSL):''}">${p.atSL==null?'–':p.atSL===undefined?'?':money(p.atSL,0)}</td></tr>`}).join('')+'</tbody>'
     :'<tbody><tr><td>'+emptyArt('No open trades right now.')+'</td></tr></tbody>';
 }
 
@@ -2001,8 +2034,11 @@ function riskChars(ts){
   return {maxOpen,mart,avgDown,hedge,wk,n:P.length,grid:maxOpen>=3,isMart:mart>=1.5&&maxOpen>=2,sl:ts.filter(t=>t.sl).length/ts.length};
 }
 // 0-100 score: profitability, risk, consistency, significance; hard rules cap it below 45
-function scoreOf(ts,base,V,rc){
-  const M=metrics(ts,[],base,base),ddp=M.maxDD/base;
+// floating P/L of an EA's open trades right now: live feed where it runs, 5-minute snapshot elsewhere
+function famOpen(k){let v=0;for(const q of S.pos||[]) if(q.fam===k&&isLiveAcct(q.acct)&&q.fl!=null) v+=q.fl;
+  for(const r of S.now||[]) if(r.magic!=='ALL'&&!isLiveAcct(r.acct)&&famFor(r.acct,r.magic,r.comment)===k) v+=r.fl;return v}
+function scoreOf(ts,base,V,rc,open=0){
+  const M=metrics(ts,[],base,base),ddp=Math.max(M.maxDD,-Math.min(open,0))/base;
   const prof=clamp01((Math.min(M.pf,5)-.9)/1.1)*(M.net>0?100:40);
   const risk=clamp01(1-ddp/.3)*100*(rc.isMart?.7:rc.grid?.85:1);
   const t0=ts[0].ct,bl={};for(const t of ts){const k=Math.floor((t.ct-t0)/(30*864e5));bl[k]=(bl[k]||0)+t.net}
@@ -2013,6 +2049,7 @@ function scoreOf(ts,base,V,rc){
   if(so) caps.push(`${so} broker stop-out${so>1?'s':''}`);
   if(ddp>.3) caps.push(`drawdown ${pct(ddp,1)} of its capital, over the 30% limit`);
   if(V.v==='Review') caps.push(...V.why);
+  if(open<0&&-open>Math.max(M.net,0)) caps.push(`its open trades are down ${money(-open,0)}, more than all the profit it has closed (${money(M.net,0)})`);
   const s=caps.length?Math.min(raw,44):raw;
   const band=V.v==='Too early'?'Too early':s<45?'Review':s<70?'Watch':'Keep';
   return {s,raw,caps,band,prof:Math.round(prof),risk:Math.round(risk),cons:Math.round(cons),sig:Math.round(sig),blocks:[up,bv.length],M,ddp};
@@ -2026,7 +2063,7 @@ let PROF={};
 function profileOf(k,ts){
   if(PROF[k]) return PROF[k];
   ts=ts.slice().sort((x,y)=>x.ct-y.ct);
-  const base=eaBase(ts),V=verdictOf(ts),rc=riskChars(ts),S=scoreOf(ts,base,V,rc);
+  const base=eaBase(ts),V=verdictOf(ts),rc=riskChars(ts),S=scoreOf(ts,base,V,rc,famOpen(k));
   const accts=[...new Set(ts.map(t=>t.acct))],demo=accts.filter(isDemoAcct).length;
   return PROF[k]={k,ts,base,V,rc,S,M:S.M,accts,kind:demo===accts.length?'Demo':demo?'Real + demo':'Real',syms:[...new Set(ts.map(t=>t.sym))]};
 }
@@ -2061,6 +2098,7 @@ $('#labSort')&&($('#labSort').onclick=e=>{const b=e.target.closest('[data-s]');i
 let NOW_T=0;
 function quietOf(ts){
   if(ts.length<20||!NOW_T) return null;
+  if((S.pos||[]).some(q=>q.fam===ts[0].fam&&isLiveAcct(q.acct))) return null;   // trades still open, so it is running
   const g=[];for(let i=1;i<ts.length;i++) g.push(Math.max(0,ts[i].ot-ts[i-1].ot));g.sort((x,y)=>x-y);
   const p90=g[Math.floor(g.length*.9)],idle=NOW_T-Math.max(...ts.map(t=>t.ct)),lim=Math.max(3*864e5,3*p90);
   return idle>lim?{days:Math.round(idle/864e5),usual:Math.max(1,Math.round(p90/864e5))}:null;
@@ -2071,7 +2109,7 @@ function renderProfile({T}){
   const ts0=T.filter(t=>t.fam===UI.ea);if(ts0.length<2){el.innerHTML='';return}
   const p=profileOf(UI.ea,ts0),{ts,M,S:Sc,V,rc,base}=p,col=`var(${BANDC[Sc.band]})`;
   const last=ts[ts.length-1].ct,day=dayKey(last),today=ts.filter(t=>dayKey(t.ct)===day).reduce((s,t)=>s+t.net,0);
-  const G=(S.now||[]).filter(r=>r.magic!=='ALL'&&p.accts.includes(r.acct)&&famFor(r.acct,r.magic,r.comment)===UI.ea),fl=G.reduce((s,r)=>s+r.fl,0);
+  const LP=(S.pos||[]).filter(q=>p.accts.includes(q.acct)&&isLiveAcct(q.acct)&&q.fam===UI.ea&&q.fl!=null),G=(S.now||[]).filter(r=>r.magic!=='ALL'&&p.accts.includes(r.acct)&&!isLiveAcct(r.acct)&&famFor(r.acct,r.magic,r.comment)===UI.ea),fl=G.reduce((s,r)=>s+r.fl,0)+LP.reduce((s,q)=>s+q.fl,0),nOpen=LP.length+G.length;
   let c=0,pk=0,dd=0,ddT=0;for(const t of ts){c+=t.net;if(c>pk)pk=c;if(pk-c>dd){dd=pk-c;ddT=t.ct}}
   const real=p.accts.filter(a=>!isDemoAcct(a)),demo=p.accts.filter(isDemoAcct),mg=[...new Set(ts.map(t=>t.magic))];
   el.style.setProperty('--c',col);
@@ -2081,7 +2119,7 @@ function renderProfile({T}){
     <div class="eh-stages"><span class="${demo.length?'on':''}">● Demo${demo.length?' · '+demo.map(nm).map(esc).join(', '):''}</span><span class="${real.length?'on':''}">● Real money${real.length?' · '+real.map(nm).map(esc).join(', '):''}</span></div>`;
   const K=[['Profit total',`${M.net>=0?'+':''}${money(M.net,2)}`,cls(M.net),`${M.net>=0?'+':''}${pct(M.net/base,1)} of its capital`],
     ['Last day',`${today>=0?'+':''}${money(today,2)}`,cls(today),day],
-    ['Open right now',G.length?money(fl,2):'–',G.length?cls(fl):'',G.length?`${G.length} open group${G.length>1?'s':''}`:'no open trades reported'],
+    ['Open right now',nOpen?money(fl,2):'–',nOpen?cls(fl):'',nOpen?(G.length?`${nOpen} open (${G.length} as EA totals)`:`${nOpen} open trade${nOpen>1?'s':''}, live`):'no open trades'],
     ['Max drawdown',pct(Sc.ddp,1),Sc.ddp>.2?'neg':'',`${money(-dd)} · ${ddT?dstr(ddT):''}`],
     ['Profit factor',fmt(M.pf),M.pf>=1.2?'pos':M.pf<1?'neg':'',`${pct(M.wr,0)} wins`],
     ['SQN',fmt(sqnOf(ts),2),sqnOf(ts)>=2?'pos':sqnOf(ts)<1?'neg':'',sqnOf(ts)>=2?'dependable system':sqnOf(ts)>=1?'average':'weak or noisy']];
@@ -2571,7 +2609,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v21';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v22';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2640,7 +2678,7 @@ function show(c,note){
   S.srvNow=Math.max(0,...S.now.map(r=>r.t||0))||Date.now();
   const num=x=>x===''||x==null?null:+x;
   S.dd=(c.dd||[]).map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],flNow:num(v[4]),flToday:num(v[5]),flAll:num(v[6]),nToday:num(v[7]),nAll:num(v[8]),pToday:num(v[9]),pAll:num(v[10])}});
-  S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],fl:v[10]===''||v[10]==null?null:(+v[10]||0)+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
+  S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],pr:v[10]===''||v[10]==null?null:+v[10],fl:v[10]===''||v[10]==null?null:(+v[10]||0)+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
   S.news=parseNews(c.nv||[]);
   fillAccounts();render();$('#syncBtn').hidden=false;
   const lastClose=c.tr.reduce((m,l)=>{const v=l.split(',')[9]||'';return v>m?v:m},'');
@@ -2668,7 +2706,7 @@ async function syncNow(){
       pageAll(`select to_char(date_trunc('hour',bucket),'YYYY.MM.DD HH24:MI:SS') as time,account,min(balance) as balance,min(equity_min) as equity,case when magic=-1 then 'ALL' else magic::text end as magic,min(floating_min) as floating,comment from public.equity group by 1,2,magic,comment`,EC,'equity','1,2,5,7'),
       pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,e.balance,e.equity_min as equity,e.floating_min as floating,to_char(e.bucket,'YYYY.MM.DD HH24:MI:SS') as bucket,extract(epoch from now()-e.received_at)::int as age from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account and l.b=e.bucket`,NC,'account snapshots','1,2'),
       // open MT5 positions rebuilt from the deals the EA already sends: entry deals not yet fully closed
-      pageAll(`select i.account,i.position as ticket,i.symbol,i.type,round((i.v-coalesce(o.v,0))::numeric,2) as lots,to_char(i.t,'YYYY.MM.DD HH24:MI:SS') as open_time,i.price as open_price,null as price,i.sl,null as tp,null as profit,null as swap,null as commission,i.magic,i.comment,null as age from (select account,position,min(time) t,sum(volume) v,(array_agg(type order by time,deal))[1] type,(array_agg(price order by time,deal))[1] price,(array_agg(sl order by time desc,deal desc))[1] sl,(array_agg(magic order by time,deal))[1] magic,(array_agg(comment order by time,deal))[1] comment,(array_agg(symbol))[1] symbol from public.deals where platform='MT5' and entry='in' and type in ('buy','sell') group by 1,2) i left join (select account,position,sum(volume) v from public.deals where platform='MT5' and entry in ('out','outby','inout') group by 1,2) o using (account,position) where i.v-coalesce(o.v,0)>1e-6 and i.account not in (select account from public.positions where updated_at>now()-interval '15 minutes') union all select account,ticket,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS'),open_price,price,sl,tp,profit,swap,commission,magic,comment,extract(epoch from now()-updated_at)::int from public.positions where updated_at>now()-interval '15 minutes'`,PC,'open trades','1,6'),
+      pageAll(`select i.account,i.position as ticket,i.symbol,i.type,round((i.v-coalesce(o.v,0))::numeric,2) as lots,to_char(i.t,'YYYY.MM.DD HH24:MI:SS') as open_time,i.price as open_price,null as price,i.sl,null as tp,null as profit,null as swap,null as commission,i.magic,i.comment,null as age from (select account,position,min(time) t,sum(volume) v,(array_agg(type order by time,deal))[1] type,(array_agg(price order by time,deal))[1] price,(array_agg(sl order by time desc,deal desc))[1] sl,(array_agg(magic order by time,deal))[1] magic,(array_agg(comment order by time,deal))[1] comment,(array_agg(symbol))[1] symbol from public.deals where platform='MT5' and entry='in' and type in ('buy','sell') group by 1,2) i left join (select account,position,sum(volume) v from public.deals where platform='MT5' and entry in ('out','outby','inout') group by 1,2) o using (account,position) where i.v-coalesce(o.v,0)>1e-6 and i.account not in (select account from public.positions_seen where at>now()-interval '15 minutes') union all select account,ticket,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS'),open_price,price,sl,tp,profit,swap,commission,magic,comment,extract(epoch from now()-updated_at)::int from public.positions where updated_at>now()-interval '15 minutes'`,PC,'open trades','1,6'),
       pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,(array_agg(e.balance order by e.bucket desc))[1] as bal,(array_agg(e.floating_min order by e.bucket desc) filter (where e.bucket=l.b))[1] as fl_now,min(e.floating_min) filter (where ${DAY}) as fl_today,min(e.floating_min) as fl_all,max(e.open_max) filter (where ${DAY}) as n_today,max(e.open_max) as n_all,min(e.floating_min/nullif(e.balance,0)) filter (where ${DAY}) as p_today,min(e.floating_min/nullif(e.balance,0)) as p_all from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account group by 1,2,3`,DC,'drawdowns','1,2,3'),pageAll(NEWSQ,NVC,'news calendar','1,2,3').catch(()=>[]),sql('select public.ea_map_get() as r').then(r=>jget(r[0]&&r[0].r)).catch(()=>null)]);
     let all=tr;
     if(since){const key=l=>{const v=l.split(',');return v[0]+'|'+v[3]};const seen=new Set(tr.map(key));all=CACHE.tr.filter(l=>!seen.has(key(l))).concat(tr)}
@@ -2689,6 +2727,151 @@ $('#syncBtn').onclick=syncNow;
   await syncNow();
   setInterval(()=>{if(S.live&&!document.hidden)syncNow()},5*60*1000);
 })();
+/* ---------- v22: live open-trade feed (PortfolioPush v1.1 pushes every open trade every 30 s) ---------- */
+S.seen={};                                     // account -> seconds since its last positions push
+const LIVE_S=900;
+const isLiveAcct=ac=>S.seen[ac]!=null&&S.seen[ac]<LIVE_S;
+const dirOf=p=>p.side==='buy'?1:-1;
+function parsePos(l){const v=l.split(','),num=x=>x===''||x==null?null:+x,pr=num(v[10]);
+  return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7]||0,sl:+v[8]||0,tp:+v[9]||0,
+    pr,fl:pr==null?null:pr+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:num(v[15]),fam:famFor(v[0],v[13],v[14])}}
+// Money per 1.0 price move, read off the trade's own P/L, so no contract sizes are needed.
+// Trades sitting at their open price borrow the per-lot value of a sibling on the same account and symbol.
+function posValues(P){
+  const perLot={};
+  for(const p of P){const d=(p.px-p.op)*dirOf(p);if(p.pr!=null&&p.px&&p.lots>0&&Math.abs(d)>p.op*2e-5){p.k=p.pr/d;(perLot[p.acct+'|'+p.sym]=perLot[p.acct+'|'+p.sym]||[]).push(p.k/p.lots)}else p.k=null}
+  for(const p of P) if(p.k==null){const a=perLot[p.acct+'|'+p.sym];if(a&&a.length){a.sort((x,y)=>x-y);p.k=a[a.length>>1]*p.lots}}
+  for(const p of P){p.cost=p.fl!=null&&p.pr!=null?p.fl-p.pr:0;           // swap + commission so far
+    p.atSL=!p.sl?null:p.k==null?undefined:(p.sl-p.op)*dirOf(p)*p.k+p.cost; // P/L if the stop fills
+    p.atTP=!p.tp||p.k==null?null:(p.tp-p.op)*dirOf(p)*p.k+p.cost;
+    p.notional=p.k!=null&&p.px?Math.abs(p.k*p.px):null}
+  return P;
+}
+// Price where a stack of same-side trades on one symbol is back to zero, costs included
+function breakEven(ps){const s=ps.filter(p=>p.k!=null);if(!s.length||s.length<ps.length||new Set(ps.map(p=>p.side)).size>1)return null;
+  const K=s.reduce((t,p)=>t+p.k,0);if(!K)return null;const d=dirOf(s[0]);return (s.reduce((t,p)=>t+p.k*p.op,0)-d*s.reduce((t,p)=>t+p.cost,0))/K}
+const pxFmt=v=>fmt(v,v>=1000?2:v>=20?3:5);
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const shortT=t=>{const d=new Date(t);return d.getUTCDate()+' '+MON[d.getUTCMonth()]+' '+d.toISOString().slice(11,16)};
+function stopRisk(ps){const known=ps.filter(p=>p.atSL!=null&&p.atSL!==undefined),noSL=ps.filter(p=>!p.sl).length,unk=ps.filter(p=>p.atSL===undefined).length;
+  return {sum:known.reduce((t,p)=>t+p.atSL,0)+ps.filter(p=>!p.sl||p.atSL===undefined).reduce((t,p)=>t+(p.fl||0),0),noSL,unk,n:ps.length}}
+
+/* Overview "Open trades": one row per account + EA; tap a row for every trade in it */
+UI.ovX=UI.ovX||new Set();
+function openNowRows(a){
+  const G=(S.now||[]).filter(r=>r.magic!=='ALL'&&inSel(r.acct,a)),A={};
+  for(const r of (S.now||[])) if(r.magic==='ALL') A[r.acct]=r;
+  const R={},key=(ac,f)=>ac+'|'+f,row=(ac,f)=>R[key(ac,f)]=R[key(ac,f)]||{key:key(ac,f),acct:ac,fam:f,fl:0,pos:[],syms:new Set(),side:new Set(),lots:0,ot:Infinity,magics:new Set(),age:null};
+  posValues(S.pos||[]);
+  // live accounts: P/L straight from the 30-second feed; others: the 5-minute equity snapshot
+  for(const g of G){if(isLiveAcct(g.acct))continue;const f=famFor(g.acct,g.magic,g.comment),r=row(g.acct,f);r.fl+=g.fl;r.known=true;r.magics.add(g.magic);r.age=Math.max(r.age||0,g.age||0)}
+  for(const p of (S.pos||[]).filter(p=>inSel(p.acct,a))){const r=row(p.acct,p.fam||famFor(p.acct,p.magic,p.comment));r.pos.push(p);r.syms.add(p.sym);r.side.add(p.side);r.lots+=p.lots;if(p.ot<r.ot)r.ot=p.ot;r.magics.add(p.magic);
+    if(isLiveAcct(p.acct)){r.live=true;r.age=S.seen[p.acct]}}
+  for(const r of Object.values(R)) if((r.live||!r.known)&&r.pos.length&&r.pos.every(p=>p.fl!=null)){r.fl=r.pos.reduce((t,p)=>t+p.fl,0);r.known=true}
+  const lastSym=(ac,mg)=>{for(let i=S.trades.length-1;i>=0;i--){const t=S.trades[i];if(t.acct===ac&&mg.has(t.magic))return t.sym}return ''};
+  return Object.values(R).filter(r=>r.pos.length||Math.abs(r.fl)>=.005).map(r=>{const bal=(A[r.acct]&&A[r.acct].bal)||0;
+    if(!r.syms.size){const s=lastSym(r.acct,r.magics);if(s){r.syms.add(s);r.guess=true}}
+    const plat=(S.trades.find(t=>t.acct===r.acct)||{}).plat,risk=r.pos.length?stopRisk(r.pos):null,be=r.syms.size===1&&r.pos.length>1?breakEven(r.pos):null;
+    return {...r,plat,bal,risk,be,dd:bal&&r.known?r.fl/bal:0,demo:isDemoAcct(r.acct),stale:(r.age||0)>LIVE_S}}).sort((x,y)=>x.dd-y.dd);
+}
+function riskCell(r){
+  if(!r) return '<span class="muted">–</span>';
+  if(r.noSL===r.n) return `<span class="chip warn" title="none of these trades has a stop loss">no SL</span>`;
+  const v=r.sum;
+  return `<span class="ph muted">at stops </span><span class="${cls(v)}" title="P/L if every stop loss fills, swap and commission included${r.noSL?'. Trades without a stop are counted at today’s P/L':''}">${v>=0?'+':''}${money(v,0)}</span>${r.noSL?` <span class="chip warn" title="${r.noSL} of ${r.n} trades have no stop loss">${r.noSL} no SL</span>`:''}`;
+}
+function renderOpenNow({a}){
+  const el=$('#ovOpen');if(!el) return;
+  if(!S.now||!S.now.length){el.innerHTML='<tbody><tr><td class="muted">Open trades show here once your accounts are synced.</td></tr></tbody>';return}
+  const R=openNowRows(a);
+  if(!R.length){el.innerHTML='<tbody><tr><td class="muted">No open trades right now.</td></tr></tbody>';return}
+  const tot=R.reduce((s,r)=>s+r.fl,0),accs=new Set(R.map(r=>r.acct)),worst=Math.min(...R.map(r=>r.dd)),live=R.some(r=>r.live);
+  const allP=R.flatMap(r=>r.pos),risk=allP.length?stopRisk(allP):null;
+  const bar=v=>v<0?`<span class="ov-dd" title="${pct(-v,1)} of the account balance"><i style="width:${Math.min(100,-v*100/ .2)}%"></i></span>`:'';
+  const det=r=>{const ps=r.pos.slice().sort((x,y)=>x.ot-y.ot);
+    return `<tr class="ov-det"><td colspan="8"><div class="ov-tk"><table><thead><tr><th>Ticket</th><th>Side</th><th>Lots</th><th>Opened</th><th>Open</th><th>Now</th><th>Stop</th><th>Target</th><th>P/L</th><th>At stop</th></tr></thead><tbody>${ps.map(p=>`<tr>
+      <td>${esc(p.ticket)}</td><td><span class="chip ${p.side==='buy'?'pass':'fail'}">${p.side}</span></td><td>${fmt(p.lots,2)}</td><td>${shortT(p.ot)}</td>
+      <td>${pxFmt(p.op)}</td><td>${p.px?pxFmt(p.px):'–'}</td><td>${p.sl?pxFmt(p.sl):'<span class="chip warn">none</span>'}</td><td>${p.tp?pxFmt(p.tp):'–'}</td>
+      <td class="${p.fl==null?'':cls(p.fl)}">${p.fl==null?'–':money(p.fl,2)}</td><td class="${p.atSL?cls(p.atSL):''}">${p.atSL==null?'–':p.atSL===undefined?'?':money(p.atSL,0)}</td></tr>`).join('')}</tbody></table>
+      ${r.be?`<p class="muted">Break-even for all ${ps.length} trades: <b>${pxFmt(r.be)}</b>${ps[0].px?`, ${pct(Math.abs(r.be-ps[0].px)/ps[0].px,2)} ${r.be>ps[0].px?'above':'below'} the price now`:''}.</p>`:''}</div></td></tr>`};
+  el.innerHTML=`<thead><tr><th>EA</th><th>Account</th><th>Trade</th><th>Open</th><th>Open since</th><th>Floating P/L</th><th title="open loss as a share of that account's balance">Drawdown now</th><th title="P/L if every stop loss fills">If stops hit</th></tr></thead><tbody>
+  ${R.map(r=>{const side=[...r.side].join('/').toUpperCase(),n=r.pos.length,open=UI.ovX.has(r.key);
+    return `<tr class="ov-row${n?' ov-click':''}" data-k="${esc(r.key)}"${n?` tabindex="0" role="button" aria-expanded="${open}"`:''}><td>${n?`<span class="ov-car">${open?'▾':'▸'}</span>`:''}${avatar(r.fam,18)} <b>${esc(r.fam)}</b>${EA_ARCH.has(r.fam)?' <span class="chip">archived</span>':''}</td>
+    <td>${esc(nm(r.acct))} <span class="chip ${r.demo?'':'pass'}">${r.demo?'Demo':'Live'}</span>${r.stale?` <span class="chip warn" title="last update ${Math.round(r.age/60)} min ago">late</span>`:''}</td>
+    <td>${[...r.syms].map(s=>pairBadge(s,14)).join('')} ${esc([...r.syms].join(', '))}${side?` <span class="tag">${side}</span>`:''}${r.guess?' <span class="tag" title="this account has no per-trade feed yet; this is the pair it traded last">likely</span>':''}</td>
+    <td>${n?`${n} · ${fmt(r.lots,2)} lot`:'<span class="muted" title="per-EA total from the 5-minute snapshot">EA total</span>'}</td>
+    <td class="muted">${n?shortT(r.ot):'–'}</td>
+    <td class="${r.known?cls(r.fl):''}">${r.known?(r.fl>=0?'+':'')+money(r.fl,2):'<span class="muted" title="no P/L snapshot for this EA yet">–</span>'}</td>
+    <td class="${r.dd<0?'neg':''}">${!r.known?'–':r.dd<0?pct(r.dd,2):'in profit'}${bar(r.dd)}</td>
+    <td>${riskCell(r.risk)}</td></tr>${open&&n?det(r):''}`}).join('')}</tbody>
+  <tfoot><tr><td>${R.length} open</td><td>${accs.size} account${accs.size>1?'s':''}</td><td colspan="3" class="ov-note" style="text-align:left">${live?'Live, updated every 30 seconds. Tap a row for each trade.':''}</td><td class="${cls(tot)}">${tot>=0?'+':''}${money(tot,2)}</td><td class="${worst<0?'neg':''}">worst ${worst<0?pct(worst,2):'0%'}</td><td>${risk?riskCell(risk):''}</td></tr></tfoot>`;
+}
+document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('#ovOpen .ov-click');if(!tr)return;const k=tr.dataset.k;UI.ovX.has(k)?UI.ovX.delete(k):UI.ovX.add(k);renderOpenNow({a:$('#acct').value})});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('#ovOpen .ov-click')){e.preventDefault();e.target.click()}});
+
+// what is open right now, by account and symbol: the live feed where it runs, older guesses only for accounts without it
+function exposureNow(){
+  const plat={};for(const t of S.trades) if(!plat[t.acct]) plat[t.acct]=t.plat;
+  const out=[];for(const p of S.pos||[]) out.push({acct:p.acct,sym:p.sym,ea:p.fam,lots:p.lots});
+  const recent=(S.srvNow||Date.now())-60*864e5;
+  for(const r of S.now||[]){
+    if(r.magic==='ALL'||!r.fl||plat[r.acct]==='MT5'||isLiveAcct(r.acct)) continue;
+    const syms=[...new Set(S.trades.filter(t=>t.acct===r.acct&&t.magic===r.magic&&t.ct>recent).map(t=>t.sym))];
+    for(const s of syms) out.push({acct:r.acct,sym:s,ea:famFor(r.acct,r.magic,r.comment),fl:r.fl});
+  }
+  return out;
+}
+
+/* Live tab: risk if every stop fills, and net currency exposure */
+function legsOf(sym){const u=String(sym||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const m=u.match(/^(XAU|XAG|XPT|XPD|BTC|ETH|LTC|XRP)([A-Z]{3})$/);if(m)return [m[1],m[2]];
+  if(/^[A-Z]{6}$/.test(u))return [u.slice(0,3),u.slice(3)];
+  return [u]}   // index and oil CFDs: the market itself, no currency leg
+function renderRiskNow({a}){
+  const el=$('#liveRisk'),ex=$('#liveExpo');if(!el||!ex) return;
+  const P=posValues((S.pos||[]).filter(p=>inSel(p.acct,a)));
+  const bal={};for(const r of S.now||[]) if(r.magic==='ALL') bal[r.acct]=r.bal;
+  const by={};for(const p of P)(by[p.acct]=by[p.acct]||[]).push(p);
+  const rows=Object.entries(by).map(([ac,ps])=>{const r=stopRisk(ps),fl=ps.reduce((t,p)=>t+(p.fl||0),0),b=bal[ac]||0;return {ac,ps,r,fl,b,after:b+r.sum}}).sort((x,y)=>(x.b?x.r.sum/x.b:0)-(y.b?y.r.sum/y.b:0));
+  el.innerHTML=rows.length?`<thead><tr><th>Account</th><th class="hm">Open</th><th class="hm">Floating now</th><th>If stops hit</th><th>Left after</th><th>No stop</th></tr></thead><tbody>${rows.map(x=>{const pc=x.b?x.r.sum/x.b:0;
+    return `<tr><td><b>${esc(nm(x.ac))}</b>${isLiveAcct(x.ac)?'':' <span class="chip warn">not live</span>'}</td><td class="hm">${x.ps.length}</td><td class="hm ${cls(x.fl)}">${money(x.fl,2)}</td>
+    <td class="${cls(x.r.sum)}">${x.r.noSL===x.ps.length?'<span class="muted">no stops set</span>':`${money(x.r.sum,0)} <span class="tag hm">${pct(pc,1)}</span>`}</td>
+    <td>${x.r.noSL===x.ps.length?'–':x.after<=0?'<span class="chip fail" title="the broker would stop the account out before every stop is reached">wiped out</span>':`${money(x.after,0)}${pc<=-.25?' <span class="chip fail">−25%+</span>':''}`}</td>
+    <td>${x.r.noSL?`<span class="chip warn">${x.r.noSL} of ${x.ps.length}</span>`:'<span class="muted">none</span>'}</td></tr>`}).join('')}</tbody>`
+    :'<tbody><tr><td class="muted">No open trades right now.</td></tr></tbody>';
+  // net exposure per currency or asset, in account money (long = profits if it rises)
+  const E={};for(const p of P){if(p.notional==null)continue;const [b,q]=legsOf(p.sym),v=p.notional*dirOf(p);
+    for(const [c,s] of q?[[b,1],[q,-1]]:[[b,1]]){const e=E[c]=E[c]||{c,net:0,gross:0,acc:{}};e.net+=s*v;e.gross+=Math.abs(v);e.acc[p.acct]=(e.acc[p.acct]||0)+s*v}}
+  const L=Object.values(E).filter(e=>Math.abs(e.net)>=1).sort((x,y)=>Math.abs(y.net)-Math.abs(x.net)).slice(0,12),mx=Math.max(1,...L.map(e=>Math.abs(e.net)));
+  ex.innerHTML=L.length?`<div class="xp-leg"><span><i style="background:var(--c1)"></i>Long: gains if it rises</span><span><i style="background:var(--c2)"></i>Short: gains if it falls</span></div>
+   <div class="xp" role="table" aria-label="Net exposure by currency">${L.map(e=>{const w=Math.abs(e.net)/mx*50,long=e.net>0,tip=Object.entries(e.acc).filter(([,v])=>Math.abs(v)>=1).map(([ac,v])=>`${nm(ac)} ${v>0?'long':'short'} ${money(Math.abs(v),0)}`).join(' · ');
+    return `<div class="xp-r" role="row" title="${esc(tip)}"><b role="cell">${esc(e.c)}</b><div class="xp-t" role="cell"><span class="xp-mid"></span><i style="${long?'left':'right'}:50%;width:${w}%;background:var(${long?'--c1':'--c2'})"></i></div><span role="cell" class="xp-v">${long?'Long':'Short'} ${money(Math.abs(e.net),0)}</span></div>`}).join('')}</div>
+   <p class="muted">Size of the open positions in account money, netted across accounts. Hover a bar for each account's share.</p>`
+    :'<p class="muted">No open trades with a live price right now.</p>';
+}
+
+/* Light refresh: open trades and snapshots every minute, without reloading the trade history */
+const POSQ=`select account,ticket,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS') as open_time,open_price,price,sl,tp,profit,swap,commission,magic,comment,extract(epoch from now()-updated_at)::int as age from public.positions`;
+const NOWQ=`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,e.balance,e.equity_min as equity,e.floating_min as floating,to_char(e.bucket,'YYYY.MM.DD HH24:MI:SS') as bucket,extract(epoch from now()-e.received_at)::int as age from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account and l.b=e.bucket`;
+const csvOf=(q,cols)=>`select coalesce(string_agg(concat(${cols.map(c=>`coalesce(regexp_replace(x.${c}::text,'[,\\r\\n]',' ','g'),'')`).join(`,',',`)}),chr(10)),'') as csv from (${q}) x`;
+let liveBusy=false;
+async function liveTick(){
+  if(!S.live||!mcp||liveBusy||document.hidden) return;liveBusy=true;
+  try{
+    const [sn,ps,nw]=await Promise.all([sql(`select account::text as a,extract(epoch from now()-at)::int as s from public.positions_seen`),sql(csvOf(POSQ,PC)),sql(csvOf(NOWQ,NC))]);
+    S.seen={};for(const r of sn) S.seen[r.a]=+r.s;
+    const fresh=(ps[0]&&ps[0].csv?ps[0].csv.split('\n'):[]).map(parsePos).filter(p=>isLiveAcct(p.acct));
+    S.pos=(S.pos||[]).filter(p=>!isLiveAcct(p.acct)).concat(fresh);
+    const nl=nw[0]&&nw[0].csv?nw[0].csv.split('\n'):[];
+    if(nl.length) S.now=nl.map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],eq:+v[4],fl:+v[5],t:parseTime(v[6]),age:+v[7]}});
+    const a=$('#acct').value,T=S.trades.filter(t=>inSel(t.acct,a)).sort((x,y)=>x.ct-y.ct);
+    renderOpenNow({a});renderLive({T,a});renderRiskNow({a});
+  }catch(e){console.warn('live refresh',e)}finally{liveBusy=false}
+}
+{const _sync=syncNow;syncNow=async function(){await _sync();liveTick()}}
+setInterval(liveTick,60e3);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)liveTick()});
+
 </script>
 
 </body>
