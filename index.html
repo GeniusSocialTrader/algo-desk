@@ -494,6 +494,19 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .al-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:start;padding:9px 0;border-top:1px solid var(--line)}
 .al-row:first-child{border-top:0}.al-row p{margin:2px 0 0;font-size:13.5px;overflow-wrap:anywhere}.al-i{font-size:17px;line-height:1.4}
 .al-msg{font-size:13px;min-height:1.2em;margin:0}
+.cmp .tblwrap,.map .tblwrap,#eaMap .tblwrap{overflow-x:auto}
+.cmp-t,.map-t{width:100%;border-collapse:collapse;font:12.5px var(--f-data)}
+.cmp-t th,.cmp-t td,.map-t th,.map-t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.cmp-t th:first-child,.cmp-t td:first-child,.map-t td:nth-child(-n+4),.map-t th:nth-child(-n+4){text-align:left}
+.map-t tr.map-first td{border-top:2px solid var(--line)}
+.map-t td.cw{white-space:normal;min-width:140px}
+.map-in{font:12.5px var(--f-data);width:150px;max-width:40vw;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.cmp-pairs,.map-maybe{display:grid;gap:10px;margin-top:12px}
+.cmp-p{border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.cmp-p .rs{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:8px}
+.cmp-p .rs b{display:block;font:600 15px var(--f-data)}
+.btn-sm{font-size:12px;padding:3px 10px;margin-left:6px}
+#eaMap h4{margin:18px 0 4px}
 </style>
 </head>
 <body>
@@ -521,6 +534,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
         <label>"Ruin" drawdown %<input id="ruin" type="number" value="30" min="1" step="1"></label>
         <label class="btn full" style="text-align:center">Load MT4/MT5 CSV files<input id="files" type="file" accept=".csv,.txt" multiple></label>
         <div class="full atypes" id="acctTypes"></div>
+        <button id="mapBtn" type="button" class="full">EA mapping: which magic is which EA</button>
         <button id="demoBtn" type="button" class="full">Show demo data</button>
       </div></details>
   </div>
@@ -595,6 +609,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <div class="eh" id="eaHero"></div>
   <div class="ekpi" id="eaKpi"></div>
   <div class="eroles" id="eaRoles" hidden></div>
+  <section class="panel cmp" id="eaCmp" hidden></section>
   <section class="panel"><div class="ph"><span class="k">Equity of this EA only</span><div class="seg" id="eaTabs" role="group" aria-label="Chart"><button type="button" data-t="eq">Progress</button><button type="button" data-t="dd">Drawdown</button><button type="button" data-t="day">Daily P/L</button></div></div>
     <div class="chart" style="height:300px"><canvas id="cEAP" role="img" aria-label="Equity curve of the selected EA"></canvas></div><div class="estrip" id="eaStrip"></div></section>
   <section class="panel"><div class="ph"><div><h3>Monthly returns</h3><p class="muted" style="font-size:13px">Share of the EA's capital at the start of each month, or dollars</p></div><div class="seg" id="monthUnit" role="group" aria-label="Unit"></div></div><div class="scroll"><table class="mgrid" id="eaMonths"></table></div></section>
@@ -661,6 +676,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <section class="panel"><header><h3>Which releases cost you</h3><p>Net result of trades held through each kind of release</p></header><div class="checks" id="newsKinds"></div><p class="tag" id="newsCov"></p></section>
 </section>
 
+<section class="panel" data-tab="map" aria-label="EA mapping"><header><h3>EA mapping</h3><p>One line per account and magic number. Trades that enter in the same minute and exit together on two accounts are matched as the same EA, whatever their magic or comment.</p></header><div id="eaMap"></div></section>
 <section class="sec" data-tab="alerts" aria-labelledby="hAlerts">
   <div class="sec-h"><div><span class="kicker">Alerts</span><h2 id="hAlerts">Telegram alerts</h2></div><p>Supabase checks your accounts every 5 minutes and messages your Telegram bot once per event: drawdowns, stop-outs, quiet EAs, offline terminals, new highs, and news while you are exposed. Free, nothing to install.</p></div>
   <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h3>Telegram</h3><div style="display:flex;gap:8px"><button type="button" class="al-btn" id="alTest" hidden>Send a test</button><button type="button" class="al-btn" id="alRelink" hidden>Change bot</button></div></header>
@@ -759,7 +775,7 @@ function slipOf(t){if(t.ex!=='sl'||!t.sl||!t.op||!t.cp||t.cp===t.op)return 0;con
   return k>0&&Math.abs(px)<t.op*.05?Math.round(px*k*100)/100:0}
 // Magic numbers the user named by hand win over comment parsing
 // key 'magic' applies on every account; 'account|magic' wins where a magic is reused by a different EA (888 is Vertex Strength on Darwinex_CBO).
-const MAGIC_NAMES={'770045':'QC Auto','456321':'WSJ_Recovery','8008':'AP_TGR','20260420':'DP','33612':'SMC_XAUUSD_Pym_Live','43612':'SMC_XAUUSD_Pym_Live','20260788':'SMC_XAUUSD_Live','52030268|888':'Buster_BTC_Live'};
+const MAGIC_NAMES={'770045':'QC Auto','456321':'WSJ_Recovery','20260420':'DP','33612':'SMC_XAUUSD_Pym','43612':'SMC_XAUUSD_Pym','20260788':'SMC_XAUUSD','52030268|888':'Buster_BTC','7398759|111111':'Buster_BTC'};
 const magName=(acct,magic)=>MAGIC_NAMES[acct+'|'+magic]||MAGIC_NAMES[magic];
 // Magics with two kinds of legs: 'rec' = no comment is the initial trade, a comment marks a recovery leg; 'pyr' = 'Add#<position>' marks a pyramid layer on that base position.
 const ROLE_MAGIC={'456321':'rec','33612':'pyr','43612':'pyr'};
@@ -772,6 +788,7 @@ function assignFamilies(){
   for(const t of S.trades){const r=ROLE_MAGIC[t.magic];t.role=r==='rec'?(t.famRaw?'Recovery':'Initial'):r==='pyr'?(/Add#\d+/i.test(t.comment)?'Add':'Base'):'';
     if(r==='pyr'){const m=String(t.comment).match(/Add#(\d+)/i);t.camp=t.acct+'|'+(m?m[1]:t.pos)}}
   for(const t of S.trades) t.fam=magName(t.acct,t.magic)||(t.magic!=='0'?best[t.acct+'|'+t.magic]:t.famRaw)||(t.magic==='0'?'Manual':'Magic '+t.magic);
+  eaIdentity();
 }
 function parseTime(s){const m=String(s||'').match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):NaN}
 // Strip what brokers append to comments so one strategy keeps one name.
@@ -974,7 +991,7 @@ function sample(pts,n=700,key){ // keep the lowest point in each bucket so troug
 }
 /* ---------- account display names (login stays visible as a secondary label) ---------- */
 const NAMES={'2100107279':'Darwinex_CBO','51880566':'FPMarket_DP','1700128795':'ICML','90001976':'Del_AFP_CBO','110241':'Del_RBO',
-  '7398759':'FMP_Demo_SMC','2100121240':'Darwinex_DP','20019086':'AFP_Demo_TGR','52030268':'Robo_Live','109658':'AFP_Demo_RBO'};
+  '7398759':'FPM_Demo_SMC','2100121240':'Darwinex_DP','20019086':'AFP_Demo_TGR','52030268':'Robo_Live','109658':'AFP_Demo_RBO'};
 const nm=a=>NAMES[a]||a;
 const nmFull=a=>NAMES[a]?`${NAMES[a]} (${a})`:a;
 
@@ -1070,7 +1087,7 @@ function render(){
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -1527,7 +1544,7 @@ function renderSymTiles({T,ccy}){
 }
 
 /* ---------- tabs ---------- */
-const TABS=[['overview','Overview'],['live','Open trades'],['accounts','Accounts'],['eas','EAs'],['timing','Timing'],['risk','Risk'],['news','News'],['alerts','Alerts'],['where','Markets'],['costs','Costs & sync']];
+const TABS=[['overview','Overview'],['live','Open trades'],['accounts','Accounts'],['eas','EAs'],['timing','Timing'],['risk','Risk'],['news','News'],['alerts','Alerts'],['map','EA map'],['where','Markets'],['costs','Costs & sync']];
 const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const TABICON={
   overview:ic('<path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'),
@@ -1538,6 +1555,7 @@ const TABICON={
   risk:ic('<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M12 8v5"/><circle cx="12" cy="16" r=".6" fill="currentColor"/>'),
   where:ic('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>'),
   news:ic('<path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2"/><path d="M8 9h5M8 13h5M8 17h3"/>'),
+  map:ic('<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l3 9M16 7l-3 9M8.5 6h7"/>'),
   alerts:ic('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
   costs:ic('<path d="M4 7h16v12H4z"/><path d="M16 13h.01"/><path d="M4 7l12-4 2 4"/>')};
 function showTab(k,scroll){
@@ -1560,7 +1578,7 @@ function showTab(k,scroll){
 
 
 /* ---------- Open trades: live positions, drawdown now / today / all time, grid layers ---------- */
-const famFor=(acct,magic,comment)=>magName(acct,magic)||(magic!=='0'&&FAMMAP[acct+'|'+magic])||famOf(comment)||(magic==='0'?'Manual':'Magic '+magic);
+const famFor=(acct,magic,comment)=>(magic!=='0'&&FAMMAP[acct+'|'+magic])||EA_OVR[acct+'|'+magic]||magName(acct,magic)||famOf(comment)||(magic==='0'?'Manual':'Magic '+magic);
 // Most trades open at the same time, from closed-trade history (open and close times), per account+EA.
 // Also flags martingale when a later layer in a basket is >= 1.5x the first lot size.
 function layerStats(T){
@@ -2064,7 +2082,7 @@ function renderProfile({T}){
    const C={};for(const t of ts) if(t.camp)(C[t.camp]=C[t.camp]||{net:0,n:0}),C[t.camp].net+=t.net,C[t.camp].n++;
    const cv=Object.values(C);if(cv.length){const lay=cv.reduce((s,c)=>s+c.n,0)/cv.length;html+=card('Whole positions',`base + layers, avg ${fmt(lay,1)} trades each`,cv,'Positions')}
    R.hidden=!html;R.innerHTML=html}
-  renderEACurve(p);renderMonths(p);renderScore(p);renderBehaviour(p);
+  renderEACompare(p);renderEACurve(p);renderMonths(p);renderScore(p);renderBehaviour(p);
 }
 function sqnOf(ts){const v=ts.map(t=>t.net),s=std(v);return s?Math.sqrt(Math.min(v.length,100))*mean(v)/s:0}
 function renderEACurve(p){
@@ -2266,6 +2284,7 @@ function paintAlerts(){
     s.link_error?`<div class="al-ok"><span class="chip fail">Token problem</span> ${esc(s.link_error)}</div>`:
     s.has_token?`<div class="al-ok"><span class="chip warn">Waiting for Start</span> Your token${s.bot_name?` for <b>@${esc(s.bot_name)}</b>`:''} is saved. Open ${s.bot_name?`<b>@${esc(s.bot_name)}</b>`:'your bot'} in Telegram and tap <b>Start</b> (or send it any message). This page links up by itself within a minute. Nothing else to press.</div>`:
     `<ol class="al-steps"><li>In Telegram, open <b>@BotFather</b>, send <code>/newbot</code> and pick any name.</li><li>Open your new bot and press <b>Start</b>.</li><li>Paste the token BotFather gave you here and press Connect.</li></ol>`;
+  {const m=$('#alMsg');if(s.linked&&m&&/neg/.test(m.className)){m.textContent='';m.className='al-msg'}}  // an old connect error must not linger once linked
   $('#alForm').hidden=false;
   $('#alTokRow').hidden=!!s.linked&&!UI.alRelink;$('#alTok').placeholder=s.has_token&&!s.linked&&!s.link_error?'Token saved. Only paste a new one to replace it':'Bot token, like 123456789:AA…';
   $('#alRelink').hidden=!s.linked;$('#alTest').hidden=!s.linked;
@@ -2323,6 +2342,144 @@ if($('#alForm')){
   $('#alRefresh').onclick=()=>loadAlerts(true);
 }
 
+/* ---------- v21 EA identity: same EA on different accounts, by entry timing; overrides from Settings ---------- */
+// Function declarations and var only: assignFamilies() can run before this part's top level has run.
+var EA_OVR={};          // 'acct|magic' -> EA name, set by Gaston in Settings > EA mapping (Supabase ea_map)
+var EA_LINKS=[];        // timing matches between account+magic groups, for the mapping page
+var EA_ALIAS={};        // family -> canonical family, from high-confidence timing matches
+function symRoot(s){s=String(s||'').toUpperCase().replace(/[^A-Z0-9].*$/,'');return s==='GOLD'?'XAUUSD':/^(DE40|DAX40|GER40)$/.test(s)?'GER30':/^(WS30|DJ30)$/.test(s)?'US30':s}
+// 1-to-1 entry matching: same symbol root and side, entries <=60s apart, entry price within 0.15%.
+// A and B are sorted by open time. Returns matched pairs [a,b].
+function eaPairs(A,B){
+  const out=[],used=new Set();let k=0;
+  for(const x of A){while(k<B.length&&B[k].ot<x.ot-60e3)k++;let best=-1,bd=1e18;
+    for(let q=k;q<B.length&&B[q].ot<=x.ot+60e3;q++){const y=B[q];if(used.has(q)||y.side!==x.side||symRoot(y.sym)!==symRoot(x.sym)||!x.op||Math.abs(y.op-x.op)/x.op>.0015)continue;const d=Math.abs(y.ot-x.ot);if(d<bd){bd=d;best=q}}
+    if(best>=0){used.add(best);out.push([x,B[best]])}}
+  return out;
+}
+function eaConf(m,cov,exit){return m>=5&&cov>=.7&&exit>=.7?'high':m>=3&&cov>=.5&&exit>=.5?'medium':''}
+// Groups = account+magic+symbol. Same EA on two accounts enters in the same minute AND exits together;
+// two different EAs that both fire at a session open rarely exit together, so exits are the tie-breaker.
+function eaLinks(trades){
+  const G={};for(const t of trades){if(t.magic==='0')continue;const k=t.acct+'|'+t.magic+'|'+symRoot(t.sym);(G[k]=G[k]||{acct:t.acct,magic:t.magic,sym:symRoot(t.sym),ts:[],fc:{}}).ts.push(t);G[k].fc[t.fam]=(G[k].fc[t.fam]||0)+1}
+  const gs=Object.values(G).filter(g=>g.ts.length>=3);for(const g of gs){g.ts.sort((x,y)=>x.ot-y.ot);g.fam=Object.entries(g.fc).sort((x,y)=>y[1]-x[1])[0][0]}
+  const L=[];
+  for(let i=0;i<gs.length;i++)for(let j=i+1;j<gs.length;j++){const A=gs[i],B=gs[j];if(A.acct===B.acct||A.sym!==B.sym)continue;
+    const P=eaPairs(A.ts,B.ts);if(P.length<3)continue;
+    const ex=P.filter(([x,y])=>Math.abs(y.ct-x.ct)<=300e3).length,cov=P.length/Math.min(A.ts.length,B.ts.length),exit=ex/P.length,conf=eaConf(P.length,cov,exit);
+    if(!conf)continue;const lr=P.map(([x,y])=>x.lots?y.lots/x.lots:0).filter(v=>v>0).sort((a,b)=>a-b);
+    L.push({a:A,b:B,m:P.length,cov,exit,conf,lot:lr.length?lr[lr.length>>1]:0,score:cov*exit})}
+  // keep mutual best partners only (one magic slot on an account pairs with one slot on the other)
+  const best={};for(const l of L)for(const [g,o] of [[l.a,l.b],[l.b,l.a]]){const k=g.acct+'|'+g.magic+'|'+g.sym+'>'+o.acct;if(!best[k]||best[k].score<l.score)best[k]=l}
+  return L.filter(l=>best[l.a.acct+'|'+l.a.magic+'|'+l.a.sym+'>'+l.b.acct]===l&&best[l.b.acct+'|'+l.b.magic+'|'+l.b.sym+'>'+l.a.acct]===l).sort((x,y)=>y.score-x.score);
+}
+// Merge differently named families that the timing shows are one EA (high confidence only),
+// unless both names already run side by side on one account (then they are two EAs).
+function eaAliases(trades,links){
+  const acc={},cnt={};for(const t of trades){(acc[t.fam]=acc[t.fam]||new Set()).add(t.acct);cnt[t.fam]=(cnt[t.fam]||0)+1}
+  const par={},find=f=>{while(par[f]&&par[f]!==f)f=par[f];return f},members=f=>Object.keys(acc).filter(x=>find(x)===f);
+  for(const l of links){if(l.conf!=='high')continue;const x=find(l.a.fam),y=find(l.b.fam);if(x===y)continue;
+    const ax=new Set(members(x).flatMap(f=>[...acc[f]])),clash=members(y).some(f=>[...acc[f]].some(a=>ax.has(a)));
+    if(clash){l.clash=true;continue}
+    const tot=f=>members(f).reduce((s,m)=>s+cnt[m],0),[keep,drop]=tot(x)>=tot(y)?[x,y]:[y,x];par[drop]=keep;par[keep]=keep}
+  const out={};for(const f in acc){const r=find(f);if(r!==f)out[f]=r}return out;
+}
+// runs at the end of assignFamilies: timing aliases, then the Live/Demo naming rule, then Gaston's overrides win
+function eaIdentity(){
+  const T=S.trades.filter(t=>t.magic!=='0');
+  try{EA_LINKS=eaLinks(T);EA_ALIAS=eaAliases(T,EA_LINKS)}catch(e){EA_LINKS=[];EA_ALIAS={}}
+  for(const t of S.trades){t.fam0=t.fam;if(EA_ALIAS[t.fam])t.fam=EA_ALIAS[t.fam]}
+  // a name ending in _Live never labels an EA that also runs on a demo account
+  const demoIn={};for(const t of S.trades) if(isDemoAcct(t.acct)) demoIn[t.fam]=1;
+  for(const t of S.trades) if(demoIn[t.fam]&&/_Live$/i.test(t.fam)) t.fam=t.fam.replace(/_Live$/i,'');
+  for(const t of S.trades){const o=EA_OVR[t.acct+'|'+t.magic];if(o)t.fam=o}
+  const v={};for(const t of S.trades){if(t.magic==='0')continue;const k=t.acct+'|'+t.magic;(v[k]=v[k]||{})[t.fam]=(v[k][t.fam]||0)+1}
+  for(const k in v) FAMMAP[k]=Object.entries(v[k]).sort((x,y)=>y[1]-x[1])[0][0];
+}
+
+/* ---------- Same EA, different accounts (inside the EA report) ---------- */
+function eaCompare(ts){
+  const by={};for(const t of ts)(by[t.acct]=by[t.acct]||[]).push(t);
+  const accs=Object.keys(by);if(accs.length<2) return null;
+  for(const a of accs) by[a].sort((x,y)=>x.ot-y.ot);
+  const per01=t=>t.lots?t.net/t.lots*.01:0;
+  const rows=accs.map(a=>{const v=by[a],w=v.filter(t=>t.net>0).length,n=v.reduce((s,t)=>s+t.net,0),lots=v.reduce((s,t)=>s+t.lots,0)/v.length;
+    return {a,demo:isDemoAcct(a),n:v.length,net:n,wr:w/v.length,lots,p01:v.reduce((s,t)=>s+per01(t),0)/v.length,first:v[0].ot,last:v[v.length-1].ct}})
+    .sort((x,y)=>x.demo-y.demo||y.n-x.n);
+  const ref=rows[0],R=by[ref.a];
+  const cmp=rows.slice(1).map(r=>{const O=by[r.a],lo=Math.max(R[0].ot,O[0].ot),hi=Math.min(R[R.length-1].ot,O[O.length-1].ot);
+    let r2=R.filter(t=>t.ot>=lo-6e4&&t.ot<=hi+6e4),o2=O.filter(t=>t.ot>=lo-6e4&&t.ot<=hi+6e4);
+    // only magic slots that run on both accounts: a slot one account never runs is not a "missed" trade
+    {const P0=eaPairs(r2,o2),mr=new Set(P0.map(([x])=>x.magic)),mo=new Set(P0.map(([,y])=>y.magic));r2=r2.filter(t=>mr.has(t.magic));o2=o2.filter(t=>mo.has(t.magic))}
+    if(hi<=lo||!r2.length||!o2.length) return {r,none:true,lo,hi};
+    const P=eaPairs(r2,o2),
+      slip=P.map(([x,y])=>(y.op-x.op)*(x.side==='buy'?1:-1)),delay=P.map(([x,y])=>(y.ot-x.ot)/1e3),
+      exitTog=P.filter(([x,y])=>Math.abs(y.ct-x.ct)<=300e3).length,div=P.map(([x,y])=>per01(y)-per01(x)),
+      sameSign=P.filter(([x,y])=>Math.sign(x.net)===Math.sign(y.net)).length;
+    const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0;
+    return {r,lo,hi,slots:new Set(r2.map(t=>t.magic)).size,refN:r2.length,othN:o2.length,m:P.length,missed:r2.length-P.length,extra:o2.length-P.length,slip:avg(slip),delay:avg(delay),exitTog:P.length?exitTog/P.length:0,div:avg(div),sameSign:P.length?sameSign/P.length:0}});
+  return {rows,ref,cmp};
+}
+function renderEACompare(p){
+  const el=$('#eaCmp');if(!el) return;const C=eaCompare(p.ts);el.hidden=!C;if(!C){el.innerHTML='';return}
+  const tag=d=>`<span class="chip ${d?'':'pass'}">${d?'Demo':'Live'}</span>`,sg=v=>(v>=0?'+':'')+fmt(v,1);
+  el.innerHTML=`<header><h3>Same EA, different accounts</h3><p>Each account on its own row. The first row is the reference; the others are matched to it trade by trade (same side, entry within 60 seconds).</p></header>
+  <div class="tblwrap"><table class="cmp-t"><thead><tr><th>Account</th><th></th><th>Trades</th><th>Net</th><th>Win rate</th><th>Avg lot</th><th title="net profit per trade scaled to 0.01 lot, so accounts with different lot sizes compare fairly">Per 0.01 lot</th><th>Active</th></tr></thead><tbody>
+  ${C.rows.map(r=>`<tr><td><b>${esc(nm(r.a))}</b></td><td>${tag(r.demo)}</td><td>${r.n}</td><td class="${cls(r.net)}">${money(r.net,2)}</td><td>${pct(r.wr,0)}</td><td>${fmt(r.lots,2)}</td><td class="${cls(r.p01)}">${money(r.p01,2)}</td><td class="muted">${dstr(r.first)} to ${dstr(r.last)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="cmp-pairs">${C.cmp.map(c=>c.none?`<div class="cmp-p"><b>${esc(nm(C.ref.a))} vs ${esc(nm(c.r.a))}</b><p class="muted">They never ran at the same time, so there is nothing to match.</p></div>`:
+   `<div class="cmp-p"><b>${esc(nm(C.ref.a))} ${tag(C.ref.demo)} vs ${esc(nm(c.r.a))} ${tag(c.r.demo)}</b><span class="muted"> · while both ran, ${dstr(c.lo)} to ${dstr(c.hi)}</span>
+    <div class="rs"><div><span class="tag">Matched</span><b>${c.m} <small>of ${c.refN}</small></b></div><div><span class="tag">Slots on both</span><b>${c.slots}</b></div>
+    <div><span class="tag">Missed on ${esc(nm(c.r.a))}</span><b class="${c.missed?'neg':''}">${c.missed}</b></div>
+    <div><span class="tag">Extra on ${esc(nm(c.r.a))}</span><b class="${c.extra?'warn':''}">${c.extra}</b></div>
+    <div><span class="tag" title="average entry price on ${esc(nm(c.r.a))} minus the reference, in price; positive = a worse fill there">Entry price gap</span><b class="${c.slip>0?'neg':c.slip<0?'pos':''}">${c.slip>=0?'+':''}${fmt(c.slip,Math.abs(c.slip)>=1?2:Math.abs(c.slip)>=.01?3:5)}</b></div>
+    <div><span class="tag">Entry delay</span><b>${sg(c.delay)} s</b></div>
+    <div><span class="tag">Exit together</span><b>${pct(c.exitTog,0)}</b></div>
+    <div><span class="tag">Same result</span><b>${pct(c.sameSign,0)}</b></div>
+    <div><span class="tag" title="average difference in net per 0.01 lot on matched trades">Result gap /0.01 lot</span><b class="${cls(c.div)}">${money(c.div,2)}</b></div></div></div>`).join('')}</div>`;
+}
+
+/* ---------- Settings > EA mapping ---------- */
+function eaMapRows(){
+  const G={};for(const t of S.trades){if(t.magic==='0')continue;const k=t.acct+'|'+t.magic;const g=G[k]=G[k]||{k,acct:t.acct,magic:t.magic,n:0,fam:t.fam,raw:{},syms:new Set()};g.n++;g.fam=FAMMAP[k]||t.fam;g.raw[t.fam0||t.fam]=1;g.syms.add(t.sym)}
+  const E={};for(const g of Object.values(G))(E[g.fam]=E[g.fam]||[]).push(g);
+  return Object.entries(E).map(([name,gs])=>({name,gs:gs.sort((x,y)=>isDemoAcct(x.acct)-isDemoAcct(y.acct)||nm(x.acct).localeCompare(nm(y.acct))||(+x.magic)-(+y.magic)),n:gs.reduce((s,g)=>s+g.n,0)})).sort((x,y)=>y.n-x.n);
+}
+function eaHow(g){
+  if(EA_OVR[g.k]) return ['you','set by you'];
+  const l=EA_LINKS.find(l=>(l.a.acct+'|'+l.a.magic===g.k||l.b.acct+'|'+l.b.magic===g.k)&&l.conf==='high'&&!l.clash);
+  if(l){const o=l.a.acct+'|'+l.a.magic===g.k?l.b:l.a;return ['high',`timing: ${pct(l.cov,0)} of entries in the same minute as ${nm(o.acct)} magic ${o.magic}, ${pct(l.exit,0)} exit together`]}
+  if(magName(g.acct,g.magic)) return ['you','named by you in chat'];
+  return ['name','same comment name'];
+}
+function renderEAMap(){
+  const el=$('#eaMap');if(!el) return;
+  if(!S.trades.length){el.innerHTML='<p class="muted">Load your accounts first.</p>';return}
+  const R=eaMapRows(),multi=R.filter(e=>new Set(e.gs.map(g=>g.acct)).size>1);
+  const maybe=EA_LINKS.filter(l=>(l.conf==='medium'||l.clash)&&(FAMMAP[l.a.acct+'|'+l.a.magic]!==FAMMAP[l.b.acct+'|'+l.b.magic]));
+  const chip=c=>`<span class="chip ${c==='high'?'pass':c==='you'?'info':''}">${c==='high'?'timing':c==='you'?'yours':'name'}</span>`;
+  const single=R.filter(e=>!multi.includes(e));
+  const table=list=>`<div class="tblwrap"><table class="map-t"><thead><tr><th>EA</th><th>Account</th><th>Magic</th><th>Comment names</th><th>Trades</th><th>Matched by</th><th>Your name</th></tr></thead><tbody>${list.map(e=>e.gs.map((g,i)=>{const [c,why]=eaHow(g);return `<tr class="${i?'':'map-first'}"><td>${i?'':`<b>${esc(e.name)}</b>`}</td><td>${esc(nm(g.acct))} <span class="chip ${isDemoAcct(g.acct)?'':'pass'}">${isDemoAcct(g.acct)?'Demo':'Live'}</span></td><td>${esc(g.magic)}</td><td class="muted cw">${esc(Object.keys(g.raw).join(', '))} · ${esc([...g.syms].join('/'))}</td><td>${g.n}</td><td title="${esc(why)}">${chip(c)}</td><td><input class="map-in" data-k="${esc(g.k)}" value="${esc(EA_OVR[g.k]||'')}" placeholder="${esc(e.name)}" maxlength="60" aria-label="Your name for ${esc(nm(g.acct))} magic ${esc(g.magic)}"></td></tr>`}).join('')).join('')}</tbody></table></div>`;
+  el.innerHTML=`<p class="muted">${R.length} EAs. ${multi.length} run on more than one account. Rename any account + magic below and press Save; your names win over everything else and apply in the artifact, the iPhone app and Telegram.</p>
+  <h4>Running on more than one account (${multi.length})</h4>${table(multi)}
+  <details class="fold"><summary>One account only (${single.length})</summary>${table(single)}</details>
+  ${maybe.length?`<h4>Possible matches to check</h4><p class="muted">These trade in the same minute fairly often but not clearly enough to merge on their own. Press "Same EA" to merge one into the other.</p>
+  <div class="map-maybe">${maybe.slice(0,12).map((l,i)=>`<div class="cmp-p"><b>${esc(FAMMAP[l.a.acct+'|'+l.a.magic])}</b> (${esc(nm(l.a.acct))} magic ${esc(l.a.magic)}) and <b>${esc(FAMMAP[l.b.acct+'|'+l.b.magic])}</b> (${esc(nm(l.b.acct))} magic ${esc(l.b.magic)}): ${pct(l.cov,0)} of entries together, ${pct(l.exit,0)} exit together${l.clash?', but both names already trade side by side on one account':''}. <button type="button" class="btn-sm" data-merge="${i}">Same EA</button></div>`).join('')}</div>`:''}
+  <div class="al-actions"><button type="button" id="mapSave">Save mapping</button><button type="button" id="mapReset" class="ghost">Clear my names</button><span id="mapMsg" class="al-msg"></span></div>`;
+  el.querySelectorAll('[data-merge]').forEach(b=>b.onclick=()=>{const l=maybe[+b.dataset.merge],to=FAMMAP[l.a.acct+'|'+l.a.magic];
+    for(const k of Object.keys(FAMMAP)) if(FAMMAP[k]===FAMMAP[l.b.acct+'|'+l.b.magic]){const i=el.querySelector(`.map-in[data-k="${k}"]`);if(i)i.value=to}
+    alMsg(`Set to ${to}. Press Save mapping to keep it.`,false,'#mapMsg')});
+  $('#mapReset').onclick=()=>{el.querySelectorAll('.map-in').forEach(i=>i.value='');alMsg('Cleared. Press Save mapping to keep it.',false,'#mapMsg')};
+  $('#mapSave').onclick=async()=>{
+    const m={};for(const i of el.querySelectorAll('.map-in')){const v=i.value.trim();if(v){if(v.length>60||/['\\]/.test(v)){alMsg('Names cannot contain quotes or backslashes.',true,'#mapMsg');return}m[i.dataset.k]=v}}
+    const b=$('#mapSave');b.disabled=true;b.textContent='Saving…';
+    try{if(S.live&&typeof mcp!=='undefined'&&mcp) await sql(`select public.ea_map_put('${JSON.stringify(m).replace(/'/g,"''")}'::jsonb) as r`);
+      EA_OVR=m;try{localStorage.setItem('fx-eamap',JSON.stringify(m))}catch(e){}
+      assignFamilies();for(const q of S.pos||[])q.fam=famFor(q.acct,q.magic,q.comment);try{localStorage.removeItem('fx-alnames')}catch(e){}if(S.live)loadAlerts(true);render();
+      alMsg(`✓ Saved at ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}. ${Object.keys(m).length} name${Object.keys(m).length===1?'':'s'} of yours in use.`,false,'#mapMsg')}
+    catch(e){alMsg('Could not save: '+(e.message||e),true,'#mapMsg')}finally{const b2=$('#mapSave');if(b2){b2.disabled=false;b2.textContent='Save mapping'}}};
+}
+if($('#mapBtn')) $('#mapBtn').onclick=()=>{const d=document.querySelector('details.settings');if(d)d.open=false;showTab('map',true)};
+
 function fillAccounts(){
   const sel=$('#acct'),cur=sel.value,acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   sel.innerHTML='<option value="ALL">All accounts</option><option value="REAL">Real money accounts</option><option value="DEMO">Demo accounts</option>'+acc.map(a=>`<option value="${esc(a)}">${esc(nmFull(a))}</option>`).join('');
@@ -2344,7 +2501,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v20';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v21';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2404,6 +2561,7 @@ const PC=['account','ticket','symbol','type','lots','open_time','open_price','pr
 const DC=['account','magic','comment','bal','fl_now','fl_today','fl_all','n_today','n_all','p_today','p_all'];
 let CACHE=null;
 function show(c,note){
+  EA_OVR=(c.eo&&typeof c.eo==='object')?c.eo:(()=>{try{return JSON.parse(localStorage.getItem('fx-eamap')||'{}')}catch(e){return {}}})();
   S.trades=[];S.cash=[];S.eq=[];S.ccy='';
   S.now=c.nw.map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],eq:+v[4],fl:+v[5],t:parseTime(v[6]),age:+v[7]}});
   ingest([TC.join(',')].concat(c.tr).join('\n'),'trades');
@@ -2435,17 +2593,17 @@ async function syncNow(){
     if(!since) setSync('Loading live accounts…');
     const trQ=`select account,platform,currency,ticket,position,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS') as open_time,to_char(close_time,'YYYY.MM.DD HH24:MI:SS') as close_time,commission,swap,profit,magic,comment,sl,open_price,close_price,to_char(received_at,'YYYY-MM-DD"T"HH24:MI:SS.US') as received_at from public.trades${where}`;
     const DAY=`e.bucket>=date_trunc('day',l.b)`;
-    const [tr,eq,nw,pos,dd,nv]=await Promise.all([
+    const [tr,eq,nw,pos,dd,nv,eo]=await Promise.all([
       pageAll(trQ,TC,'trades','close_time,account,ticket'),
       pageAll(`select to_char(date_trunc('hour',bucket),'YYYY.MM.DD HH24:MI:SS') as time,account,min(balance) as balance,min(equity_min) as equity,case when magic=-1 then 'ALL' else magic::text end as magic,min(floating_min) as floating,comment from public.equity group by 1,2,magic,comment`,EC,'equity','1,2,5,7'),
       pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,e.balance,e.equity_min as equity,e.floating_min as floating,to_char(e.bucket,'YYYY.MM.DD HH24:MI:SS') as bucket,extract(epoch from now()-e.received_at)::int as age from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account and l.b=e.bucket`,NC,'account snapshots','1,2'),
       // open MT5 positions rebuilt from the deals the EA already sends: entry deals not yet fully closed
       pageAll(`select i.account,i.position as ticket,i.symbol,i.type,round((i.v-coalesce(o.v,0))::numeric,2) as lots,to_char(i.t,'YYYY.MM.DD HH24:MI:SS') as open_time,i.price as open_price,null as price,i.sl,null as tp,null as profit,null as swap,null as commission,i.magic,i.comment,null as age from (select account,position,min(time) t,sum(volume) v,(array_agg(type order by time,deal))[1] type,(array_agg(price order by time,deal))[1] price,(array_agg(sl order by time desc,deal desc))[1] sl,(array_agg(magic order by time,deal))[1] magic,(array_agg(comment order by time,deal))[1] comment,(array_agg(symbol))[1] symbol from public.deals where platform='MT5' and entry='in' and type in ('buy','sell') group by 1,2) i left join (select account,position,sum(volume) v from public.deals where platform='MT5' and entry in ('out','outby','inout') group by 1,2) o using (account,position) where i.v-coalesce(o.v,0)>1e-6`,PC,'open trades','1,6'),
-      pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,(array_agg(e.balance order by e.bucket desc))[1] as bal,(array_agg(e.floating_min order by e.bucket desc) filter (where e.bucket=l.b))[1] as fl_now,min(e.floating_min) filter (where ${DAY}) as fl_today,min(e.floating_min) as fl_all,max(e.open_max) filter (where ${DAY}) as n_today,max(e.open_max) as n_all,min(e.floating_min/nullif(e.balance,0)) filter (where ${DAY}) as p_today,min(e.floating_min/nullif(e.balance,0)) as p_all from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account group by 1,2,3`,DC,'drawdowns','1,2,3'),pageAll(NEWSQ,NVC,'news calendar','1,2,3').catch(()=>[])]);
+      pageAll(`select e.account,case when e.magic=-1 then 'ALL' else e.magic::text end as magic,e.comment,(array_agg(e.balance order by e.bucket desc))[1] as bal,(array_agg(e.floating_min order by e.bucket desc) filter (where e.bucket=l.b))[1] as fl_now,min(e.floating_min) filter (where ${DAY}) as fl_today,min(e.floating_min) as fl_all,max(e.open_max) filter (where ${DAY}) as n_today,max(e.open_max) as n_all,min(e.floating_min/nullif(e.balance,0)) filter (where ${DAY}) as p_today,min(e.floating_min/nullif(e.balance,0)) as p_all from public.equity e join (select account,max(bucket) b from public.equity group by 1) l on l.account=e.account group by 1,2,3`,DC,'drawdowns','1,2,3'),pageAll(NEWSQ,NVC,'news calendar','1,2,3').catch(()=>[]),sql('select public.ea_map_get() as r').then(r=>jget(r[0]&&r[0].r)).catch(()=>null)]);
     let all=tr;
     if(since){const key=l=>{const v=l.split(',');return v[0]+'|'+v[3]};const seen=new Set(tr.map(key));all=CACHE.tr.filter(l=>!seen.has(key(l))).concat(tr)}
     if(!all.length){setSync('Connected, but the EA has not pushed any trades yet.');return}
-    CACHE={pid:projectId,tr:all,eq,nw,pos,dd,nv,at:Date.now()};cachePut(CACHE);
+    CACHE={pid:projectId,tr:all,eq,nw,pos,dd,nv,eo,at:Date.now()};cachePut(CACHE);
     show(CACHE,'Live');
     const secs=((performance.now()-t0)/1000).toFixed(1);
     setSync($('#sync').textContent.replace(/ \(v\d+\)\.$/,'')+` ${since?(tr.length?`${tr.length} new trade row${tr.length>1?'s':''} checked`:'No new trades'):'Full load'} in ${secs} s, ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} (${BUILD}).`);
