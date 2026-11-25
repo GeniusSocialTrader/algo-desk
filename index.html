@@ -1936,7 +1936,7 @@ const SORTS={score:p=>-(p.S.band==='Too early'?-1:p.S.s),profit:p=>-p.M.net,dd:p
 
 /* ---------- EA lab: one card per EA ---------- */
 function renderLab({T}){
-  EB={};PROF={};
+  EB={};PROF={};NOW_T=T.length?Math.max(...T.slice(-200).map(t=>t.ct)):0;
   const el=$('#lab');if(!el) return;
   const fams={};for(const t of T)(fams[t.fam]=fams[t.fam]||[]).push(t);
   const L=Object.entries(fams).filter(([,ts])=>ts.length>=2).map(([k,ts])=>profileOf(k,ts)).sort((x,y)=>SORTS[UI.labSort](x)-SORTS[UI.labSort](y));
@@ -1946,7 +1946,7 @@ function renderLab({T}){
   el.innerHTML=L.map((p,i)=>{const M=p.M,col=`var(${BANDC[p.S.band]})`;
     return `<button type="button" class="ea-card" data-k="${esc(p.k)}" style="--c:${col};--d:${i*40}ms" aria-label="Open ${esc(p.k)}">
       <span class="ec-top">${avatar(p.k,30)}<span class="ec-name"><b>${esc(p.k)}</b><span class="tag">${p.accts.length} account${p.accts.length>1?'s':''} · ${p.syms.slice(0,2).map(s=>pairBadge(s,14)).join('')}${p.syms.length>2?' +'+(p.syms.length-2):''}</span></span>${scoreRing(p.S.s,p.S.band,52)}</span>
-      <span class="ec-chips">${bandChip(p.S.band)}<span class="chip ${p.kind==='Real'?'pass':''}">${p.kind}</span>${p.rc.isMart?'<span class="chip fail">Martingale</span>':p.rc.grid?'<span class="chip warn">Grid</span>':''}</span>
+      <span class="ec-chips">${bandChip(p.S.band)}<span class="chip ${p.kind==='Real'?'pass':''}">${p.kind}</span>${p.rc.isMart?'<span class="chip fail">Martingale</span>':p.rc.grid?'<span class="chip warn">Grid</span>':''}${(q=>!q?'':q.days>60?`<span class="chip" title="no trade for ${q.days} days, so it looks switched off">⏹ Stopped</span>`:`<span class="chip warn" title="no trade for ${q.days} days; it usually trades at least every ${q.usual} day${q.usual>1?'s':''}">💤 Quiet ${q.days}d</span>`)(quietOf(p.ts))}</span>
       <span class="ec-gain"><b class="${cls(M.net)}">${M.net>=0?'+':''}${money(M.net)}</b><span class="${cls(M.net)}">${M.net>=0?'+':''}${pct(M.net/p.base,1)}</span></span>
       ${miniSpark(cumOf(p.ts),260,44).replace('class="mspark"','class="mspark ec-spark"')}
       <span class="ec-stats"><span><i>PF</i><b>${fmt(M.pf)}</b></span><span><i>Max DD</i><b class="${p.S.ddp>.2?'neg':''}">${pct(p.S.ddp,1)}</b></span><span><i>Trades</i><b>${M.n.toLocaleString()}</b></span><span><i>Days</i><b>${p.V.days}</b></span></span>
@@ -1956,6 +1956,15 @@ function renderLab({T}){
 $('#labSort')&&($('#labSort').onclick=e=>{const b=e.target.closest('[data-s]');if(b){UI.labSort=b.dataset.s;render()}});
 
 /* ---------- EA profile ---------- */
+// "Gone quiet" (ShowMyTrades-style): no trade for 3x its usual longest gap (90th percentile), at least 3 days, counted to the portfolio's latest close
+let NOW_T=0;
+function quietOf(ts){
+  if(ts.length<20||!NOW_T) return null;
+  const g=[];for(let i=1;i<ts.length;i++) g.push(Math.max(0,ts[i].ot-ts[i-1].ot));g.sort((x,y)=>x-y);
+  const p90=g[Math.floor(g.length*.9)],idle=NOW_T-Math.max(...ts.map(t=>t.ct)),lim=Math.max(3*864e5,3*p90);
+  return idle>lim?{days:Math.round(idle/864e5),usual:Math.max(1,Math.round(p90/864e5))}:null;
+}
+const costOf=ts=>{const c=-ts.reduce((s,t)=>s+(t.comm||0)+(t.swap||0),0),gw=ts.reduce((s,t)=>s+Math.max(t.gross!=null?t.gross:t.net,0),0);return {c,share:gw?c/gw:0}};
 function renderProfile({T}){
   const el=$('#eaHero');if(!el||!UI.ea) return;
   const ts0=T.filter(t=>t.fam===UI.ea);if(ts0.length<2){el.innerHTML='';return}
@@ -1977,7 +1986,7 @@ function renderProfile({T}){
     ['SQN',fmt(sqnOf(ts),2),sqnOf(ts)>=2?'pos':sqnOf(ts)<1?'neg':'',sqnOf(ts)>=2?'dependable system':sqnOf(ts)>=1?'average':'weak or noisy']];
   $('#eaKpi').innerHTML=K.map(([k,v,c,s])=>`<div class="ek"><span class="k">${k}</span><b class="${c}">${v}</b><span class="tag">${esc(s)}</span></div>`).join('');
   const days=new Set(ts.map(t=>dayKey(t.ct))).size,cal=Math.max(1,Math.round((last-ts[0].ot)/864e5));
-  $('#eaStrip').innerHTML=[['Trading days',days+' d',cal+' calendar days'],['First trade',dstr(ts[0].ot),''],['Last trade',dstr(last),''],['Trades a day',fmt(ts.length/days,1),''],['Trades total',ts.length.toLocaleString(),'']].map(([k,v,s])=>`<div><span class="k">${k}</span><b>${v}</b>${s?`<span class="tag">${s}</span>`:''}</div>`).join('');
+  $('#eaStrip').innerHTML=[['Trading days',days+' d',cal+' calendar days'],['First trade',dstr(ts[0].ot),''],['Last trade',dstr(last),''],['Trades a day',fmt(ts.length/days,1),''],['Trades total',ts.length.toLocaleString(),''],...(q=>q?[[q.days>60?'Stopped':'Gone quiet',q.days+' days',q.days>60?'no trades since, looks switched off':`usually trades every ${q.usual} day${q.usual>1?'s':''} or less`]]:[])(quietOf(ts)),...(o=>[['Costs paid',money(o.c,2),`${pct(o.share,0)} of gross wins · commission + swap`]])(costOf(ts))].map(([k,v,s])=>`<div><span class="k">${k}</span><b>${v}</b>${s?`<span class="tag">${s}</span>`:''}</div>`).join('');
   // Initial vs recovery legs (magics in ROLE_MAGIC: no comment = initial, comment = recovery)
   {const R=$('#eaRoles'),by={};for(const t of ts) if(t.role)(by[t.role]=by[t.role]||[]).push(t);
    const ks=['Initial','Recovery'].filter(k=>by[k]);R.hidden=!ks.length;
@@ -2085,7 +2094,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v18';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v19';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
