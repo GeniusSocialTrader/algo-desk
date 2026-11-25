@@ -388,6 +388,16 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .hbar b{transition:width .6s cubic-bezier(.2,.8,.2,1)}
 #riskEATbl tbody tr{transition:background .15s} #riskEATbl tbody tr:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
 @media (prefers-reduced-motion:reduce){.mspark polyline{stroke-dasharray:none;stroke-dashoffset:0}.xtile:hover,.ntile:hover,.lea:hover,.cards>*:hover,.know>*:hover{transform:none}}
+
+/* ---------- v15 ---------- */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{font:600 12.5px var(--f-body);color:var(--muted);background:none;border:0;padding:7px 10px;cursor:pointer;min-height:34px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.mrow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 130px 80px;gap:10px;align-items:center;font-size:14px;padding:4px 0}
+.mrow>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mrow .num{white-space:nowrap;text-align:right}
+@media (max-width:640px){.mrow{grid-template-columns:minmax(0,110px) minmax(0,1fr) 110px}.mrow .tag{display:none}}
+.vchip{font-size:11px;vertical-align:middle;margin-left:4px;cursor:help}
 </style>
 </head>
 <body>
@@ -399,6 +409,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <span id="sync" aria-live="polite"></span></div></div>
   <div class="ctrls">
     <label for="acct" class="k" style="position:absolute;width:1px;height:1px;overflow:hidden">Account</label>
+    <div class="seg" id="period" role="group" aria-label="Period"></div>
     <select id="acct"><option value="ALL">All accounts</option></select>
     <button id="syncBtn" type="button" hidden>Refresh</button>
     <details class="settings"><summary class="btn">Settings</summary>
@@ -517,6 +528,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <div class="panel" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px"><label for="riskEA" class="k">Show risk for</label><select id="riskEA" style="font:600 15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%"></select><span class="muted" id="riskScope" style="font-size:13px;min-width:0"></span></div>
   <div class="gauges" id="gauges"></div>
   <section class="panel"><header><h3>Risk by EA and account</h3><p>Every EA on every account, deepest drawdown first. Dates are when it happened (server time). Tap a row to show the whole tab for that EA.</p></header><div class="scroll"><table id="riskEATbl"></table></div><button type="button" class="more" id="riskEAMore" hidden>Show all</button></section>
+  <section class="panel"><header><h3>Which EAs deepen your worst drawdown</h3><p>Portfolio worst drawdown with and without each EA, on closed trades in the chosen period</p></header><div class="checks" id="marg"></div></section>
   <div class="g2">
     <section class="panel"><header><h3>Drawdown from the last high</h3><p>0% means at a new high; the deeper the dip, the more pain</p></header><div class="chart"><canvas id="cDD"></canvas></div><div class="explain" id="xDD"></div></section>
     <section class="panel"><header><h3>Stress test: 2,000 reshuffles of your trades</h3><p>Same trades, random order. How deep could the worst drawdown get?</p></header><div class="chart sm"><canvas id="cMC"></canvas></div><div class="explain" id="xMC"></div></section>
@@ -876,13 +888,14 @@ const isDemoAcct=a=>/demo/i.test(nm(a));
 function render(){
   try{
   const c=cfg(),a=$('#acct').value,f=x=>a==='ALL'||x.acct===a;
-  const T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);
+  let T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);
+  periodBar();const PS=periodSlice(T,C,E,c.cap);if(PS){T=PS.T;if(PS.E)E=PS.E}
   $('#mode').className='pill '+(S.demo?'demo':'live');$('#mode').textContent=S.demo?'Demo data':S.live?'Live':'Your files';
   if(!T.length){$('#err').hidden=false;$('#err').textContent='No closed trades found for this selection.';return}
   $('#err').hidden=true;
-  const {base:b0,cap0,Cuse}=baseFor(T,C,c.cap);
+  const {base:b0,cap0,Cuse}=PS?{base:PS.base,cap0:PS.cap0,Cuse:PS.Cuse}:baseFor(T,C,c.cap);
   const P=metrics(T,Cuse,cap0,b0),EQ=eqSeries(E);
-  const all=acctStats(a,c.cap),base=all?all.base:b0;
+  const all=acctStats(a,c.cap),base=PS?b0:all?all.base:b0;
   const MC=monteCarlo(T.map(t=>t.net),base,c.ruin);
   const ccy=S.ccy||'';
   Chart.defaults.color=css('--muted');Chart.defaults.borderColor=css('--line');Chart.defaults.font.family=css('--f-body');
@@ -900,14 +913,14 @@ function render(){
     const fl=E.filter(r=>r.magic!=='ALL'&&magics.has(r.magic)).reduce((m,r)=>Math.min(m,r.fl),0);
     const nosl=ts.filter(t=>!t.sl).length/ts.length,recent=ts.slice(-30),rExp=mean(recent.map(t=>t.net));
     return {k,...lab,M,vec,accts,risk:varP?cov/varP:0,share:P.net?M.net/P.net:0,syms,worstFloat:fl,nosl,rExp,nRecent:recent.length,
-      form:formOf(rExp,M,recent.length),score:health(M,base),so:ts.filter(t=>t.so).length};
+      form:formOf(rExp,M,recent.length),V:verdictOf(ts),score:health(M,base),so:ts.filter(t=>t.so).length};
   }).sort((x,y)=>y.M.net-x.M.net);
 
   const NMAP={};for(const e of EAs) NMAP[e.k]=e.name;EAN=t=>NMAP[keyOf(t,c.grp)]||t.fam;
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderRiskEA(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -918,7 +931,7 @@ function renderHero({T,P,EQ,all,ccy,base}){
   $('#heroK').textContent=`Equity now${ccy?' · '+ccy:''}`;
   countUp($('#heroEq'),eqv,v=>money(v));
   $('#heroSub').innerHTML=all&&all.eq!=null?`Balance ${money(all.bal)} · open trades <b class="${cls(all.fl)}">${money(all.fl,2)}</b> (${pct(all.fl/(all.bal||1))})`:'Closed balance. Open trades show once the EA is running.';
-  const chips=[['Net profit',P.net,`${pct(P.net/base)} of ${money(base)} in`],['Last day',sumIf(t=>dayKey(t.ct)===today),today],
+  const chips=[[UI.period==='all'?'Net profit':'Net profit · '+PERIODS.find(x=>x[0]===UI.period)[1],P.net,`${pct(P.net/base)} of ${money(base)} in`],['Last day',sumIf(t=>dayKey(t.ct)===today),today],
     ['Last 7 days',sumIf(t=>t.ct>last-7*DAY),''],['This month',sumIf(t=>dayKey(t.ct).startsWith(mo)),''],['This year',sumIf(t=>dayKey(t.ct).startsWith(yr)),'']];
   $('#heroChips').innerHTML=chips.map(([k,v,s],i)=>`<div class="chipv" title="${esc(s)}"><span>${k}</span><b class="${cls(v)}" id="hc${i}">–</b></div>`).join('');
   chips.forEach(([,v],i)=>countUp($('#hc'+i),v,x=>(x>0?'+':'')+money(x)));
@@ -945,6 +958,8 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all}){
   const tot=P.net,gw=T.reduce((s,t)=>s+Math.max(t.net,0),0);
   const share=(v,of)=>of>0?Math.max(0,Math.min(1,v/of)):0;
   const meter=(p,col,l,r)=>({p,col,l,r});
+  // 0. EAs whose evidence says review (PSR, decay alarm, at worst drawdown)
+  {const R=EAs.filter(e=>e.V.v==='Review').sort((x,y)=>x.M.net-y.M.net);if(R.length) add(1,'🔍',`${R.length} EA${R.length>1?'s':''} to review`,R.slice(0,3).map(e=>esc(e.name)).join(', '),R.slice(0,4).map(e=>`${avatar(e.name,16)}<b>${esc(e.name)}</b> (${money(e.M.net)}): ${esc(e.V.why.join('; '))}`).join('. ')+'.')}
   // 1. account concentration + demo share
   if(a==='ALL'){
     const byA={};for(const t of T) byA[t.acct]=(byA[t.acct]||0)+t.net;
@@ -1061,7 +1076,7 @@ function renderBoard({EAs,base,E,a}){
     const bar=`<div class="div-bar"><b style="${pos?'left:50%':'right:50%'};width:${w}%;background:var(${pos?'--pos':'--neg'})"></b><span class="${cls(e.M.net)}" style="${pos?`left:calc(50% + ${w}% + 4px)`:`right:calc(50% + ${w}% + 4px)`}">${money(e.M.net)}</span></div>`;
     const acc=e.accts.length>2?e.accts.length+' accounts':e.accts.map(nm).join(', ');
     h+=`<div class="brow" data-i="${i}" tabindex="0" role="button" aria-expanded="false"><span class="rank">${medal(i)}</span>
-      <span class="ea-name"><b>${avatar(e.name,22)}${esc(e.name)}${e.so?` <span class="chip fail" title="Broker margin stop-outs">🛑 ${e.so} stop-out${e.so>1?'s':''}</span>`:''}</b><span class="tag">${esc(e.tag)} · ${esc(acc)} · ${e.M.n} trades</span>${miniSpark(cumOf(Object.values(e.syms).flat().sort((x,y)=>x.ct-y.ct)),110,22)}</span>
+      <span class="ea-name"><b>${avatar(e.name,22)}${esc(e.name)} ${vChip(e.V)}${e.so?` <span class="chip fail" title="Broker margin stop-outs">🛑 ${e.so} stop-out${e.so>1?'s':''}</span>`:''}</b><span class="tag">${esc(e.tag)} · ${esc(acc)} · ${e.M.n} trades</span>${miniSpark(cumOf(Object.values(e.syms).flat().sort((x,y)=>x.ct-y.ct)),110,22)}</span>
       ${bar}<span class="num ${e.M.pf>=1?'pos':'neg'}">${fmt(e.M.pf)}</span>
       <span class="wr"><span>${pct(e.M.wr,0)}</span><span class="hbar"><b style="width:${e.M.wr*100}%;background:var(--cool)"></b></span></span>
       ${ring(e.score,'sm')}${e.form}</div><div class="subrows" data-p="${i}" hidden></div>`;
@@ -1246,7 +1261,7 @@ function renderDive({T,base,ccy}){
     ['Days since last high',stag+'',stag<=30,stag<=90,stag?`last new high ${dateTick(hiT)}`:'at a new high now'],
     ['Win/loss clumping',isFinite(Z)?fmt(Z):'n/a',!(Z<-2),!(Z<-3),Z<-2?'wins and losses come in runs: grid or martingale sign':Z>2?'wins and losses alternate':'results look independent'],
     ['Stop slippage',money(slip),slip>-1,slip>-.05*Math.abs(M.gl||1),`${nSlip} stop exits filled past the stop`]];
-  $('#eaNums').innerHTML=N.map(([k,v,ok,warn,txt])=>`<div class="ntile"><div class="top"><span class="k">${k}</span><span class="dot" style="animation:none;background:${dot3(ok,warn)}"></span></div><div class="v ${k==='Net profit'?cls(M.net):''}">${v}</div><p>${txt}</p></div>`).join('');
+  N.push(...vTiles(ts));$('#eaNums').innerHTML=N.map(([k,v,ok,warn,txt])=>`<div class="ntile"><div class="top"><span class="k">${k}</span><span class="dot" style="animation:none;background:${dot3(ok,warn)}"></span></div><div class="v ${k==='Net profit'?cls(M.net):''}">${v}</div><p>${txt}</p></div>`).join('');
   /* curve */
   let cum=0;const pts=ts.map(t=>({t:t.ct,v:cum+=t.net}));
   const col=css(M.net>=0?'--pos':'--neg');
@@ -1652,6 +1667,84 @@ function revealHero(){const c=document.querySelector('.hero-r .chart');if(!c||RE
 /* illustrated empty state */
 const emptyArt=msg=>`<div class="empty"><svg viewBox="0 0 120 60" width="120" height="60" aria-hidden="true"><path d="M0 40 Q15 32 30 40 T60 40 T90 40 T120 40" fill="none" stroke="var(--cool)" stroke-width="2" opacity=".7"/><path d="M0 50 Q15 43 30 50 T60 50 T90 50 T120 50" fill="none" stroke="var(--cool)" stroke-width="2" opacity=".35"/><circle cx="92" cy="16" r="9" fill="var(--accent)" opacity=".85"/><path d="M44 36 l8-14 8 14z" fill="var(--muted)" opacity=".55"/></svg><span>${msg}</span></div>`;
 
+
+/* ---------- v15: period filter, EA verdict (PSR, track record, decay), marginal drawdown ---------- */
+UI.period='all';
+const PERIODS=[['all','All'],['365','1Y'],['90','90D'],['30','30D'],['7','7D']];
+// Trades, cash and equity for the chosen period. Base = balance at the period start (deposits + profit before it).
+function periodSlice(T,C,E,cap){
+  if(UI.period==='all'||!T.length) return null;
+  const end=Math.max(T[T.length-1].ct,...C.map(x=>x.t)),cut=end-(+UI.period)*864e5;
+  const b0=C.filter(x=>x.t<cut).reduce((s,x)=>s+x.amt,0)+T.filter(t=>t.ct<cut).reduce((s,t)=>s+t.net,0);
+  const Tp=T.filter(t=>t.ct>=cut);if(!Tp.length) return {T:Tp};
+  const ok=b0>0;
+  return {T:Tp,E:E.filter(r=>r.t>=cut),base:ok?b0:cap,cap0:ok?0:cap,Cuse:ok?C.filter(x=>x.t>=cut):[],cut};
+}
+function periodBar(){
+  const el=$('#period');if(!el) return;
+  el.innerHTML=PERIODS.map(([k,l])=>`<button type="button" aria-pressed="${UI.period===k}" data-p="${k}">${l}</button>`).join('');
+}
+$('#period')&&($('#period').onclick=e=>{const b=e.target.closest('[data-p]');if(!b)return;UI.period=b.dataset.p;periodBar();render()});
+
+/* normal CDF (Abramowitz-Stegun 7.1.26 on erf) */
+function ncdf(x){const t=1/(1+.3275911*Math.abs(x)/Math.SQRT2),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x/2);return x>=0?(1+y)/2:(1-y)/2}
+// Probabilistic Sharpe Ratio and minimum track record (Bailey & Lopez de Prado 2012) on daily P/L
+function psrOf(daily){
+  const n=daily.length;if(n<10) return {n,psr:NaN,minTRL:NaN};
+  const m=mean(daily),sd=std(daily);if(!sd) return {n,psr:m>0?1:0,minTRL:NaN};
+  const sr=m/sd,z=daily.map(x=>(x-m)/sd),g3=mean(z.map(x=>x**3)),g4=mean(z.map(x=>x**4));
+  const v=Math.max(1-g3*sr+(g4-1)/4*sr*sr,1e-9);
+  return {n,sr,psr:ncdf(sr*Math.sqrt(n-1)/Math.sqrt(v)),minTRL:sr>0?1+v*(1.645/sr)**2:Infinity};
+}
+// CUSUM decay alarm: reference = first 50 trades (or first third), alarm when S > 5
+function cusumOf(ts){
+  const k=Math.min(50,Math.floor(ts.length/3));if(k<20||ts.length-k<10) return null;
+  const ref=ts.slice(0,k).map(t=>t.net),m0=mean(ref),s0=std(ref)||1;let S=0,hi=0,at=0;
+  for(let i=k;i<ts.length;i++){S=Math.max(0,S+(m0-ts[i].net)/s0-.5);if(S>hi){hi=S;at=ts[i].ct}}
+  return {S,hi,alarm:S>5,at};
+}
+// Keep / Watch / Review from the evidence above plus drawdown against its own worst
+function verdictOf(ts){
+  ts=ts.slice().sort((x,y)=>x.ct-y.ct);
+  const byDay={};for(const t of ts){const k=dayKey(t.ct);byDay[k]=(byDay[k]||0)+t.net}
+  const P=psrOf(Object.values(byDay)),C=cusumOf(ts);
+  let c=0,pk=0,dd=0;for(const t of ts){c+=t.net;if(c>pk)pk=c;dd=Math.max(dd,pk-c)}
+  const cur=pk-c,ddr=dd?cur/dd:0,need=isFinite(P.minTRL)?Math.max(0,Math.ceil(P.minTRL-P.n)):null;
+  let v='Watch',why=[];
+  if(P.n<20){v='Too early';why.push(`only ${P.n} trading days`)}
+  else if(P.psr<.5||(C&&C.alarm&&ddr>.5)||ddr>=.95&&dd>0){v='Review';
+    if(P.psr<.5) why.push(`only ${pct(P.psr,0)} sure the edge is real`);
+    if(C&&C.alarm) why.push('results have slipped below its own early level');
+    if(ddr>=.95&&dd>0) why.push('at its deepest drawdown ever right now')}
+  else if(P.psr>=.9&&!(C&&C.alarm)&&ddr<.5){v='Keep';why.push(`${pct(P.psr,0)} sure the edge is real`)}
+  else{if(P.psr<.9) why.push(`${pct(P.psr,0)} sure the edge is real`);if(C&&C.alarm) why.push('decay alarm');if(ddr>=.5) why.push(`${pct(ddr,0)} of the way to its worst drawdown`)}
+  // hidden tail risk: clumped wins/losses (runs-test Z) or broker stop-outs cap the verdict at Watch
+  const W=ts.filter(t=>t.net>0).length,N=ts.length,Pp=2*W*(N-W);let runs=N?1:0;for(let i=1;i<N;i++) if((ts[i].net>0)!==(ts[i-1].net>0)) runs++;
+  const Z=Pp&&Pp!==N&&N>1?(N*(runs-.5)-Pp)/Math.sqrt(Pp*(Pp-N)/(N-1)):0,so=ts.filter(t=>t.so).length;
+  if(v==='Keep'&&N>=50&&Z<-3){v='Watch';why.push('wins and losses come in clumps, a grid or martingale pattern that hides tail risk')}
+  if(v==='Keep'&&so){v='Watch';why.push(`${so} broker stop-out${so>1?'s':''}`)}
+  return {v,why,psr:P.psr,days:P.n,need,cusum:C,ddr,cur,dd,Z};
+}
+const vChip=V=>{const c={Keep:'pass',Watch:'warn',Review:'fail','Too early':''}[V.v];return `<span class="chip ${c} vchip" title="${esc(V.why.join('; '))}">${{Keep:'✓',Watch:'👀',Review:'⚠',"Too early":'⏳'}[V.v]} ${V.v}</span>`};
+function vTiles(ts){
+  const V=verdictOf(ts);
+  return [['Verdict',V.v,V.v==='Keep',V.v!=='Review',esc(V.why.join('; '))||'no warning signs'],
+    ['Edge confidence',isFinite(V.psr)?pct(V.psr,0):'n/a',V.psr>=.9,V.psr>=.5,`chance the edge is above zero (Probabilistic Sharpe, ${V.days} trading days)`],
+    ['Track record needed',V.need==null?'never at this edge':V.need?`${V.need} more days`:'enough',V.need===0,V.need!=null&&V.need<120,'trading days before you can be 95% sure it is not luck'],
+    ['Still working?',V.cusum?(V.cusum.alarm?'Decay alarm':'Yes'):'n/a',V.cusum&&!V.cusum.alarm,!!V.cusum,V.cusum?(V.cusum.alarm?`recent trades run below its first ${Math.min(50,Math.floor(ts.length/3))} trades' average`:'recent trades match its early results'):'needs 30+ trades']];
+}
+
+/* What each EA does to the portfolio's worst closed drawdown */
+function ddOf(ts){let c=0,pk=0,dd=0;for(const t of ts){c+=t.net;if(c>pk)pk=c;if(pk-c>dd)dd=pk-c}return dd}
+function renderMarginal({T,EAs}){
+  const el=$('#marg');if(!el) return;
+  const all=ddOf(T),rows=EAs.slice(0,40).map(e=>{const ks=new Set(Object.values(e.syms).flat().map(t=>t.id));return {e,d:all-ddOf(T.filter(t=>!ks.has(t.id)))}}).filter(r=>Math.abs(r.d)>=1).sort((x,y)=>y.d-x.d);
+  if(!rows.length){el.innerHTML='<p class="muted">No single EA changes the worst drawdown.</p>';return}
+  const mx=Math.max(...rows.map(r=>Math.abs(r.d)),1),pick=rows.length>12?rows.slice(0,6).concat(rows.slice(-6)):rows;
+  el.innerHTML=`<p class="explain" style="margin:0">Portfolio worst closed drawdown: <b>${money(-all)}</b>. Each bar is how much that drawdown would shrink (red, the EA adds pain) or grow (green, the EA cushions it) if you switched the EA off.</p>`+
+    pick.map(r=>`<div class="mrow"><span>${avatar(r.e.name,18)}<b>${esc(r.e.name)}</b></span><span class="div-bar" style="height:14px"><b style="${r.d>0?'right:50%':'left:50%'};width:${Math.abs(r.d)/mx*50}%;background:var(${r.d>0?'--neg':'--pos'})"></b></span><span class="num ${r.d>0?'neg':'pos'}">${r.d>0?'adds '+money(r.d):'cushions '+money(-r.d)}</span><span class="tag">${r.e.M.n} trades</span></div>`).join('');
+}
+
 function fillAccounts(){
   const sel=$('#acct'),cur=sel.value,acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   sel.innerHTML='<option value="ALL">All accounts</option>'+acc.map(a=>`<option value="${esc(a)}">${esc(nmFull(a))}</option>`).join('');
@@ -1673,7 +1766,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v14';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v15';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
