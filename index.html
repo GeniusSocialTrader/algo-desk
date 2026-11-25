@@ -2249,15 +2249,17 @@ async function loadAlerts(force){
     const [row]=await sql(`select public.alert_overview() as r`),o=jget(row&&row.r);
     if(!o||!o.s) throw new Error('alert tables not found');
     AL={s:o.s,now:o.now||[],log:o.log||[]};paintAlerts();syncAlertNames();
+    if(o.s.has_token&&!o.s.linked&&!o.s.link_error&&!alTimer) alWatch();
   }catch(e){el.innerHTML=`<p class="neg">Could not read the alert settings: ${esc(e.message||e)}</p>`}finally{alBusy=false}
 }
 function paintAlerts(){
   const {s,now,log}=AL,el=$('#alStatus');
   el.innerHTML=s.linked?`<div class="al-ok"><span class="chip pass">Connected</span> <b>@${esc(s.bot_name||'your bot')}</b> sends your alerts. Checks run every 5 minutes in Supabase, so your computer can be off.</div>`:
-    s.has_token?`<div class="al-ok"><span class="chip warn">Almost there</span> Your token for <b>@${esc(s.bot_name||'your bot')}</b> is saved. Open the bot in Telegram, tap <b>Start</b>, then press Connect here (the box can stay empty).</div>`:
+    s.link_error?`<div class="al-ok"><span class="chip fail">Token problem</span> ${esc(s.link_error)}</div>`:
+    s.has_token?`<div class="al-ok"><span class="chip warn">Waiting for Start</span> Your token${s.bot_name?` for <b>@${esc(s.bot_name)}</b>`:''} is saved. Open ${s.bot_name?`<b>@${esc(s.bot_name)}</b>`:'your bot'} in Telegram and tap <b>Start</b> (or send it any message). This page links up by itself within a minute. Nothing else to press.</div>`:
     `<ol class="al-steps"><li>In Telegram, open <b>@BotFather</b>, send <code>/newbot</code> and pick any name.</li><li>Open your new bot and press <b>Start</b>.</li><li>Paste the token BotFather gave you here and press Connect.</li></ol>`;
   $('#alForm').hidden=false;
-  $('#alTokRow').hidden=!!s.linked&&!UI.alRelink;$('#alTok').placeholder=s.has_token&&!s.linked?'Token saved. Leave empty and press Connect':'Bot token, like 123456789:AA…';
+  $('#alTokRow').hidden=!!s.linked&&!UI.alRelink;$('#alTok').placeholder=s.has_token&&!s.linked&&!s.link_error?'Token saved. Only paste a new one to replace it':'Bot token, like 123456789:AA…';
   $('#alRelink').hidden=!s.linked;$('#alTest').hidden=!s.linked;
   const f=$('#alForm');
   f.enabled.checked=s.enabled;f.float_dd_pct.value=+s.float_dd_pct;f.day_loss_pct.value=+s.day_loss_pct;f.offline_min.value=+s.offline_min;f.quiet_factor.value=+s.quiet_factor;f.quiet_min_days.value=+s.quiet_min_days;
@@ -2277,15 +2279,25 @@ function syncAlertNames(){
   if(sig===old) return;
   sql(`select public.alert_names_put('${js.replace(/'/g,"''")}'::jsonb) as n`).then(()=>{try{localStorage.setItem('fx-alnames',sig)}catch(e){}}).catch(()=>{});
 }
+let alTimer=0;
+function alWatch(){
+  clearTimeout(alTimer);const end=Date.now()+5*60e3;
+  const tick=async()=>{await loadAlerts(true);const s=AL&&AL.s;if(!s) return;
+    if(s.linked){alMsg(`Connected to @${s.bot_name||'your bot'}. Check Telegram for the hello message.`);return}
+    if(s.link_error){alMsg(s.link_error,true);return}
+    if(Date.now()<end) alTimer=setTimeout(tick,8000);else alMsg('Still waiting. Tap Start in your bot in Telegram, then come back. It links by itself.',true)};
+  alTimer=setTimeout(tick,8000);
+}
 function alMsg(t,bad,id){const m=$(id||'#alMsg');m.textContent=t;m.className='al-msg '+(bad?'neg':'pos')}
 if($('#alForm')){
   $('#alConnect').onclick=async()=>{
     const tok=$('#alTok').value.trim();
     if(tok&&!/^\d{5,}:[A-Za-z0-9_-]{30,}$/.test(tok)){alMsg('That does not look like a bot token. It looks like 123456789:AA…',true);return}
-    alMsg('Connecting…');
+    alMsg('Saving…');
     try{const [r]=await sql(`select public.tg_connect('${tok}') as r`);const o=jget(r.r);
-      if(o.ok){$('#alTok').value='';UI.alRelink=false;alMsg(`Connected to @${o.bot}. Check Telegram for the hello message.`);await loadAlerts(true)}else{alMsg(o.error||'Could not connect.',true);if(o.bot)await loadAlerts(true)}
-    }catch(e){alMsg('Could not connect: '+(e.message||e),true)}
+      if(!o.ok){alMsg(o.error||'Could not connect.',true);return}
+      $('#alTok').value='';UI.alRelink=false;alMsg('Saved. Now open your bot in Telegram and tap Start. Waiting for it…');await loadAlerts(true);alWatch();
+    }catch(e){alMsg('Could not save the token: '+(e.message||e),true)}
   };
   $('#alRelink').onclick=()=>{UI.alRelink=true;$('#alTokRow').hidden=false;$('#alTok').focus()};
   $('#alTest').onclick=async()=>{try{await sql('select public.tg_test()');alMsg('Test message sent. It should arrive in a few seconds.')}catch(e){alMsg('Could not send: '+(e.message||e),true)}};
