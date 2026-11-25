@@ -12,14 +12,6 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
       - run: pip install MetaTrader5
-      - name: Install MT5 terminal silently
-        shell: pwsh
-        run: |
-          Invoke-WebRequest https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe -OutFile mt5setup.exe
-          $p = Start-Process .\mt5setup.exe -ArgumentList '/auto' -PassThru
-          $p | Wait-Process -Timeout 400 -ErrorAction SilentlyContinue
-          Start-Sleep 5
-          Get-Process terminal64 -ErrorAction SilentlyContinue | Stop-Process -Force
-      - name: Which broker servers can a fresh terminal find by name
-        timeout-minutes: 15
+      - name: Broker installers, then a wrong-password login on each broker's server
+        timeout-minutes: 20
         run: python probe/probe.py
