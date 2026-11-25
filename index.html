@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
+<meta name="desk-build" content="20261125122814">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -96,6 +97,16 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 })();
 </script>
 
+<script>
+(function(){var mine='20261125122814',busy=false;
+ function check(){if(busy||location.protocol==='file:')return;busy=true;
+  fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
+   var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
+   try{if(sessionStorage.getItem('desk-reload')===m[1])return;sessionStorage.setItem('desk-reload',m[1])}catch(e){}
+   location.reload()}).catch(function(){busy=false})}
+ window.addEventListener('load',check);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')check()});
+})();
+</script>
 <title>Algo Portfolio Desk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
