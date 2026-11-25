@@ -398,6 +398,11 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .mrow>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mrow .num{white-space:nowrap;text-align:right}
 @media (max-width:640px){.mrow{grid-template-columns:minmax(0,110px) minmax(0,1fr) 110px}.mrow .tag{display:none}}
 .vchip{font-size:11px;vertical-align:middle;margin-left:4px;cursor:help}
+
+/* ---------- v16 ---------- */
+.atypes{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+.atype{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px}
+.atype select{max-width:130px}
 </style>
 </head>
 <body>
@@ -424,6 +429,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
         <label>Max drawdown limit %<input id="ml" type="number" value="10" min="0.1" step="0.5"></label>
         <label>"Ruin" drawdown %<input id="ruin" type="number" value="30" min="1" step="1"></label>
         <label class="btn full" style="text-align:center">Load MT4/MT5 CSV files<input id="files" type="file" accept=".csv,.txt" multiple></label>
+        <div class="full atypes" id="acctTypes"></div>
         <button id="demoBtn" type="button" class="full">Show demo data</button>
       </div></details>
   </div>
@@ -490,6 +496,15 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <button type="button" class="more" id="boardMore" hidden>Show all EAs</button>
     <details class="fold"><summary>Full statistics table</summary><div class="scroll"><table id="eaTable"></table></div></details>
   </div>
+</section>
+
+<section class="sec" data-tab="eas" aria-labelledby="hFair">
+  <div class="sec-h"><div><span class="kicker">Fair comparison</span><h2 id="hFair">Your EAs at equal risk</h2></div><p>Each EA is resized so it carries the same monthly risk (95% value at risk on daily P/L, the way Darwinex compares strategies). Then returns and drawdowns can be compared like for like.</p></div>
+  <section class="panel"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="k">Monthly risk</span><div class="seg" id="varSeg" role="group" aria-label="Monthly risk target"></div></div>
+    <div class="chart" style="height:240px"><canvas id="cFair" role="img" aria-label="Monthly return of each EA at equal risk"></canvas></div>
+    <div class="explain" id="fairNote" style="margin:0"></div>
+    <details class="fold"><summary>Equal-risk table</summary><div class="scroll"><table id="fairTbl"></table></div></details>
+  </section>
 </section>
 
 <section class="sec" data-tab="eas" aria-labelledby="hDive">
@@ -868,10 +883,10 @@ function spark(vals){
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,${H} ${pts} ${W},${H}" fill="color-mix(in srgb,${col} 14%,transparent)" stroke="none"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
 }
 function acctStats(acct,cap){
-  const T=S.trades.filter(t=>acct==='ALL'||t.acct===acct).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(x=>acct==='ALL'||x.acct===acct);
+  const T=S.trades.filter(t=>inSel(t.acct,acct)).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(x=>inSel(x.acct,acct));
   if(!T.length) return null;
   const b=baseFor(T,C,cap),M=metrics(T,b.Cuse,b.cap0,b.base);
-  const nowRows=S.now.filter(r=>r.magic==='ALL'&&(acct==='ALL'||r.acct===acct));
+  const nowRows=S.now.filter(r=>r.magic==='ALL'&&(inSel(r.acct,acct)));
   const bal=nowRows.length?nowRows.reduce((s,r)=>s+r.bal,0):M.sr.end,eqv=nowRows.length?nowRows.reduce((s,r)=>s+r.eq,0):null;
   const dep=C.reduce((s,x)=>s+Math.max(x.amt,0),0),rb=Math.max(dep,b.base);
   return {T,M,base:rb,bal,eq:eqv,fl:eqv==null?null:eqv-bal,deposits:dep,score:health(M,rb),plat:T[0].plat,
@@ -883,11 +898,11 @@ const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],WDL=['Sundays','Mondays','T
 const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const UI={knowAll:false,boardAll:false};
 const dot3=(ok,warn)=>ok?'var(--pos)':warn?'var(--warn)':'var(--neg)';
-const isDemoAcct=a=>/demo/i.test(nm(a));
+const isDemoAcct=a=>{const o=acctTypes()[a];return o!=null?o:/demo/i.test(nm(a))};
 
 function render(){
   try{
-  const c=cfg(),a=$('#acct').value,f=x=>a==='ALL'||x.acct===a;
+  const c=cfg(),a=$('#acct').value,f=x=>inSel(x.acct,a);
   let T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);
   periodBar();const PS=periodSlice(T,C,E,c.cap);if(PS){T=PS.T;if(PS.E)E=PS.E}
   $('#mode').className='pill '+(S.demo?'demo':'live');$('#mode').textContent=S.demo?'Demo data':S.live?'Live':'Your files';
@@ -920,7 +935,7 @@ function render(){
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -961,7 +976,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all}){
   // 0. EAs whose evidence says review (PSR, decay alarm, at worst drawdown)
   {const R=EAs.filter(e=>e.V.v==='Review').sort((x,y)=>x.M.net-y.M.net);if(R.length) add(1,'🔍',`${R.length} EA${R.length>1?'s':''} to review`,R.slice(0,3).map(e=>esc(e.name)).join(', '),R.slice(0,4).map(e=>`${avatar(e.name,16)}<b>${esc(e.name)}</b> (${money(e.M.net)}): ${esc(e.V.why.join('; '))}`).join('. ')+'.')}
   // 1. account concentration + demo share
-  if(a==='ALL'){
+  if(isGroupSel(a)){
     const byA={};for(const t of T) byA[t.acct]=(byA[t.acct]||0)+t.net;
     const top=Object.entries(byA).sort((x,y)=>y[1]-x[1])[0];
     if(top&&tot>0&&top[1]/tot>.4) add(top[1]/tot>.6?1:2,'🏦',`${nm(top[0])} carries the portfolio`,pct(top[1]/tot,0),
@@ -1006,7 +1021,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all}){
   const ms=Object.entries(byM).sort((x,y)=>x[1]-y[1]);
   if(ms.length>2&&ms[0][1]<0){const [y,m]=ms[0][0].split('-');add(1,'🌧️',`Worst month: ${MN[+m-1]} ${y}`,money(ms[0][1]),`Best was ${MN[+ms[ms.length-1][0].slice(5)-1]} ${ms[ms.length-1][0].slice(0,4)} at ${money(ms[ms.length-1][1])}. ${ms.filter(x=>x[1]<0).length} of ${ms.length} months were red. In ${MN[+m-1]}: ${whoList(blame(T.filter(t=>dayKey(t.ct).slice(0,7)===ms[0][0]),3))}.`,meter(ms.filter(x=>x[1]>0).length/ms.length,'var(--pos)','green months','red months'))}
   // 7. drawdown now and risk
-  if(all&&all.fl!=null&&all.bal>0&&all.fl/all.bal<-.1) add(0,'⚠️','Open trades are deep in the red',pct(all.fl/all.bal),`Open positions are down ${money(-all.fl)} against a ${money(all.bal)} balance right now: ${S.now.filter(r=>r.magic!=='ALL'&&r.fl<0&&(a==='ALL'||r.acct===a)).sort((x,y)=>x.fl-y.fl).slice(0,3).map(r=>`<b>${esc(famFor(r.acct,r.magic,r.comment))}</b> on ${esc(nm(r.acct))} (magic ${esc(r.magic)}) ${money(r.fl)}`).join('; ')}.`,meter(share(-all.fl,all.bal),'var(--neg)','floating loss','balance'));
+  if(all&&all.fl!=null&&all.bal>0&&all.fl/all.bal<-.1) add(0,'⚠️','Open trades are deep in the red',pct(all.fl/all.bal),`Open positions are down ${money(-all.fl)} against a ${money(all.bal)} balance right now: ${S.now.filter(r=>r.magic!=='ALL'&&r.fl<0&&(inSel(r.acct,a))).sort((x,y)=>x.fl-y.fl).slice(0,3).map(r=>`<b>${esc(famFor(r.acct,r.magic,r.comment))}</b> on ${esc(nm(r.acct))} (magic ${esc(r.magic)}) ${money(r.fl)}`).join('; ')}.`,meter(share(-all.fl,all.bal),'var(--neg)','floating loss','balance'));
   const ddp=EQ?Math.max(EQ.maxDDp,P.maxDDp):P.maxDDp;
   add(ddp>c.ml?0:ddp>c.ml*.7?1:3,'🌊','Deepest drawdown so far',pct(ddp),`Your worst drop from a high was ${pct(ddp)}${(()=>{const w=ddWindow(P);return w?`, between ${dstr(w.t0)} and ${dstr(w.t1)}, led by ${whoList(blame(T.filter(t=>t.ct>w.t0&&t.ct<=w.t1),2))}`:''})()}. Reshuffling the same trades, 1 run in 20 goes to ${pct(MC.p95)}. Size your risk for that figure, not the history.`,meter(Math.min(1,ddp/Math.max(c.ml,.001)),ddp>c.ml?'var(--neg)':'var(--warn)','used of your '+pct(c.ml,0)+' limit',''));
   // 8. correlation and risk mismatch
@@ -1021,7 +1036,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all}){
   if(gw>0) add(cost/gw>.15?1:3,'🧾',cost/gw>.15?'Costs eat a big slice':'Costs are under control',pct(cost/gw,1),`Commission and swap took ${money(cost)}, which is ${pct(cost/gw,1)} of your gross wins. Costliest: ${whoList(blame(T,2,t=>(t.comm||0)+Math.min(t.swap||0,0)))}.`,meter(share(cost,gw),'var(--warn)','costs','kept'));
   if(P.holdL>P.holdW*1.5) add(2,'⏳','Losers are held much longer than winners',fmt(P.holdL/P.holdW,1)+'×',`Winners last ${fmt(P.holdW,1)} h on average, losers ${fmt(P.holdL,1)} h. Wide stops or waiting for a recovery often cause this.`);
   // 10. silent terminals
-  const silent=S.now.filter(r=>r.magic==='ALL'&&r.age>900&&(a==='ALL'||r.acct===a));
+  const silent=S.now.filter(r=>r.magic==='ALL'&&r.age>900&&(inSel(r.acct,a)));
   if(silent.length&&!S.demo) add(0,'📡',`${silent.length} terminal${silent.length>1?'s':''} stopped reporting`,silent.length+'',`${silent.map(r=>nm(r.acct)).join(', ')} sent nothing for over 15 minutes. Check that the terminal and the EA are running.`);
   K.sort((x,y)=>x.sev-y.sev);
   const tone=[['var(--neg)','fail','Act'],['var(--warn)','warn','Watch'],['var(--cool)','info','Edge'],['var(--pos)','pass','Good']];
@@ -1148,7 +1163,7 @@ function renderRisk({T,P,EQ,MC,EAs,base,c,a,E,ccy,riskEA}){
     options:baseOpts({animation:{duration:700},plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>'Worst drawdown about '+i[0].label,label:i=>i.raw+' of 2,000 runs'}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8}},y:{grid:{color:css('--line')}}}})});
   $('#xMC').innerHTML=`<b>Typical:</b> ${pct(MC.p50)}. <b>1 run in 20:</b> ${pct(MC.p95)} (red bars). <b>1 in 100:</b> ${pct(MC.p99)}. <b>Chance of ${pct(c.ruin,0)}:</b> ${pct(MC.ruin)}.`+(()=>{const r=rr.filter(r=>r.p95!=null).sort((x,y)=>y.p95-x.p95)[0];return r&&!riskEA?` <b>Riskiest on its own:</b> ${esc(r.ea)} on ${esc(nm(r.acct))} (${mgTxt(r.mg)}), 1 run in 20 reaches ${pct(r.p95,1)} of that account.`:''})();
   /* open risk */
-  const nowEA=S.now.filter(r=>r.magic!=='ALL'&&(a==='ALL'||r.acct===a)&&r.fl&&(!riskEA||famFor(r.acct,r.magic,r.comment)===riskEA.name||riskEA.k.endsWith('|'+r.magic)||riskEA.k==='a:'+r.magic));
+  const nowEA=S.now.filter(r=>r.magic!=='ALL'&&(inSel(r.acct,a))&&r.fl&&(!riskEA||famFor(r.acct,r.magic,r.comment)===riskEA.name||riskEA.k.endsWith('|'+r.magic)||riskEA.k==='a:'+r.magic));
   if(!S.now.length) $('#openRisk').innerHTML='<div class="check"><span class="muted">Shows once the EA has sent its first equity snapshot.</span><span></span><span></span></div>';
   else if(!nowEA.length) $('#openRisk').innerHTML='<div class="check"><span>No open trades right now</span><span class="num">0.00</span><span class="chip pass">Flat</span></div>';
   else{
@@ -1210,7 +1225,7 @@ function renderPlumbing({T,P,ccy,a}){
   $('#quality').innerHTML=[['Average winner',money(P.avgW,2)],['Average loser',money(-P.avgL,2)],['Winners held',fmt(P.holdW,1)+' h'],['Losers held',fmt(P.holdL,1)+' h'],
     ['Losing days',pct(wkLoss)],['Trades per week',fmt(T.length/Math.max(P.yrs*52,1),1)]]
     .map(([k,v])=>`<div class="check"><span>${k}</span><span class="num">${v}</span><span></span></div>`).join('');
-  const nowAll=S.now.filter(r=>r.magic==='ALL'&&(a==='ALL'||r.acct===a));
+  const nowAll=S.now.filter(r=>r.magic==='ALL'&&(inSel(r.acct,a)));
   $('#health').innerHTML=!nowAll.length?'<div class="check"><span class="muted">'+(S.demo?'Demo data has no terminals.':'No equity snapshots yet.')+'</span><span></span><span></span></div>':
     nowAll.sort((x,y)=>y.age-x.age).map(r=>`<div class="check"><span style="display:flex;align-items:center;gap:8px"><span class="dot ${r.age>900?'stale':''}"></span>${esc(nm(r.acct))}</span><span class="num">${r.age<120?'just now':Math.round(r.age/60)+' min ago'}</span><span class="chip ${r.age>900?'fail':'pass'}">${r.age>900?'Silent':'OK'}</span></div>`).join('');
   const nosl=T.filter(t=>!t.sl).length/T.length;
@@ -1427,7 +1442,7 @@ function layerStats(T){
   return out;
 }
 function renderLive({T,a}){
-  const f=r=>a==='ALL'||r.acct===a,plat={};for(const t of S.trades) plat[t.acct]=t.plat;
+  const f=r=>inSel(r.acct,a),plat={};for(const t of S.trades) plat[t.acct]=t.plat;
   const D=(S.dd||[]).filter(f),L=layerStats(T),G=(S.now||[]).filter(r=>r.magic!=='ALL'&&f(r));
   const gk=r=>r.acct+'|'+r.magic+'|'+(r.comment||'');
   // MT5 trades come from deals; each gets its group's floating P/L when it is the only trade in that magic+comment group
@@ -1568,7 +1583,7 @@ const arrow=v=>v>0?'▲':v<0?'▼':'•';
 /* Live ticker: open P/L per account, the latest day's closed P/L per EA, and the last closed trades */
 function renderTicker({T,a}){
   const el=$('#ticker');if(!el) return;
-  const f=r=>a==='ALL'||r.acct===a,it=[];
+  const f=r=>inSel(r.acct,a),it=[];
   for(const r of (S.now||[]).filter(r=>r.magic==='ALL'&&f(r)).sort((x,y)=>x.fl-y.fl))
     it.push(`<span class="tk"><b>${esc(nm(r.acct))}</b><span class="muted">open</span><span class="${cls(r.fl)}">${arrow(r.fl)} ${money(r.fl,2)}</span></span>`);
   const day=T.length?dayKey(T[T.length-1].ct):'',by={};
@@ -1745,10 +1760,55 @@ function renderMarginal({T,EAs}){
     pick.map(r=>`<div class="mrow"><span>${avatar(r.e.name,18)}<b>${esc(r.e.name)}</b></span><span class="div-bar" style="height:14px"><b style="${r.d>0?'right:50%':'left:50%'};width:${Math.abs(r.d)/mx*50}%;background:var(${r.d>0?'--neg':'--pos'})"></b></span><span class="num ${r.d>0?'neg':'pos'}">${r.d>0?'adds '+money(r.d):'cushions '+money(-r.d)}</span><span class="tag">${r.e.M.n} trades</span></div>`).join('');
 }
 
+
+/* ---------- v16: Real vs Demo selection, equal-risk EA comparison ---------- */
+// Account type: names containing "demo" are demo unless overridden in Settings (saved in this browser)
+function acctTypes(){try{return JSON.parse(localStorage.getItem('fx-acct-type')||'{}')}catch(e){return {}}}
+function inSel(acct,a){return a==='ALL'||(a==='REAL'?!isDemoAcct(acct):a==='DEMO'?isDemoAcct(acct):acct===a)}
+const isGroupSel=a=>a==='ALL'||a==='REAL'||a==='DEMO';
+function renderAcctTypes(){
+  const el=$('#acctTypes');if(!el) return;
+  const acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y))),o=acctTypes();
+  el.innerHTML=`<span class="k">Real or demo</span>`+acc.map(a=>`<label class="atype"><span>${esc(nm(a))}</span><select data-a="${esc(a)}"><option value="">Auto (${/demo/i.test(nm(a))?'demo':'real'})</option><option value="real">Real</option><option value="demo">Demo</option></select></label>`).join('');
+  el.querySelectorAll('select').forEach(s=>{s.value=o[s.dataset.a]==null?'':o[s.dataset.a]?'demo':'real';
+    s.onchange=()=>{const m=acctTypes();if(s.value)m[s.dataset.a]=s.value==='demo';else delete m[s.dataset.a];try{localStorage.setItem('fx-acct-type',JSON.stringify(m))}catch(e){}fillAccounts();render()}});
+}
+
+/* Equal-risk comparison (Darwinex-style): scale every EA to the same monthly VaR, then compare returns and drawdowns */
+UI.var=.05;
+function renderEqualRisk({EAs,P,base}){
+  const el=$('#fairTbl');if(!el) return;
+  const keys=P.D.map(d=>d.key),tgt=UI.var;
+  const rows=EAs.map(e=>{
+    const ts=Object.values(e.syms).flat(),by={};for(const t of ts){const k=dayKey(t.ct);by[k]=(by[k]||0)+t.net}
+    const ks=Object.keys(by).sort(),days=keys.filter(k=>k>=ks[0]&&k<=ks[ks.length-1]);
+    if(days.length<20) return {e,few:days.length};
+    const r=days.map(k=>(by[k]||0)/base),m=mean(r),s=std(r);if(!s) return {e,few:days.length};
+    const vm=1.645*s*Math.sqrt(21),k=tgt/vm;
+    return {e,days:days.length,vm,k,ret:m*21*k,dd:e.M.maxDD/base*k,sh:m/s*Math.sqrt(252)};
+  });
+  const ok=rows.filter(r=>r.k).sort((x,y)=>y.ret-x.ret),few=rows.filter(r=>!r.k);
+  $('#varSeg').innerHTML=[[.03,'3%'],[.05,'5%'],[.065,'6.5%']].map(([v,l])=>`<button type="button" aria-pressed="${UI.var===v}" data-v="${v}">${l}</button>`).join('');
+  if(!ok.length){el.innerHTML='<tbody><tr><td class="muted">Each EA needs at least 20 trading days for a fair comparison.</td></tr></tbody>';$('#fairNote').innerHTML='';chart('cFair',{type:'bar',data:{labels:[],datasets:[]}});return}
+  const pos=css('--pos'),neg=css('--neg'),pick=ok.slice(0,14);
+  chart('cFair',{type:'bar',data:{labels:pick.map(r=>r.e.name.length>22?r.e.name.slice(0,21)+'…':r.e.name),datasets:[{data:pick.map(r=>r.ret*100),backgroundColor:pick.map(r=>r.ret>=0?pos:neg),borderRadius:4,borderSkipped:false,barThickness:16}]},
+    options:baseOpts({indexAxis:'y',animation:{duration:700},plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`${fmt(i.raw,2)}% a month at ${pct(tgt,1)} monthly risk`}}},scales:{x:{grid:{color:css('--line')},ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}}})});
+  $('#cFair').parentElement.style.height=Math.max(160,pick.length*30+40)+'px';
+  el.innerHTML=`<thead><tr><th>EA</th><th>Monthly risk now</th><th>Lot size for ${pct(tgt,1)} risk</th><th>Monthly return at equal risk</th><th>Worst drawdown at equal risk</th><th>Return per unit of risk</th><th>Days</th></tr></thead><tbody>`+
+    ok.map(r=>`<tr><td style="text-align:left;white-space:nowrap">${avatar(r.e.name,18)}<b>${esc(r.e.name)}</b> ${vChip(r.e.V)}</td><td>${pct(r.vm,1)}</td><td><b>${fmt(r.k,2)}×</b> <span class="tag">${r.k>=1?'bigger':'smaller'} lots</span></td>
+      <td class="${cls(r.ret)}">${r.ret>=0?'+':''}${pct(r.ret,2)}</td><td class="${r.dd>.2?'neg':''}">${pct(-r.dd,1)}</td><td class="${cls(r.sh)}">${fmt(r.sh,2)}</td><td>${r.days}</td></tr>`).join('')+'</tbody>';
+  const best=ok[0],worst=ok[ok.length-1],safest=ok.slice().sort((x,y)=>x.dd-y.dd)[0];
+  $('#fairNote').innerHTML=`At the same ${pct(tgt,1)} monthly risk, ${avatar(best.e.name,16)}<b>${esc(best.e.name)}</b> earns most (${pct(best.ret,2)} a month, lots ×${fmt(best.k,2)})`+
+    (worst!==best?` and ${avatar(worst.e.name,16)}<b>${esc(worst.e.name)}</b> least (${pct(worst.ret,2)})`:'')+`. Shallowest drawdown at equal risk: <b>${esc(safest.e.name)}</b> (${pct(-safest.dd,1)}).`+
+    (ok.some(r=>r.e.V&&r.e.V.Z<-3)?` <b>Careful:</b> ${ok.filter(r=>r.e.V.Z<-3).slice(0,3).map(r=>esc(r.e.name)).join(', ')} clump wins and losses like a grid, so daily risk understates their tail and bigger lots would hurt more than shown.`:'')+
+    (few.length?` <span class="muted">Left out for fewer than 20 trading days: ${few.slice(0,6).map(r=>esc(r.e.name)).join(', ')}${few.length>6?' +'+(few.length-6):''}.</span>`:'');
+}
+$('#varSeg')&&($('#varSeg').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;UI.var=+b.dataset.v;render()});
+
 function fillAccounts(){
   const sel=$('#acct'),cur=sel.value,acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
-  sel.innerHTML='<option value="ALL">All accounts</option>'+acc.map(a=>`<option value="${esc(a)}">${esc(nmFull(a))}</option>`).join('');
-  sel.value=acc.includes(cur)?cur:'ALL';
+  sel.innerHTML='<option value="ALL">All accounts</option><option value="REAL">Real money accounts</option><option value="DEMO">Demo accounts</option>'+acc.map(a=>`<option value="${esc(a)}">${esc(nmFull(a))}</option>`).join('');
+  sel.value=acc.includes(cur)||cur==='REAL'||cur==='DEMO'?cur:'ALL';renderAcctTypes();
 }
 $('#files').addEventListener('change',async ev=>{
   const fs=[...ev.target.files];if(!fs.length)return;
@@ -1766,7 +1826,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v15';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v16';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
