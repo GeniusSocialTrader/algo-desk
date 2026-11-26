@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261126011048">
+<meta name="desk-build" content="20261126025434">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261126011048',busy=false;
+(function(){var mine='20261126025434',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -220,6 +220,16 @@ details.settings>summary{list-style:none} details.settings>summary::-webkit-deta
 .acard .name b{font:600 16px var(--f-display);display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acard .big2{font:700 24px var(--f-body);letter-spacing:-.01em}
 .acard .row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.acard .aopen{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px;min-width:0}
+.acard .aopen.none{flex-direction:row;justify-content:space-between;align-items:center;font-size:12px}
+.acard .aop-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;white-space:nowrap}
+.acard .aop-h b{font:700 14px var(--f-body)}
+.acard .aop-l{display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+.acard .aop{display:inline-flex;align-items:center;gap:5px;max-width:100%;background:var(--sunk);border-radius:999px;padding:2px 8px 2px 3px;font-size:12px;line-height:18px;min-width:0}
+.acard .aop b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px}
+.acard .aop i{font-style:normal;font-weight:700;color:var(--muted)}
+.acard .aop em{font-style:normal;font-variant-numeric:tabular-nums}
+.acard .aop.more{padding:2px 8px;color:var(--muted)}
 .acard .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .acard .mini div{display:flex;flex-direction:column;background:var(--sunk);border-radius:8px;padding:5px 8px;min-width:0}
 .acard .mini span:first-child{font-size:10px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
@@ -2700,7 +2710,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v26.1';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v27';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2995,8 +3005,18 @@ function openAcct(ac){$('#acct').value=ac;render();showTab('accounts');
   requestAnimationFrame(()=>goTo(document.getElementById('acctDetail')))}
 const _renderCards=renderCards;
 renderCards=function(ctx){_renderCards(ctx);
-  $('#cards').querySelectorAll('.acard').forEach(b=>b.onclick=()=>openAcct(b.dataset.a));
+  $('#cards').querySelectorAll('.acard').forEach(b=>{b.onclick=()=>openAcct(b.dataset.a);
+    const r=b.querySelector('.row');if(r)r.parentElement.insertAdjacentHTML('afterend',openStrip(b.dataset.a))});
   renderAcctDetail(ctx)};
+// v27: open trades on each account card, total plus a small breakdown by EA
+function openStrip(a){const ps=(S.pos||[]).filter(p=>inSel(p.acct,a));
+  if(!ps.length) return '<div class="aopen none"><span class="k">Open trades</span><span class="muted">none</span></div>';
+  const g={};for(const p of ps){const k=p.fam||'Manual';(g[k]=g[k]||{n:0,fl:0,lots:0});g[k].n++;g[k].fl+=p.fl||0;g[k].lots+=p.lots||0}
+  const rows=Object.entries(g).sort((x,y)=>y[1].n-x[1].n||x[1].fl-y[1].fl),top=rows.slice(0,3),more=rows.slice(3);
+  const eaN=rows.length;
+  const chip=([k,o])=>`<span class="aop" title="${esc(k)}: ${o.n} open, ${fmt(o.lots)} lots, ${money(o.fl,2)}">${avatar(k,16)}<b>${esc(k)}</b><i>${o.n}</i><em class="${cls(o.fl)}">${money(o.fl,0)}</em></span>`;
+  return `<div class="aopen"><div class="aop-h"><span class="k">Open trades</span><span><b>${ps.length}</b> on ${eaN} EA${eaN>1?'s':''}</span></div>
+    <div class="aop-l">${top.map(chip).join('')}${more.length?`<span class="aop more" title="${esc(more.map(([k,o])=>k+' '+o.n).join(', '))}">+${more.length} EA${more.length>1?'s':''} · ${more.reduce((s,[,o])=>s+o.n,0)} open</span>`:''}</div></div>`}
 document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('#liveAcc tr[data-a]');if(tr)openAcct(tr.dataset.a)});
 
 function renderAcctDetail({a,c}){
