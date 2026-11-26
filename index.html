@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261126025434">
+<meta name="desk-build" content="20261126042511">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261126025434',busy=false;
+(function(){var mine='20261126042511',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -220,6 +220,8 @@ details.settings>summary{list-style:none} details.settings>summary::-webkit-deta
 .acard .name b{font:600 16px var(--f-display);display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acard .big2{font:700 24px var(--f-body);letter-spacing:-.01em}
 .acard .row{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.clip-x{display:none!important}
+.clamp-btn{display:block;margin:10px auto 0}
 .acard .aopen{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:8px;min-width:0}
 .acard .aopen.none{flex-direction:row;justify-content:space-between;align-items:center;font-size:12px}
 .acard .aop-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;white-space:nowrap}
@@ -638,6 +640,24 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
  #adTr td:nth-child(6),#adTr td:nth-child(7),#adTr td:nth-child(10){display:none}
  #adTr>tbody>tr>td:first-child{grid-column:1/3;font-weight:600}#adTr>tbody>tr>td:last-child{order:-1;grid-column:3;grid-row:1;text-align:right!important;font-size:14px;background:none}#adTr>tbody>tr>td:last-child::before{display:none}
  #adTr>tbody>tr{gap:6px 10px;padding:10px 2px}#adTr tr.lossr{border-left:3px solid var(--neg);padding-left:8px}#adTr>tbody>tr.lossr>td:last-child{background:none}}
+
+
+.swipe-hint{display:none}
+.set-panel label.btn{position:relative;overflow:hidden}
+/* v28 phone layout: tighter controls, swipeable account cards, 2-up explore tiles */
+@media (max-width:600px){
+ .ctrls #period{flex:1 1 100%}.ctrls select#acct{flex:1 1 0;min-width:0;max-width:none}
+ .hero-row>:last-child:nth-child(odd){grid-column:1/-1}
+ .explore{grid-template-columns:1fr 1fr;gap:10px}.xtile{padding:12px;gap:2px}.xtile .xart{width:36px;height:36px;margin-bottom:4px}.xtile .xart svg{width:20px;height:20px}.xtile b{font-size:16px}.xtile .muted{font-size:12px}
+ #cards,#lab{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;padding:4px 2px 10px;margin:0 -2px;scrollbar-width:thin}
+ #cards>.acard,#lab>*{scroll-snap-align:start}
+ #lab>.lab-arch{grid-column:auto;margin-top:0;border-top:0;padding-top:0}
+ #lab>.ea-card:hover{transform:none}
+ #cards>.acard:hover{transform:none}
+ .swipe-hint{display:inline}
+ .ctrls{position:relative}details.settings{position:static}.set-panel{left:0;right:0;width:auto}
+ .eh-arch{display:block;margin:6px 0 4px}
+}
 </style>
 </head>
 <body>
@@ -726,7 +746,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="accounts" aria-labelledby="hAcc">
-  <div class="sec-h"><div><span class="kicker">Side by side</span><h2 id="hAcc">Your accounts</h2></div><p>Tap a card to open that account: today, this week and month, every EA and symbol, and its latest trades. The first card is everything combined.</p></div>
+  <div class="sec-h"><div><span class="kicker">Side by side</span><h2 id="hAcc">Your accounts</h2></div><p>Tap a card to open that account: today, this week and month, every EA and symbol, and its latest trades. The first card is everything combined.<span class="swipe-hint"> Swipe sideways to see every account.</span></p></div>
   <div class="cards" id="cards"></div>
 </section>
 
@@ -738,7 +758,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="eas" aria-labelledby="hEA">
-  <div class="sec-h"><div><span class="kicker">EA lab</span><h2 id="hEA">Every EA, scored and judged</h2></div><p>One card per EA across all its accounts and magic numbers. The 0 to 100 score weighs profitability, risk, consistency and evidence. Broker stop-outs or a drawdown over 30% keep it under 45 whatever the rest looks like. Tap a card for the full report.</p></div>
+  <div class="sec-h"><div><span class="kicker">EA lab</span><h2 id="hEA">Every EA, scored and judged</h2></div><p>One card per EA across all its accounts and magic numbers. The 0 to 100 score weighs profitability, risk, consistency and evidence. Broker stop-outs or a drawdown over 30% keep it under 45 whatever the rest looks like. Tap a card for the full report.<span class="swipe-hint"> Swipe sideways to see every EA.</span></p></div>
   <div class="lab-bar"><div class="lab-sum" id="labSum"></div><div class="seg" id="labSort" role="group" aria-label="Sort EAs"></div></div>
   <div class="lab" id="lab"></div>
   <details class="fold panel"><summary>Ranking list and full statistics</summary><div class="board" id="board"></div><button type="button" class="more" id="boardMore" hidden>Show all EAs</button>
@@ -1340,12 +1360,12 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
   if(silent.length&&!S.demo) add(0,'📡',`${silent.length} terminal${silent.length>1?'s':''} stopped reporting`,silent.length+'',`${silent.map(r=>nm(r.acct)).join(', ')} sent nothing for over 15 minutes. Check that the terminal and the EA are running.`);
   K.sort((x,y)=>x.sev-y.sev);
   const tone=[['var(--neg)','fail','Act'],['var(--warn)','warn','Watch'],['var(--cool)','info','Edge'],['var(--pos)','pass','Good']];
-  const show=UI.knowAll?K:K.slice(0,9);
+  const kN=matchMedia('(max-width:600px)').matches?5:9,show=UI.knowAll?K:K.slice(0,kN);
   $('#know').innerHTML=show.map((k,i)=>{const [col,ch,lab]=tone[k.sev];
     const m=k.meter?`<div class="meter" role="img" aria-label="${esc(k.meter.l)} ${pct(k.meter.p,0)}"><b style="width:${(k.meter.p*100).toFixed(1)}%;background:${k.meter.col}"></b></div>${k.meter.l?`<div class="mlabels"><span>${esc(k.meter.l)}</span><span>${esc(k.meter.r||'')}</span></div>`:''}`:'';
     return `<article class="kcard" style="--c:${col};animation-delay:${i*45}ms"><div class="top"><span class="kicon" aria-hidden="true">${k.icon}</span><span class="chip ${ch}">${lab}</span></div>
       <div class="stat">${esc(k.stat)}</div><h3>${esc(k.title)}</h3><p>${k.text}</p>${m}</article>`}).join('');
-  $('#knowMore').hidden=K.length<=9;$('#knowMore').textContent=UI.knowAll?'Show fewer':`Show all ${K.length}`;
+  $('#knowMore').hidden=K.length<=kN;$('#knowMore').textContent=UI.knowAll?'Show fewer':`Show all ${K.length}`;
 }
 
 function renderCards({c,a}){
@@ -2710,7 +2730,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v27';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v28';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2985,7 +3005,7 @@ async function liveTick(){
     const nl=nw[0]&&nw[0].csv?nw[0].csv.split('\n'):[];
     if(nl.length) S.now=nl.map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],eq:+v[4],fl:+v[5],t:parseTime(v[6]),age:+v[7]}});
     const a=$('#acct').value,T=S.trades.filter(t=>inSel(t.acct,a)).sort((x,y)=>x.ct-y.ct);
-    renderOpenNow({a});renderLive({T,a});renderRiskNow({a});
+    renderOpenNow({a});renderLive({T,a});renderRiskNow({a});if(typeof clampAll==='function')clampAll();
   }catch(e){console.warn('live refresh',e)}finally{liveBusy=false}
 }
 {const _sync=syncNow;syncNow=async function(){await _sync();liveTick()}}
@@ -3007,6 +3027,7 @@ const _renderCards=renderCards;
 renderCards=function(ctx){_renderCards(ctx);
   $('#cards').querySelectorAll('.acard').forEach(b=>{b.onclick=()=>openAcct(b.dataset.a);
     const r=b.querySelector('.row');if(r)r.parentElement.insertAdjacentHTML('afterend',openStrip(b.dataset.a))});
+  const cs=$('#cards'),sel=cs&&cs.querySelector('.acard.sel');if(sel&&cs.scrollWidth>cs.clientWidth+4)cs.scrollLeft=sel.offsetLeft-cs.offsetLeft-4;
   renderAcctDetail(ctx)};
 // v27: open trades on each account card, total plus a small breakdown by EA
 function openStrip(a){const ps=(S.pos||[]).filter(p=>inSel(p.acct,a));
@@ -3186,11 +3207,11 @@ function ddPanel(rows,title,sub){
   const big=Math.max(lim,...rows.slice(0,30).map(r=>r.ddp),.0001);
   return `<section class="panel dd-panel"><header><h3>${title}</h3><p>${sub} Your daily loss limit in Settings is ${pct(lim,0)}.</p></header>
   <div class="ad-strip">${tile('Today',td,td?(td.at&&td.dd>0.005?'low at '+new Date(td.at).toISOString().slice(11,16):''):'')}${tile(yd&&yd.d===now-DAY?'Yesterday':'Previous day',yd,yd?dn(yd.d):'')}${tile('Worst, last 30 days',w30,w30?dn(w30.d):'')}${tile('Worst ever',wAll,wAll?dn(wAll.d)+(wAll.src==='closed'?' · closed only':''):'')}</div>
-  <div class="scroll"><table class="dd-t"><thead><tr><th>Day</th><th>Daily drawdown</th><th>%</th><th></th><th title="how much worse it got during the day, against the equity the day started with (open trades carried over excluded)">From day-start equity</th><th>Closed P/L</th><th>Trades</th><th>Based on</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr class="${r.ddp>=lim?'over':''}${r.n?' ad-day':''}"${r.n?` data-day="${r.d}" tabindex="0" title="Show this day's trades"`:''}>
+  <div class="scroll"><table class="dd-t"><thead><tr><th>Day</th><th>Daily drawdown</th><th>%</th><th></th><th title="how much worse it got during the day, against the equity the day started with (open trades carried over excluded)">From day-start equity</th><th>Closed P/L</th><th>Trades</th><th>Based on</th></tr></thead><tbody>${rows.slice(0,90).map(r=>`<tr class="${r.ddp>=lim?'over':''}${r.n?' ad-day':''}"${r.n?` data-day="${r.d}" tabindex="0" title="Show this day's trades"`:''}>
     <td>${r.d===now?'<b>Today</b>':r===yd&&r.d===now-DAY?'<b>Yesterday</b>':dn(r.d)}</td><td class="${r.dd>0.005?'neg':''}">${r.dd>0.005?money(-r.dd,2):'0.00'}</td><td class="${r.dd>0.005?'neg':''}"><b>${r.dd>0.005?ddPct(r.ddp):'0.00%'}</b></td>
     <td><span class="dd-bar" title="${pct(r.ddp,2)} of ${money(r.base,0)}"><i style="width:${Math.min(100,r.ddp/big*100)}%"></i><s style="left:${Math.min(100,lim/big*100)}%"></s></span></td>
     <td class="${r.ddE>0.005?'neg':''}">${r.src==='equity'?(r.ddE>0.005?money(-r.ddE,2)+' · '+ddPct(r.ddEp):'0.00'):'<span class="muted">–</span>'}</td><td class="${cls(r.pnl)}">${r.n?(r.pnl>0?'+':'')+money(r.pnl,2):'–'}</td><td>${r.n||'–'}</td><td>${tag(r)}</td></tr>`).join('')}</tbody></table></div>
-  <p class="muted" style="font-size:12px">Showing the last ${Math.min(20,rows.length)} days with activity. The dashed line is your ${pct(lim,0)} limit; red rows broke it. ${rows.some(r=>r.src==='closed')?'Days marked “closed only” come from closed trades, so dips in open trades that later recovered are not counted; from 25 Nov 2026 every day includes open trades.':''}</p></section>`;
+  <p class="muted" style="font-size:12px">The dashed line is your ${pct(lim,0)} limit; red rows broke it. ${rows.some(r=>r.src==='closed')?'Days marked “closed only” come from closed trades, so dips in open trades that later recovered are not counted; from 25 Nov 2026 every day includes open trades.':''}</p></section>`;
 }
 function acctDD(a){const accts=[...new Set(S.trades.filter(t=>inSel(t.acct,a)).map(t=>t.acct))];
   const E=S.eq.filter(r=>r.magic==='ALL'&&inSel(r.acct,a));E.byEq=true;
@@ -3214,7 +3235,7 @@ UI.adF={acct:null};
 function adTradesOf(a){return S.trades.filter(t=>inSel(t.acct,a))}
 function renderAdTrades(a){
   const el=$('#adTrades');if(!el)return;
-  let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:50};
+  let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:10};
   const all=adTradesOf(a),now=S.srvNow||Date.now(),d0=Math.floor(now/DAY)*DAY,one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
   const wd=(new Date(d0).getUTCDay()+6)%7,mo0=Date.UTC(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth(),1);
   const PER={today:['Today',d0],yday:['Yesterday',d0-DAY],week:['This week',d0-wd*DAY],'7':['Last 7 days',d0-6*DAY],'30':['Last 30 days',d0-29*DAY],month:['This month',mo0],'90':['Last 90 days',d0-89*DAY],all:['All time',0]};
@@ -3254,18 +3275,30 @@ function renderAdTrades(a){
   </div>
   ${los.length?`<div class="lbs">${brk(t=>t.fam,'By EA')}${brk(t=>t.sym,'By symbol')}${brk(t=>EXN[t.ex]||t.ex,'How they closed')}</div><p class="muted" style="font-size:12px;margin:0">Tap a bar to filter to it.</p>`:''}
   <div class="scroll"><table id="adTr"><thead><tr><th>Closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>Closed by</th><th>Costs</th><th>P/L</th></tr></thead><tbody>${L.slice(0,F.n).map(t=>`<tr class="${t.net<0?'lossr':''}"><td>${shortT(t.ct)}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td>${t.ex==='so'?'<span class="chip fail">stop-out</span>':t.ex==='sl'?'<span class="chip warn">stop loss</span>':t.ex==='tp'?'<span class="chip pass">target</span>':'<span class="muted">EA / hand</span>'}</td><td class="${cls((t.comm||0)+(t.swap||0))}">${(t.comm||0)+(t.swap||0)?money((t.comm||0)+(t.swap||0),2):'–'}</td><td class="${cls(t.net)}"><b>${t.net>0?'+':''}${money(t.net,2)}</b></td></tr>`).join('')||'<tr><td class="muted">No closed trades match these filters.</td></tr>'}</tbody></table></div>
-  ${L.length>F.n?`<button type="button" class="more" data-k="more">Show ${Math.min(100,L.length-F.n)} more of ${L.length-F.n}</button>`:L.length?`<p class="muted" style="font-size:12px;margin:0">All ${L.length} trades shown.</p>`:''}`;
+  ${L.length>F.n?`<button type="button" class="more" data-k="more">Show ${Math.min(25,L.length-F.n)} more of ${L.length-F.n}</button>`:L.length?`<p class="muted" style="font-size:12px;margin:0">All ${L.length} trades shown.</p>`:''}`;
   cardify('adTr');
-  const set=(k,v)=>{if(k==='per'){F.day=null;F.per=v||F.per}else F[k]=v;F.n=50;renderAdTrades(a)};
+  const set=(k,v)=>{if(k==='per'){F.day=null;F.per=v||F.per}else F[k]=v;F.n=10;renderAdTrades(a)};
   el.querySelectorAll('select[data-k]').forEach(s=>s.onchange=()=>set(s.dataset.k,s.value));
   el.querySelectorAll('.lb-r').forEach(b=>b.onclick=()=>{F.res='loss';set(b.dataset.f,b.dataset.v)});
   const r=el.querySelector('[data-k=reset]');if(r)r.onclick=()=>{UI.adF={acct:null};renderAdTrades(a)};
-  const m=el.querySelector('[data-k=more]');if(m)m.onclick=()=>{F.n+=100;renderAdTrades(a)};
+  const m=el.querySelector('[data-k=more]');if(m)m.onclick=()=>{F.n+=25;renderAdTrades(a)};
 }
 document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]');if(!c)return;
-  const a=$('#acct').value;if(UI.adF.acct!==a)renderAdTrades(a);Object.assign(UI.adF,{day:+c.dataset.day,ea:'',sym:'',ex:'',res:'',sort:'loss',n:50});renderAdTrades(a);
+  const a=$('#acct').value;if(UI.adF.acct!==a)renderAdTrades(a);Object.assign(UI.adF,{day:+c.dataset.day,ea:'',sym:'',ex:'',res:'',sort:'loss',n:10});renderAdTrades(a);
   goTo($('#adTrades'))});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]')){e.preventDefault();e.target.click()}});
+
+/* v28: long lists show ~10 rows with a "Show all" toggle; the choice sticks across refreshes */
+const CLAMP_OPEN=new Set();
+const CLAMPS=[['#acctDetail .dd-t>tbody','tr',10,'days'],['#eaDD .dd-t>tbody','tr',10,'days'],['#adEA>tbody','tr',10,'EAs'],['#adSym>tbody','tr',8,'symbols'],['#lab',':scope>.ea-card:not(.arch)',12,'EAs','desk'],['#livePos>tbody',':scope>tr',15,'trades']];
+function clampAll(){const phone=matchMedia('(max-width:600px)').matches;
+  for(const [sel,item,n0,noun,only] of CLAMPS){const box=document.querySelector(sel);if(!box)continue;const n=only==='desk'&&phone?1e9:n0;
+  const host=box.closest('.scroll')||box.closest('table')||box,next=host.nextElementSibling;if(next&&next.classList.contains('clamp-btn'))next.remove();
+  const it=[...box.querySelectorAll(item)];it.forEach(e=>e.classList.remove('clip-x'));if(it.length<=n+2)continue;
+  const open=CLAMP_OPEN.has(sel);if(!open)it.slice(n).forEach(e=>e.classList.add('clip-x'));
+  const b=document.createElement('button');b.type='button';b.className='more clamp-btn';b.textContent=open?'Show fewer':`Show all ${it.length} ${noun}`;
+  b.onclick=()=>{open?CLAMP_OPEN.delete(sel):CLAMP_OPEN.add(sel);clampAll();if(open)goTo(host)};host.after(b)}}
+const _renderV28=render;render=function(){_renderV28.apply(this,arguments);clampAll()};
 
 </script>
 
