@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261126005035">
+<meta name="desk-build" content="20261126011048">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261126005035',busy=false;
+(function(){var mine='20261126011048',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -710,7 +710,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="overview" aria-labelledby="hKnow">
-  <div class="sec-h"><div><span class="kicker">From your trades</span><h2 id="hKnow">Good to know</h2></div><p>What stands out in your numbers right now, most urgent first.</p></div>
+  <div class="sec-h"><div><span class="kicker">From your trades</span><h2 id="hKnow">Good to know</h2></div><p id="knowSub">What stands out in your numbers right now, most urgent first.</p></div>
   <div class="know" id="know"></div>
   <button type="button" class="more" id="knowMore" hidden>Show all</button>
 </section>
@@ -1200,9 +1200,10 @@ function render(){
   Chart.defaults.color=css('--muted');Chart.defaults.borderColor=css('--line');Chart.defaults.font.family=css('--f-body');
 
   /* EA groups */
+  const mkEAs=(T,P)=>{
   const groups={};for(const t of T){const k=keyOf(t,c.grp);(groups[k]=groups[k]||[]).push(t)}
   const keys=P.D.map(d=>d.key),port=P.D.map(d=>d.pnl),varP=std(port)**2;
-  const EAs=Object.entries(groups).map(([k,ts])=>{
+  return Object.entries(groups).map(([k,ts])=>{
     const M=metrics(ts,[],base,base),lab=labelOf(k,ts),byDay={};
     for(const t of ts){const dk=dayKey(t.ct);byDay[dk]=(byDay[dk]||0)+t.net}
     const vec=keys.map(x=>byDay[x]||0),mp=mean(port),mv=mean(vec);
@@ -1213,13 +1214,17 @@ function render(){
     const nosl=ts.filter(t=>!t.sl).length/ts.length,recent=ts.slice(-30),rExp=mean(recent.map(t=>t.net));
     return {k,...lab,M,vec,accts,risk:varP?cov/varP:0,share:P.net?M.net/P.net:0,syms,worstFloat:fl,nosl,rExp,nRecent:recent.length,
       form:formOf(rExp,M,recent.length),V:verdictOf(ts),score:health(M,base),so:ts.filter(t=>t.so).length};
-  }).sort((x,y)=>y.M.net-x.M.net);
+  }).sort((x,y)=>y.M.net-x.M.net);};
+  const EAs=mkEAs(T,P);
 
   const NMAP={};for(const e of EAs) NMAP[e.k]=e.name;EAN=t=>NMAP[keyOf(t,c.grp)]||t.fam;
   const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
+  // insights judge only active EAs: archived ones are history, not advice (they come back when unarchived)
+  const Ta=EA_ARCH.size?T.filter(t=>!EA_ARCH.has(t.fam)):T;let actx=ctx;
+  if(Ta.length&&Ta.length<T.length){const Pa=metrics(Ta,Cuse,cap0,b0);actx={...ctx,T:Ta,P:Pa,EAs:mkEAs(Ta,Pa),MC:monteCarlo(Ta.map(t=>t.net),base,c.ruin),arch:T.length-Ta.length}}
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct);rctx={...ctx,T:Tr,P:metrics(Tr,[],base,base),MC:monteCarlo(Tr.map(t=>t.net),base,c.ruin),EQ:null,riskEA:rE}}
-  renderLab(ctx);syncBands(ctx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(ctx);renderCards(ctx);renderNums(ctx);renderBoard(ctx);renderDive(ctx);renderTiming(ctx);renderEqualRisk(ctx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(ctx);renderNews(ctx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRiskNow(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);if(actx!==ctx)syncBands(actx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(actx);renderExplore(ctx);renderKnow(actx);renderCards(ctx);renderNums(ctx);renderBoard(actx);renderDive(ctx);renderTiming(actx);renderEqualRisk(actx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(actx);renderNews(actx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRiskNow(ctx);renderRisk(rctx);renderWhere(actx);renderSymTiles(actx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -1251,7 +1256,8 @@ const xLin=P=>({type:'linear',min:P.t0,max:P.t1,grid:{display:false},ticks:{call
 const tipT={callbacks:{title:i=>i.length?new Date(i[0].parsed.x).toISOString().slice(0,16).replace('T',' '):''}};
 
 /* ---------- good to know: plain-language findings from the data ---------- */
-function renderKnow({T,P,EQ,MC,EAs,base,c,a,all}){
+function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
+  $('#knowSub').textContent='What stands out in your numbers right now, most urgent first.'+(arch?` Active EAs only: ${EA_ARCH.size} archived EA${EA_ARCH.size>1?'s':''} (${arch} trades) left out.`:'');
   const K=[];// [severity 0 act/1 watch/2 edge/3 good, icon, color, title, stat, text, meter]
   const add=(sev,icon,title,stat,text,meter)=>K.push({sev,icon,title,stat,text,meter});
   const tot=P.net,gw=T.reduce((s,t)=>s+Math.max(t.net,0),0);
@@ -2694,7 +2700,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v26';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v26.1';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
