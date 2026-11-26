@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261126042511">
+<meta name="desk-build" content="20261126170910">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261126042511',busy=false;
+(function(){var mine='20261126170910',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -658,6 +658,46 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
  .ctrls{position:relative}details.settings{position:static}.set-panel{left:0;right:0;width:auto}
  .eh-arch{display:block;margin:6px 0 4px}
 }
+
+/* v29: news outlook, US holidays, Overview market strip */
+.wrap>div:has(>#mktStrip[hidden]){display:none}
+.mkt-strip{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 14px;min-width:0}
+.ms-k{font:700 11px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);flex:none}
+.ms-items{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
+.ms-i{display:inline-flex;align-items:center;gap:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--ink) 3%,var(--surface))}
+.ms-i .muted{font-size:12px}
+.hol-chip{border-color:color-mix(in srgb,var(--warn) 50%,var(--line));background:color-mix(in srgb,var(--warn) 12%,var(--surface))}
+.hol-chip.closed{border-color:color-mix(in srgb,var(--neg) 45%,var(--line));background:color-mix(in srgb,var(--neg) 10%,var(--surface))}
+.ms-go{flex:none;font:600 13px var(--f-body);color:var(--accent);background:none;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:999px;padding:5px 12px;cursor:pointer}
+.ms-go:hover{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.hol-list{display:flex;flex-direction:column;gap:8px}.hol-list:empty{display:none}
+.hol{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--warn) 45%,var(--line));background:color-mix(in srgb,var(--warn) 10%,var(--surface))}
+.hol.closed{border-color:color-mix(in srgb,var(--neg) 40%,var(--line));background:color-mix(in srgb,var(--neg) 8%,var(--surface))}
+.hol.bank{border-color:color-mix(in srgb,var(--cool) 40%,var(--line));background:color-mix(in srgb,var(--cool) 8%,var(--surface))}
+.hol-f{font-size:24px;line-height:1}.hol b{display:block;font-size:15px;margin:2px 0}.hol p{font-size:13px;color:var(--muted)}
+.hol.live .k::after{content:" · now";color:var(--neg);font-weight:700}
+.op-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:20px;align-items:start}
+.op-cur,.op-main{display:flex;flex-direction:column;gap:8px;min-width:0}
+.op-ccy{grid-template-columns:54px minmax(0,1fr) 64px!important}.op-ccy .tag{display:none}
+.op-pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:12px}
+.op-card{position:relative;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface);overflow:hidden;animation:rise .45s ease both;min-width:0}
+.op-card::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--line)}
+.op-card.lp::before{background:var(--pos)}.op-card.ln::before{background:var(--neg)}
+.op-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.op-s{font:700 15px var(--f-display)}
+.op-lean{margin-left:auto;font:700 13px var(--f-body);white-space:nowrap}.op-lean.muted{font-weight:600}
+.op-m{display:flex;align-items:center;gap:8px}
+.op-dots{display:inline-flex;gap:3px}.op-dots i{width:14px;height:6px;border-radius:3px;background:var(--line)}
+.op-dots i.pos{background:var(--pos)}.op-dots i.neg{background:var(--neg)}
+.op-why{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.op-why li{display:flex;gap:8px;align-items:flex-start}.op-why .muted{font-size:12px}
+.op-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:5px;background:var(--muted)}
+.op-dot.up{background:var(--pos)}.op-dot.down{background:var(--neg)}
+@media (max-width:860px){.op-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){
+ .op-pairs{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:86%;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;padding:4px 2px 10px;margin:0 -2px;scrollbar-width:thin}
+ .op-pairs>.op-card{scroll-snap-align:start}
+ .mkt-strip{flex-wrap:wrap;padding:10px}.ms-i .pairb,.ms-i .muted{display:none}.ms-i{padding:4px 8px;font-size:12.5px}.ms-items{order:3;flex-basis:100%}.ms-go{margin-left:auto}
+}
 </style>
 </head>
 <body>
@@ -720,6 +760,8 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   </div>
   <section class="panel"><header><h3>Every open trade</h3><p>Every account sends each open trade every 30 seconds. "At stop" is that trade's P/L if its stop loss fills.</p></header><div class="scroll"><table id="livePos"></table></div></section>
 </section>
+
+<div data-tab="overview"><div class="mkt-strip" id="mktStrip" role="region" aria-label="This week's market calendar" hidden></div></div>
 
 <section class="sec" data-tab="overview" aria-labelledby="hOpen">
   <div class="sec-h"><div><span class="kicker">Right now</span><h2 id="hOpen">Open trades</h2></div><p id="ovOpenSub">Each account with trades open: its total floating P/L and drawdown against its balance. Tap an account to see its EAs, and an EA to see every trade.</p></div>
@@ -830,6 +872,11 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 
 <section class="sec" data-tab="news" aria-labelledby="hNews">
   <div class="sec-h"><div><span class="kicker">News</span><h2 id="hNews">Economic news against your trades</h2></div><p>High-impact releases move gold and the majors in seconds. See what is coming for the currencies you hold, and how each EA has done when news hit.</p></div>
+  <section class="panel op" id="nOut"><header><h3>This week's lean</h3><p id="nOutSum"></p></header>
+    <div id="nHol" class="hol-list"></div>
+    <div class="op-grid"><div class="op-cur"><span class="k">Currencies</span><div id="nCcy"></div><p class="tag">From forecast against the last figure: hotter inflation, a hike, stronger jobs or growth firm a currency; the opposite softens it. High impact counts double.</p></div>
+    <div class="op-main"><span class="k">Your pairs<span class="swipe-hint"> · swipe</span></span><div class="op-pairs" id="nPairs"></div></div></div>
+    <p class="explain" id="nOutNote" style="margin:0"><b>A lean, not a signal.</b> Markets price the forecast in before the release. The real move comes when the actual figure beats or misses it, and speeches or headlines can override all of this. Indices follow their currency's growth and jobs, and fall on hotter inflation or higher rates. Gold moves against the dollar.</p></section>
   <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><h3>Coming up, next 7 days</h3><p id="newsSum"></p></div><div class="seg" id="newsImp" role="group" aria-label="Impact level"></div></header><div id="newsUp"></div><p class="tag">Times in your time zone. Red rows hit a currency you hold right now: open MT5 trades, or MT4 EAs with open trades on the pairs they have traded lately.</p></section>
   <section class="panel"><header><h3>How your EAs trade through news</h3><p>Average result of trades that were open when a high-impact release came out on one of their currencies, against their other trades.</p></header>
     <div class="chart" style="height:260px"><canvas id="cNews" role="img" aria-label="Average result per trade through news versus other trades, by EA"></canvas></div>
@@ -840,7 +887,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 
 <section class="panel" data-tab="map" aria-label="EA mapping"><header><h3>EA mapping</h3><p>One line per account and magic number. Trades that enter in the same minute and exit together on two accounts are matched as the same EA, whatever their magic or comment.</p></header><div id="eaMap"></div></section>
 <section class="sec" data-tab="alerts" aria-labelledby="hAlerts">
-  <div class="sec-h"><div><span class="kicker">Alerts</span><h2 id="hAlerts">Telegram alerts</h2></div><p>Supabase checks your accounts every 5 minutes and messages your Telegram bot once per event: drawdowns, stop-outs, quiet EAs, offline terminals, new highs, and news while you are exposed. Free, nothing to install.</p></div>
+  <div class="sec-h"><div><span class="kicker">Alerts</span><h2 id="hAlerts">Telegram alerts</h2></div><p>Supabase checks your accounts every 5 minutes and messages your Telegram bot once per event: drawdowns, stop-outs, quiet EAs, offline terminals, new highs, and news while you are exposed, plus a morning note on US market holidays. Free, nothing to install.</p></div>
   <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h3>Telegram</h3><div style="display:flex;gap:8px"><button type="button" class="al-btn" id="alTest" hidden>Send a test</button><button type="button" class="al-btn" id="alRelink" hidden>Change bot</button></div></header>
     <div id="alStatus"></div>
     <div class="al-tok" id="alTokRow"><input id="alTok" type="password" autocomplete="off" spellcheck="false" placeholder="Bot token, like 123456789:AA…" aria-label="Telegram bot token"><button type="button" class="al-btn primary" id="alConnect">Connect</button></div>
@@ -855,6 +902,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
       <label><span>💤 …and at least this many days</span><input type="number" step="1" name="quiet_min_days" data-l="Quiet days"></label>
       <label><span>📰 Warn this many minutes before news on a currency you hold</span><input type="number" step="5" name="news_min" data-l="News minutes"></label>
       <label><span>📰 Include medium-impact news</span><input type="checkbox" name="news_medium"></label>
+      <label><span>🇺🇸 Morning note on US market holidays and early closes (08:00 Singapore)</span><input type="checkbox" name="holiday"></label>
       <label><span>🛑 Broker stop-outs</span><input type="checkbox" name="stopouts"></label>
       <label><span>🏆 New all-time highs</span><input type="checkbox" name="new_high"></label>
       <div class="full"><span class="k">Accounts to watch</span><div class="al-mute" id="alMute"></div></div>
@@ -2351,9 +2399,9 @@ function symCcys(s){
     :/^[A-Z]{6}/.test(u)?[u.slice(0,3),u.slice(3,6)]:[];
   return SYMC[s]=r;
 }
-const NVC=['st','ccy','title','impact','ms'];
-const NEWSQ=`select to_char(public.srv(t),'YYYY.MM.DD HH24:MI:SS') as st,ccy,title,impact,(extract(epoch from t)*1000)::bigint as ms from public.news where impact in ('High','Medium')`;
-function parseNews(lines){return lines.map(l=>{const v=l.split(',');return {st:parseTime(v[0]),ccy:v[1],title:v[2],imp:v[3],ms:+v[4]}}).filter(e=>isFinite(e.st)&&e.ccy).sort((x,y)=>x.st-y.st)}
+const NVC=['st','ccy','title','impact','ms','fc','pv'];
+const NEWSQ=`select to_char(public.srv(t),'YYYY.MM.DD HH24:MI:SS') as st,ccy,title,impact,(extract(epoch from t)*1000)::bigint as ms,forecast as fc,previous as pv from public.news where impact in ('High','Medium')`;
+function parseNews(lines){return lines.map(l=>{const v=l.split(',');return {st:parseTime(v[0]),ccy:v[1],title:v[2],imp:v[3],ms:+v[4],fc:v[5]||'',pv:v[6]||''}}).filter(e=>isFinite(e.st)&&e.ccy).sort((x,y)=>x.st-y.st)}
 // demo: first-Friday jobs reports, mid-month CPI, and a few events in the coming days
 function demoNews(T){
   if(!T.length) return [];
@@ -2362,7 +2410,7 @@ function demoNews(T){
     const y=m.getUTCFullYear(),mo=m.getUTCMonth();let d=1;while(new Date(Date.UTC(y,mo,d)).getUTCDay()!==5)d++;
     out.push({st:Date.UTC(y,mo,d,15,30),ccy:'USD',title:'Non-Farm Employment Change',imp:'High'},{st:Date.UTC(y,mo,12,15,30),ccy:'USD',title:'CPI m/m',imp:'High'});
   }
-  const now=Date.now();[[5,'USD','Unemployment Claims','Medium'],[26,'EUR','German Flash Manufacturing PMI','High'],[50,'USD','CPI m/m','High'],[98,'GBP','BOE Official Bank Rate','High']].forEach(([h,c,ti,im])=>out.push({ms:now+h*36e5,st:now+off+h*36e5,ccy:c,title:ti,imp:im}));
+  const now=Date.now();[[5,'USD','Unemployment Claims','Medium','221K','215K'],[26,'EUR','German Flash Manufacturing PMI','High','47.9','47.1'],[50,'USD','CPI m/m','High','0.2%','0.3%'],[74,'JPY','Tokyo Core CPI y/y','Medium','3.0%','2.6%'],[98,'GBP','BOE Official Bank Rate','High','4.00%','4.00%'],[120,'AUD','RBA Gov Speaks','Medium','','']].forEach(([h,c,ti,im,fc,pv])=>out.push({ms:now+h*36e5,st:now+off+h*36e5,ccy:c,title:ti,imp:im,fc,pv}));
   for(const e of out) if(!e.ms) e.ms=e.st-off;
   return out.sort((x,y)=>x.st-y.st);
 }
@@ -2394,7 +2442,7 @@ function renderNews({T}){
     const ex=EX.filter(x=>symCcys(x.sym).includes(e.ccy)),by={};for(const x of ex)(by[x.acct]=by[x.acct]||new Set()).add(x.sym+(x.ea?` (${x.ea})`:''));
     const d=new Date(e.ms);
     return `<div class="nrow ${ex.length?'hot':''}"><div class="nt"><b>${d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</b><span>${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><span class="tag">${when(e.ms)}</span></div>
-      <div class="ne"><span class="nimp ${e.imp==='High'?'hi':'md'}" title="${e.imp} impact"></span><span class="chip">${esc(e.ccy)}</span> <b>${esc(e.title)}</b></div>
+      <div class="ne"><span class="nimp ${e.imp==='High'?'hi':'md'}" title="${e.imp} impact"></span><span class="chip">${esc(e.ccy)}</span> <b>${esc(e.title)}</b>${e.fc||e.pv?` <span class="tag">forecast ${esc(String(e.fc||'–').replace(/\s+/g,''))} · previous ${esc(String(e.pv||'–').replace(/\s+/g,''))}</span>`:''}</div>
       <div class="nx">${ex.length?Object.entries(by).map(([ac,s])=>`<span class="chip fail">${esc(nm(ac))}</span> <span class="tag">${[...s].slice(0,4).map(esc).join(', ')}${s.size>4?' +'+(s.size-4):''}</span>`).join('<br>'):'<span class="tag">No open trades in '+esc(e.ccy)+'</span>'}</div></div>`}).join(''):
     `<p class="muted">${N.length?'Nothing scheduled in the next 7 days at this impact level. The weekly calendar refreshes every hour; next week appears on Sunday.':''}</p>`;
   renderNewsHistory(T,N);
@@ -2439,7 +2487,7 @@ function renderNewsHistory(T,N){
 }
 
 /* ---------- Alerts (Telegram via Supabase) ---------- */
-const AL_KINDS={dd:['🔻','Open loss'],day:['📉','Daily loss'],off:['📴','Terminal offline'],so:['🛑','Stop-out'],ath:['🏆','New high'],quiet:['💤','EA gone quiet'],news:['📰','News while exposed']};
+const AL_KINDS={dd:['🔻','Open loss'],day:['📉','Daily loss'],off:['📴','Terminal offline'],so:['🛑','Stop-out'],ath:['🏆','New high'],quiet:['💤','EA gone quiet'],news:['📰','News while exposed'],holiday:['🇺🇸','US market holiday']};
 const jget=v=>typeof v==='string'?JSON.parse(v):v;
 const tgHtml=m=>esc(m).replace(/&lt;(\/?)b&gt;/g,'<$1b>');
 let AL=null,alBusy=false;
@@ -2468,7 +2516,7 @@ function paintAlerts(){
   $('#alRelink').hidden=!s.linked;$('#alTest').hidden=!s.linked;
   const f=$('#alForm');
   f.enabled.checked=s.enabled;f.float_dd_pct.value=+s.float_dd_pct;f.day_loss_pct.value=+s.day_loss_pct;f.offline_min.value=+s.offline_min;f.quiet_factor.value=+s.quiet_factor;f.quiet_min_days.value=+s.quiet_min_days;
-  f.stopouts.checked=s.stopouts;f.new_high.checked=s.new_high;f.news_min.value=+s.news_min;f.news_medium.checked=s.news_medium;
+  f.stopouts.checked=s.stopouts;f.new_high.checked=s.new_high;f.news_min.value=+s.news_min;f.news_medium.checked=s.news_medium;f.holiday.checked=s.holiday!==false;
   const muted=new Set((Array.isArray(s.muted)?s.muted:String(s.muted||'').replace(/[{}]/g,'').split(',')).filter(v=>v!==''&&v!=null).map(String)),acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   $('#alMute').innerHTML=acc.map(a=>`<label class="al-acc"><input type="checkbox" value="${esc(a)}" ${muted.has(String(a))?'':'checked'}> ${esc(nm(a))}</label>`).join('');
   $('#alNow').innerHTML=now.length?now.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div><span class="chip ${r.sent?'pass':''}">${r.sent?'sent':'next check'}</span></div>`}).join(''):'<p class="muted">Nothing would alert right now. All quiet.</p>';
@@ -2510,7 +2558,7 @@ if($('#alForm')){
     e.preventDefault();const f=e.target,n=(k,lo,hi)=>{const v=+f[k].value;if(!isFinite(v)||v<lo||v>hi) throw new Error(`${f[k].dataset.l} must be between ${lo} and ${hi}`);return v};
     try{
       const acc=[...$('#alMute').querySelectorAll('input')],muted=acc.filter(i=>!i.checked).map(i=>i.value).filter(v=>/^\d+$/.test(v)).map(Number);
-      const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,muted};
+      const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,holiday:f.holiday.checked,muted};
       const b=$('#alSave');b.disabled=true;b.textContent='Saving…';alMsg('','', '#alSaveMsg');
       try{await sql(`select public.alert_save('${JSON.stringify(p)}'::jsonb) as ok`);await loadAlerts(true);
         alMsg(`✓ Saved at ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}. The next check (within 5 minutes) uses these settings.`,false,'#alSaveMsg')}
@@ -2730,7 +2778,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v28';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v29';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3299,6 +3347,139 @@ function clampAll(){const phone=matchMedia('(max-width:600px)').matches;
   const b=document.createElement('button');b.type='button';b.className='more clamp-btn';b.textContent=open?'Show fewer':`Show all ${it.length} ${noun}`;
   b.onclick=()=>{open?CLAMP_OPEN.delete(sel):CLAMP_OPEN.add(sel);clampAll();if(open)goTo(host)};host.after(b)}}
 const _renderV28=render;render=function(){_renderV28.apply(this,arguments);clampAll()};
+
+/* ---------- v29: news outlook (forecast vs previous -> currency and pair lean) and US market holidays ---------- */
+// "1,234K" arrives as "1 234K" (commas are stripped in transit). Returns a number in the release's own unit, or null.
+function newsNum(s){
+  s=String(s??'').replace(/\s+/g,'').replace(/,/g,'');if(!s) return null;
+  const m=s.match(/^([<>]?)(-?\d*\.?\d+)([KMBT%]?)$/i);if(!m) return null;
+  return +m[2]*({k:1e3,m:1e6,b:1e9,t:1e12}[m[3].toLowerCase()]||1);
+}
+// What one release means: kind (inflation, rates, growth), and +1 if a higher number is good for the currency, -1 if bad, 0 if it has no clear direction
+function newsRule(t){
+  if(/speak|speech|testif|hearing|minutes|statement|press conf|conference|report hearing|auction|inventor|bond|holiday|election|summit|meeting/i.test(t)) return null;
+  if(/unemploy|jobless|claimant|claims/i.test(t)) return {k:'jobs',pol:-1};
+  if(/CPI|PPI|PCE|inflation|price index|HICP|deflator|wage|earnings|labor cost|labour cost/i.test(t)) return {k:'inflation',pol:1};
+  if(/rate|refinanc|policy/i.test(t)) return {k:'rates',pol:1};
+  if(/employment|payroll|non-farm|NFP|ADP|jobs/i.test(t)) return {k:'jobs',pol:1};
+  return {k:'growth',pol:1};
+}
+const NEWS_READ={inflation:['inflation running hotter','inflation cooling'],rates:['a rate hike expected','a rate cut expected'],jobs:['jobs getting stronger','jobs getting weaker'],growth:['growth picking up','growth slowing']};
+// Score each upcoming release: sign of (forecast - previous) x direction x weight (high 2, medium 1)
+function newsScored(N,now,days){
+  return N.filter(e=>e.ms>now&&e.ms<now+days*864e5).map(e=>{
+    const r=newsRule(e.title),f=newsNum(e.fc),p=newsNum(e.pv),w=e.imp==='High'?2:1;
+    if(!r||f==null||p==null) return {...e,w,kind:r&&r.k,ccyEff:0,idxEff:0,read:r?(f==null?'no forecast yet':'no previous figure'):'no forecast, volatility only',flat:false,scored:false};
+    const d=f-p,flat=Math.abs(d)<=Math.abs(p)*1e-9+1e-12,up=d>0,eff=flat?0:(up?1:-1)*r.pol*w;
+    // stocks like growth and jobs, and dislike hotter inflation and higher rates
+    const idx=flat?0:r.k==='inflation'||r.k==='rates'?-(up?1:-1)*w:eff;
+    const better=r.pol*(up?1:-1)>0;
+    return {...e,w,kind:r.k,ccyEff:eff,idxEff:idx,flat,scored:true,
+      read:flat?'expected in line with last time':NEWS_READ[r.k][r.k==='jobs'?(better?0:1):(up?0:1)]};
+  });
+}
+const isMetal=u=>/^(XAU|XAG|XPT|XPD|GOLD|SILVER)/.test(u),isIndex=u=>/^(US30|US500|US100|NAS|SPX|SP500|DJ|DOW|NDX|USTEC|US2000|GER|DE30|DE40|DAX|EU50|STOXX|FRA40|UK100|FTSE|JP225|JPN225|NIKKEI|AUS200)/.test(u),noLean=u=>/^(BTC|ETH|USOIL|WTI|XTI|UKOIL|BRENT|XBR)/.test(u);
+// Lean for one symbol: list of {e, v} contributions (v>0 pushes the symbol up)
+function symLean(sym,EV){
+  const u=String(sym).toUpperCase().replace(/[^A-Z0-9]/g,''),parts=[];
+  if(noLean(u)) return null;
+  if(isMetal(u)){for(const e of EV) if(e.ccy==='USD') parts.push({e,v:-e.ccyEff})}
+  else if(isIndex(u)){const c=symCcys(sym)[0];for(const e of EV) if(e.ccy===c) parts.push({e,v:e.idxEff})}
+  else{const [b,q]=symCcys(sym);if(!q) return null;for(const e of EV){if(e.ccy===b) parts.push({e,v:e.ccyEff});else if(e.ccy===q) parts.push({e,v:-e.ccyEff})}}
+  if(!parts.length) return {sym,score:0,parts,none:true};
+  const score=parts.reduce((s,p)=>s+p.v,0),mixed=parts.some(p=>p.v>0)&&parts.some(p=>p.v<0);
+  return {sym,score,parts,mixed};
+}
+const leanWord=s=>s>0?'Leans up':s<0?'Leans down':'No clear lean';
+const leanStr=s=>{const a=Math.abs(s);return a===0?'':a<=1?'slight':a<=3?'moderate':'strong'};
+const leanCls=s=>s>0?'pos':s<0?'neg':'muted';
+const leanArrow=s=>s>0?'▲':s<0?'▼':'◆';
+
+// US market holidays (public.market_holidays, the same table that drives the Telegram morning note)
+let HOL=null,holBusy=false;
+async function loadHolidays(){
+  if(HOL||holBusy||!S.live||typeof mcp==='undefined'||!mcp) return;
+  holBusy=true;
+  try{HOL=(await sql(`select d::text as d,name,kind from public.market_holidays where d between current_date-1 and current_date+40 order by d`)).map(r=>({d:r.d,name:r.name,kind:r.kind}));paintHol(holUpcoming(7));renderMarketStrip()}
+  catch(e){HOL=[]}finally{holBusy=false}
+}
+// ms offset of a time zone at a moment, and the UTC ms of a New York wall-clock time
+const tzOff=(ms,tz)=>{const p={};for(const x of new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(ms))p[x.type]=x.value;return Date.UTC(+p.year,p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-ms};
+const nyMs=(d,h)=>{const [y,m,dd]=d.split('-').map(Number),g=Date.UTC(y,m-1,dd,h);return g-tzOff(g,'America/New_York')};
+function holUpcoming(days){
+  const now=Date.now();
+  return (HOL||[]).filter(h=>nyMs(h.d,24)>now&&nyMs(h.d,0)<now+days*864e5).map(h=>{
+    const start=nyMs(h.d,0),live=start<=now,close=h.kind==='early'?nyMs(h.d,13):null;
+    return {...h,start,live,close};
+  });
+}
+function holLine(h,short){
+  const day=new Date(nyMs(h.d,12)).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'}),
+    t=ms=>{const d=new Date(ms),loc=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(loc!==h.d?' '+d.toLocaleDateString([],{weekday:'short'}):'')},
+    srvT=ms=>{const d=new Date(ms+7*36e5+tzOff(ms,'America/New_York'));return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')};
+  const when=h.live?'Today in New York':day;
+  const what=h.kind==='closed'?'US markets closed':h.kind==='early'?`Early close 13:00 New York (${srvT(h.close)} server, ${t(h.close)} your time)`:'US banks and bonds closed, stocks open';
+  if(short) return `${h.live?'Today':day.split(',')[0]}: ${h.kind==='closed'?'US closed':h.kind==='early'?'US early close '+srvT(h.close)+' server':'US banks closed'} · ${esc(h.name)}`;
+  return {when,what,tip:h.kind==='closed'?'No US data and thin liquidity: wider spreads and odd spikes on USD pairs, US30 and gold. Index CFDs may not quote.':h.kind==='early'?'Liquidity thins out through the US afternoon. Expect wider spreads on US30, USD pairs and gold.':'Stocks trade, but USD liquidity can be lighter than usual.'};
+}
+
+// symbols worth an outlook: the ones open now, then the most traded by active EAs in the last 60 days
+function outlookSyms(){
+  const a=$('#acct').value,since=(S.srvNow||Date.now())-60*864e5,n={},open={};
+  for(const x of exposureNow()) if(inSel(x.acct,a)) open[x.sym]=(open[x.sym]||0)+1;
+  for(const t of S.trades) if(inSel(t.acct,a)&&t.ct>since&&!EA_ARCH.has(t.fam)) n[t.sym]=(n[t.sym]||0)+1;
+  const all=[...new Set([...Object.keys(open),...Object.keys(n)])];
+  return all.map(s=>({s,open:open[s]||0,n:n[s]||0})).sort((x,y)=>(y.open>0)-(x.open>0)||y.n-x.n||x.s.localeCompare(y.s));
+}
+function outlookData(){
+  const N=S.news&&S.news.length?S.news:(S.demo?(S.news=demoNews(S.trades)):[]),now=Date.now();
+  const EV=newsScored(N,now,7),SY=outlookSyms();
+  const L=SY.map(x=>{const l=symLean(x.s,EV);return l&&{...l,open:x.open,n:x.n}}).filter(Boolean);
+  const C={};for(const e of EV){const c=C[e.ccy]=C[e.ccy]||{ccy:e.ccy,s:0,n:0,sc:0};c.s+=e.ccyEff;c.n++;if(e.scored)c.sc++}
+  return {N,EV,L,C:Object.values(C).sort((x,y)=>y.s-x.s||x.ccy.localeCompare(y.ccy)),H:holUpcoming(7),now};
+}
+function evWhen(ms,now){const m=Math.round((ms-now)/6e4);return m<60?`in ${m} min`:m<48*60?`in ${Math.round(m/60)} h`:`in ${Math.round(m/1440)} days`}
+function evLine(e,v,now){
+  const dir=v>0?'up':v<0?'down':'flat';
+  return `<li><span class="op-dot ${dir}" aria-hidden="true"></span><span><b>${esc(e.ccy)} ${esc(e.title)}</b> <span class="muted">${evWhen(e.ms,now)}</span><br>`+
+    (e.scored?`<span class="muted">${esc(String(e.fc).replace(/\s+/g,''))} expected vs ${esc(String(e.pv).replace(/\s+/g,''))} before: ${esc(e.read)}</span>`:`<span class="muted">${esc(e.read)}</span>`)+`</span></li>`;
+}
+function paintHol(H){const el=$('#nHol');if(el)el.innerHTML=H.map(h=>{const x=holLine(h);return `<div class="hol ${h.kind}${h.live?' live':''}"><span class="hol-f" aria-hidden="true">🇺🇸</span><div><span class="k">${esc(x.when)} · ${esc(h.name)}</span><b>${esc(x.what)}</b><p>${esc(x.tip)}</p></div></div>`}).join('')}
+function renderOutlook(){
+  const el=$('#nOut');if(!el) return;
+  loadHolidays();
+  const {N,EV,L,C,H,now}=outlookData(),sc=EV.filter(e=>e.scored);
+  paintHol(H);
+  $('#nOutSum').innerHTML=!N.length?'No calendar loaded yet. It fills on the next sync.':
+    `<b>${EV.length}</b> high or medium-impact release${EV.length===1?'':'s'} left in the next 7 days, <b>${sc.length}</b> with a forecast to read.`+(EV.length<4?' The calendar covers this week only; next week loads on Sunday.':'');
+  // currency meter
+  const mx=Math.max(2,...C.map(c=>Math.abs(c.s)));
+  $('#nCcy').innerHTML=C.length?C.map(c=>`<div class="mrow op-ccy"><span><b>${esc(c.ccy)}</b></span><span class="div-bar" style="height:14px"><b style="${c.s<0?'right:50%':'left:50%'};width:${Math.abs(c.s)/mx*50}%;background:var(${c.s<0?'--neg':'--pos'})"></b></span><span class="num ${leanCls(c.s)}">${c.s>0?'Firmer':c.s<0?'Softer':'Neutral'}</span><span class="tag">${c.n} release${c.n===1?'':'s'}${c.sc<c.n?`, ${c.n-c.sc} without a forecast`:''}</span></div>`).join(''):'<p class="muted">No releases left this week.</p>';
+  // pair cards
+  $('#nPairs').innerHTML=L.length?L.map(l=>{
+    const top=l.parts.slice().sort((x,y)=>Math.abs(y.v)-Math.abs(x.v)||x.e.ms-y.e.ms).slice(0,3),more=l.parts.length-top.length,st=leanStr(l.score);
+    const dots=Array.from({length:5},(_,i)=>`<i class="${i<Math.min(5,Math.abs(l.score))?leanCls(l.score):''}"></i>`).join('');
+    return `<article class="op-card ${l.score>0?'lp':l.score<0?'ln':''}"><div class="op-h">${pairBadge(l.sym,22)}<b class="op-s">${esc(l.sym)}</b>${l.open?`<span class="chip warn">${l.open} open</span>`:''}<span class="op-lean ${leanCls(l.score)}">${leanArrow(l.score)} ${leanWord(l.score)}</span></div>
+      <div class="op-m"><span class="op-dots" aria-label="${st||'no'} lean">${dots}</span><span class="tag">${l.none?'No release on its currencies this week':st?st+' lean'+(l.mixed?', mixed signals':''):l.parts.some(p=>p.e.scored)?'forecasts in line, a surprise decides it':'no forecasts to read, volatility only'}</span></div>
+      ${top.length?`<ul class="op-why">${top.map(p=>evLine(p.e,p.v,now)).join('')}</ul>${more>0?`<span class="tag">+${more} more release${more>1?'s':''}</span>`:''}`:''}</article>`}).join(''):
+    '<p class="muted">No pairs traded by your active EAs in this selection.</p>';
+  $('#nOutNote').hidden=!L.length;
+}
+// a slim strip on the Overview: holiday first, then the strongest leans on what you hold or trade most
+function renderMarketStrip(){
+  const el=$('#mktStrip');if(!el) return;
+  const {L,H}=outlookData(),hol=H.filter(h=>h.start<Date.now()+3*864e5);
+  const lean=L.filter(l=>l.score).sort((x,y)=>(y.open>0)-(x.open>0)||Math.abs(y.score)-Math.abs(x.score)).slice(0,4);
+  if(!hol.length&&!lean.length){el.hidden=true;return}
+  el.hidden=false;
+  el.innerHTML=`<span class="ms-k">This week</span><div class="ms-items">`+
+    hol.map(h=>`<span class="ms-i hol-chip ${h.kind}"><span aria-hidden="true">🇺🇸</span> ${holLine(h,true)}</span>`).join('')+
+    lean.map(l=>`<span class="ms-i">${pairBadge(l.sym,16)}<b>${esc(l.sym)}</b><span class="${leanCls(l.score)}">${leanArrow(l.score)} ${l.score>0?'up':'down'}</span><span class="muted">${leanStr(l.score)}</span></span>`).join('')+
+    `</div><button type="button" class="ms-go" data-go="news">News outlook →</button>`;
+  el.querySelector('.ms-go').onclick=()=>showTab('news',true);
+}
+CLAMPS.push(['#nPairs',':scope>.op-card',6,'pairs','desk']);
+{const _r29=render;render=function(){_r29.apply(this,arguments);try{renderOutlook();renderMarketStrip();clampAll()}catch(e){console.error('outlook',e)}}}
 
 </script>
 
