@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261125165307">
+<meta name="desk-build" content="20261126005035">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261125165307',busy=false;
+(function(){var mine='20261126005035',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -1763,9 +1763,9 @@ function renderLive({T,a}){
   ].map(([k,v,s,c])=>`<div class="ntile"><span class="k">${k}</span><div class="v ${c}">${v}</div><p>${esc(s)}</p></div>`).join('');
   const lim=Math.max(cfg().ml,.01);
   const ddBar=p=>`<span class="hbar" style="width:70px;display:inline-block;vertical-align:middle"><b style="width:${Math.min(Math.abs(p)/lim,1)*100}%;background:var(${Math.abs(p)>=lim*.7?'--neg':'--warn'})"></b></span>`;
-  $('#liveAcc').innerHTML=accRows.length?`<thead><tr><th>Account</th><th>Open</th><th>Floating</th><th>DD now</th><th>Max DD today</th><th>Max DD ever</th></tr></thead><tbody>`+
+  $('#liveAcc').innerHTML=accRows.length?`<thead><tr><th>Account</th><th>Open</th><th>Floating</th><th title="Open trades now, as a share of balance">Open dip now</th><th title="Lowest floating P/L of the open trades only, from the 5-minute equity feed (kept since 25 Nov 2026). The account page shows the full daily drawdown, closed trades included.">Open dip, worst today</th><th title="Lowest floating P/L of the open trades only, from the 5-minute equity feed (kept since 25 Nov 2026). The account page shows the full daily drawdown, closed trades included.">Open dip, worst since 25 Nov</th></tr></thead><tbody>`+
     accRows.map(r=>`<tr data-a="${esc(r.ac)}" class="ad-click" tabindex="0" title="Open this account"><td><b>${esc(nm(r.ac))}</b> <span class="tag">${r.mt4?'MT4':'MT5'}</span>${r.age!=null&&r.age>900?` <span class="chip warn">${Math.round(r.age/60)} min old</span>`:''}</td><td data-l="Open">${r.n?(r.exact?'':'≥ ')+r.n:'0'}</td><td data-l="Floating" class="${cls(r.fl)}">${money(r.fl,2)}</td>
-      <td data-l="DD now" class="${r.pNow<0?'neg':''}">${pct(r.pNow,2)} ${ddBar(r.pNow)}</td><td data-l="Max DD today" class="${r.pToday<0?'neg':''}">${pct(r.pToday,2)} <span class="tag">${money(r.flToday)}</span></td><td data-l="Max DD ever" class="${r.pAll<0?'neg':''}">${pct(r.pAll,2)} <span class="tag">${money(r.flAll)}</span></td></tr>`).join('')+'</tbody>'
+      <td data-l="Open dip now" class="${r.pNow<0?'neg':''}">${pct(r.pNow,2)} ${ddBar(r.pNow)}</td><td data-l="Open dip, worst today" class="${r.pToday<0?'neg':''}">${pct(r.pToday,2)} <span class="tag">${money(r.flToday)}</span></td><td data-l="Open dip, worst since 25 Nov" class="${r.pAll<0?'neg':''}">${pct(r.pAll,2)} <span class="tag">${money(r.flAll)}</span></td></tr>`).join('')+'</tbody>'
     :'<tbody><tr><td class="muted">Shows once the EA has sent its first equity snapshot.</td></tr></tbody>';
   const kindChip=k=>k==='Single'?'':`<span class="chip ${k==='Martingale'?'fail':'warn'}">${k}</span>`;
   $('#liveEA').innerHTML=EAo.length?EAo.map(e=>{const syms=[...new Set(e.rows.map(r=>r.sym).filter(Boolean))];
@@ -1773,8 +1773,8 @@ function renderLive({T,a}){
     <div class="lea-g">
       <div><span class="k">Open now</span><b>${e.exact?'':'≥ '}${e.open}</b><span class="tag">${syms.slice(0,4).map(s=>pairBadge(s,16)).join(' ')}</span></div>
       <div><span class="k">Floating</span><b class="${cls(e.fl)}">${money(e.fl,2)}</b></div>
-      <div><span class="k">Max DD today</span><b class="${e.flToday<0?'neg':''}">${money(e.flToday)}</b></div>
-      <div><span class="k">Max DD ever</span><b class="${e.flAll<0?'neg':''}">${money(e.flAll)}</b></div>
+      <div><span class="k" title="Lowest floating P/L of the open trades only, from the 5-minute equity feed (kept since 25 Nov 2026). The account page shows the full daily drawdown, closed trades included.">Open dip, worst today</span><b class="${e.flToday<0?'neg':''}">${money(e.flToday)}</b></div>
+      <div><span class="k" title="Lowest floating P/L of the open trades only, from the 5-minute equity feed (kept since 25 Nov 2026). The account page shows the full daily drawdown, closed trades included.">Open dip, worst since 25 Nov</span><b class="${e.flAll<0?'neg':''}">${money(e.flAll)}</b></div>
       <div><span class="k">Most open today</span><b>${e.maxToday}</b></div>
       <div><span class="k">Most open ever</span><b>${e.maxAll}</b>${e.kind==='Martingale'?`<span class="tag">lots grow up to ${fmt(e.lay.mart,1)}×</span>`:''}</div>
     </div>${e.maxAll>1?`<div class="layers" role="img" aria-label="${e.open} of ${e.maxAll} layers open">${Array.from({length:Math.min(e.maxAll,40)},(_,i)=>`<i class="${i<e.open?'on':''}"></i>`).join('')}</div>`:''}</div>`}).join('')
@@ -2694,7 +2694,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v25';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v26';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3003,8 +3003,8 @@ function renderAcctDetail({a,c}){
   const prevDay=[...D].reverse().find(d=>d.d<d0&&d.pnl!==0);
   // balance at the start of a period: the dense day series carries it
   const startBal=t0=>{const d=D.find(x=>x.d>=t0);return d?d.start:(D.length?D[D.length-1].end:st.bal)};
-  const per=(lab,t0,t1)=>{const ts=T.filter(t=>t.ct>=t0&&t.ct<t1),p=ts.reduce((s,t)=>s+t.net,0),w=ts.filter(t=>t.net>0).length,sb=startBal(t0);
-    return {lab,p,g:sb>0?p/sb:null,n:ts.length,wr:ts.length?w/ts.length:null,lots:ts.reduce((s,t)=>s+t.lots,0),best:ts.length?Math.max(...ts.map(t=>t.net)):null,worst:ts.length?Math.min(...ts.map(t=>t.net)):null}};
+  const per=(lab,t0,t1)=>{const ts=T.filter(t=>t.ct>=t0&&t.ct<t1),p=ts.reduce((s,t)=>s+t.net,0),w=ts.filter(t=>t.net>0).length,sb=startBal(t0)+S.cash.reduce((s,x)=>inSel(x.acct,a)&&x.amt>0&&x.t>=t0&&x.t<t1?s+x.amt:s,0);
+    return {lab,p,g:sb>1?p/sb:null,n:ts.length,wr:ts.length?w/ts.length:null,lots:ts.reduce((s,t)=>s+t.lots,0),best:ts.length?Math.max(...ts.map(t=>t.net)):null,worst:ts.length?Math.min(...ts.map(t=>t.net)):null}};
   const P=[per('Today',d0,d0+DAY),prevDay?per('Previous day · '+new Date(prevDay.d).toUTCString().slice(0,11),prevDay.d,prevDay.d+DAY):null,
     per('This week',wk0,d0+DAY),per('Last week',wk0-7*DAY,wk0),per('This month',mo0,d0+DAY),per(MON[pm.getUTCMonth()]+' (last month)',pmo0,mo0),
     per('This year',yr0,d0+DAY),per('All time',0,Infinity)].filter(Boolean);
@@ -3016,7 +3016,9 @@ function renderAcctDetail({a,c}){
   const live=ps.some(p=>isLiveAcct(p.acct))||(one&&isLiveAcct(a));
   const fl=st.fl!=null?st.fl:ps.reduce((s,p)=>s+(p.fl||0),0);
   // peak of the closed balance; trusted only when the trade history rebuilds today's balance (deposits all recorded)
-  const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal),st.bal):null;
+  // withdrawals are not losses: peak of the trading curve (balance minus money moved so far), put back on today's cash level
+  const CS=S.cash.filter(x=>inSel(x.acct,a)).sort((x,y)=>x.t-y.t),netCash=CS.reduce((s,x)=>s+x.amt,0),cashBy=t=>{let s=0;for(const x of CS){if(x.t>t)break;s+=x.amt}return s};
+  const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal-cashBy(p.t)),st.bal-netCash)+netCash:null;
   const downPk=peak?((st.eq!=null?st.eq:st.bal)-peak)/peak:null;
   const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0).reduce((s,x)=>s+x.amt,0);
   const comm=T.reduce((s,t)=>s+(t.comm||0),0),swap=T.reduce((s,t)=>s+(t.swap||0),0);
@@ -3055,7 +3057,7 @@ function renderAcctDetail({a,c}){
     ${tile('This month',sign(P.find(x=>x.lab==='This month').p),P.find(x=>x.lab==='This month').g!=null?pct(P.find(x=>x.lab==='This month').g,2):'',cls(P.find(x=>x.lab==='This month').p))}
     ${tile('Net profit',sign(M.net),st.base?pct(M.net/st.base,1)+' gain':'',cls(M.net))}
     ${tile('Open now',ps.length?`${ps.length} trade${ps.length>1?'s':''}`:'none',ps.length?`${sign(fl)}${risk&&risk.noSL<risk.n?` · if stops hit ${money(risk.sum,0)}`:risk?' · no stop losses':''}`:'',ps.length?cls(fl):'')}
-    ${peak?tile('Below peak',downPk<-0.0005?pct(downPk,2):'at peak',`equity vs peak balance ${money(peak,0)}`,downPk<-0.0005?'neg':'pos'):tile('Drawdown now',st.eq!=null&&st.bal?pct(Math.min(0,fl/st.bal),2):'–','open loss vs balance',fl<0?'neg':'')}
+    ${peak?tile('Below peak',downPk<-0.0005?pct(downPk,2):'at peak',`equity vs peak ${money(peak,0)}${wdr?', withdrawals excluded':''}`,downPk<-0.0005?'neg':'pos'):tile('Drawdown now',st.eq!=null&&st.bal?pct(Math.min(0,fl/st.bal),2):'–','open loss vs balance',fl<0?'neg':'')}
     ${tile('Deposits',money(dep,0),wdr?`withdrawn ${money(wdr,0)}`:'no withdrawals')}
   </div>
   ${ps.length?`<p class="ad-open"><button type="button" class="btn" id="adOpen">See the ${ps.length} open trade${ps.length>1?'s':''}</button> <span class="muted">${Object.keys(cntEA).map(k=>`${esc(k)} ${cntEA[k]}`).join(' · ')}</span></p>`:''}
@@ -3118,21 +3120,33 @@ function dayStartMap(ac){const nowRow=(S.now||[]).find(r=>r.acct===ac&&r.magic==
   const m=new Map(),days=[...new Set(ev.map(e=>Math.floor(e[0]/DAY)*DAY)),Math.floor((S.srvNow||Date.now())/DAY)*DAY].sort((x,y)=>y-x);
   let b=bal,i=0;for(const d of days){while(i<ev.length&&ev[i][0]>=d){b-=ev[i][1];i++}m.set(d,b)}
   return {m,keys:[...m.keys()].sort((x,y)=>x-y),end:bal}}
-function dailyDD(T,E,accts){
+function dailyDD(T,E,accts,P){
+  // E rows with byEq: account rows, so equity itself gives the path (exact, incl. trades closed mid-hour); else EA rows: closed so far + floating
   const SB={};for(const ac of accts)SB[ac]=dayStartMap(ac);
-  const baseOn=d=>accts.reduce((s,ac)=>{const o=SB[ac];let v=o.m.get(d);if(v==null){let best=null;for(const k of o.keys){if(k<=d)best=k;else break}v=best!=null?o.m.get(best):o.end}return s+(v||0)},0);
-  const byD=new Map(),day=t=>Math.floor(t/DAY)*DAY,get=d=>{if(!byD.has(d))byD.set(d,{d,tr:[],eq:new Map()});return byD.get(d)};
+  const startOf=(ac,d)=>{const o=SB[ac];let v=o.m.get(d);if(v==null){let best=null;for(const k of o.keys){if(k<=d)best=k;else break}v=best!=null?o.m.get(best):o.end}return v||0};
+  const day=t=>Math.floor(t/DAY)*DAY,cashIn=(ac,d,t)=>S.cash.reduce((s,x)=>x.acct===ac&&x.t>=d&&x.t<=t?s+x.amt:s,0);
+  // % base: balance the day started with plus money added that day, so a funding day isn't divided by ~0
+  const depOn=(ac,d)=>S.cash.reduce((s,x)=>x.acct===ac&&x.amt>0&&day(x.t)===d?s+x.amt:s,0);
+  const baseOn=d=>accts.reduce((s,ac)=>s+startOf(ac,d)+depOn(ac,d),0);
+  const byD=new Map(),get=d=>{if(!byD.has(d))byD.set(d,{d,tr:[],rows:new Map()});return byD.get(d)};
   for(const t of T)get(day(t.ct)).tr.push(t);
-  for(const r of E){const o=get(day(r.t));o.eq.set(r.t,(o.eq.get(r.t)||0)+r.fl)}
-  const out=[],ds=[...byD.keys()].sort((x,y)=>x-y);
-  // floating P/L the day started with: last reading of the day before, else the first reading of the day
-  const flStart=d=>{const i=ds.indexOf(d);for(let j=i-1;j>=0&&j>=i-3;j--){const e=byD.get(ds[j]).eq;if(e.size){return [...e.entries()].sort((x,y)=>y[0]-x[0])[0][1]}}const e=byD.get(d).eq;return e.size?[...e.entries()].sort((x,y)=>x[0]-y[0])[0][1]:0};
+  for(const r of E){const m=get(day(r.t)).rows;if(!m.has(r.t))m.set(r.t,[]);m.get(r.t).push(r)}
+  const ds=[...byD.keys()].sort((x,y)=>x-y),flSum=rs=>rs.reduce((s,r)=>s+r.fl,0);
+  // open P/L carried into the day: only when a trade was actually open at midnight, read from the previous day's last hour
+  const spans=d=>T.some(t=>t.ot<d&&t.ct>d)||(P||[]).some(p=>p.ot<d);
+  const flStart=d=>{if(!spans(d))return 0;const i=ds.indexOf(d);for(let j=i-1;j>=0&&j>=i-3;j--){const m=byD.get(ds[j]).rows;if(m.size)return flSum(m.get(Math.max(...m.keys())))}
+    const m=byD.get(d).rows;return m.size?flSum(m.get(Math.min(...m.keys()))):0};
+  const out=[];
   for(const o of byD.values()){o.tr.sort((x,y)=>x.ct-y.ct);let c=0,lo=0;for(const t of o.tr){c+=t.net;lo=Math.min(lo,c)}
-    const closedBy=t=>{let s=0;for(const x of o.tr){if(x.ct>t)break;s+=x.net}return s};
-    let loEq=null,at=null;for(const [t,fl] of o.eq){const v=closedBy(t)+fl;if(loEq==null||v<loEq){loEq=v;at=t}}
+    const closedBy=(t,ac)=>{let s=0;for(const x of o.tr){if(x.ct>t)break;if(ac==null||x.acct===ac)s+=x.net}return s};
+    let loEq=null,at=null;
+    for(const [t,rs] of o.rows){let v;
+      if(E.byEq){v=0;for(const ac of accts){const r=rs.find(x=>x.acct===ac);v+=r?r.eq-startOf(ac,o.d)-cashIn(ac,o.d,t):closedBy(t,ac)}}
+      else v=closedBy(t)+flSum(rs);
+      if(loEq==null||v<loEq){loEq=v;at=t}}
     const low=Math.min(lo,loEq==null?0:loEq),base=baseOn(o.d);
-    const f0=o.eq.size?flStart(o.d):0,lowEq=o.eq.size?Math.min(lo,loEq-f0):lo,eqBase=base+f0;
-    out.push({ddE:-lowEq,ddEp:eqBase>0?-lowEq/eqBase:0,f0,d:o.d,dd:-low,ddp:base>0?-low/base:0,pnl:c,n:o.tr.length,src:o.eq.size?'equity':'closed',at:loEq!=null&&loEq<=lo?at:null,base})}
+    const f0=o.rows.size?flStart(o.d):0,lowEq=o.rows.size?Math.min(lo,loEq-f0):lo,eqBase=base+f0;
+    out.push({ddE:-lowEq,ddEp:eqBase>1?-lowEq/eqBase:0,f0,d:o.d,dd:-low,ddp:base>1?-low/base:0,pnl:c,n:o.tr.length,src:o.rows.size?'equity':'closed',at:loEq!=null&&loEq<=lo?at:null,base})}
   return out.sort((x,y)=>y.d-x.d);
 }
 const ddPct=v=>v<0.00005?'−<0.01%':'−'+pct(v,2);
@@ -3145,19 +3159,20 @@ function ddPanel(rows,title,sub){
   const tile=(k,r,s)=>`<div class="ad-t"><span class="k">${k}</span>${r?`<b class="${r.dd>0.005?'neg':'pos'}">${r.dd>0.005?ddPct(r.ddp):'0.00%'}</b><span class="tag">${r.dd>0.005?money(-r.dd,2):'no dip below the day start'}${s?' · '+s:''}${r.src==='equity'&&r.f0<-0.5&&r.dd>0.005?`<br>${money(r.f0,0)} carried in open trades; the day added ${r.ddE>0.005?money(-r.ddE,0):'none'}`:''}</span>`:'<b>–</b><span class="tag">no activity</span>'}</div>`;
   const big=Math.max(lim,...rows.slice(0,30).map(r=>r.ddp),.0001);
   return `<section class="panel dd-panel"><header><h3>${title}</h3><p>${sub} Your daily loss limit in Settings is ${pct(lim,0)}.</p></header>
-  <div class="ad-strip">${tile('Today',td,td?(td.at?'low at '+new Date(td.at).toISOString().slice(11,16):''):'')}${tile(yd&&yd.d===now-DAY?'Yesterday':'Previous day',yd,yd?dn(yd.d):'')}${tile('Worst, last 30 days',w30,w30?dn(w30.d):'')}${tile('Worst ever',wAll,wAll?dn(wAll.d)+(wAll.src==='closed'?' · closed only':''):'')}</div>
+  <div class="ad-strip">${tile('Today',td,td?(td.at&&td.dd>0.005?'low at '+new Date(td.at).toISOString().slice(11,16):''):'')}${tile(yd&&yd.d===now-DAY?'Yesterday':'Previous day',yd,yd?dn(yd.d):'')}${tile('Worst, last 30 days',w30,w30?dn(w30.d):'')}${tile('Worst ever',wAll,wAll?dn(wAll.d)+(wAll.src==='closed'?' · closed only':''):'')}</div>
   <div class="scroll"><table class="dd-t"><thead><tr><th>Day</th><th>Daily drawdown</th><th>%</th><th></th><th title="how much worse it got during the day, against the equity the day started with (open trades carried over excluded)">From day-start equity</th><th>Closed P/L</th><th>Trades</th><th>Based on</th></tr></thead><tbody>${rows.slice(0,20).map(r=>`<tr class="${r.ddp>=lim?'over':''}${r.n?' ad-day':''}"${r.n?` data-day="${r.d}" tabindex="0" title="Show this day's trades"`:''}>
     <td>${r.d===now?'<b>Today</b>':r===yd&&r.d===now-DAY?'<b>Yesterday</b>':dn(r.d)}</td><td class="${r.dd>0.005?'neg':''}">${r.dd>0.005?money(-r.dd,2):'0.00'}</td><td class="${r.dd>0.005?'neg':''}"><b>${r.dd>0.005?ddPct(r.ddp):'0.00%'}</b></td>
     <td><span class="dd-bar" title="${pct(r.ddp,2)} of ${money(r.base,0)}"><i style="width:${Math.min(100,r.ddp/big*100)}%"></i><s style="left:${Math.min(100,lim/big*100)}%"></s></span></td>
-    <td class="${r.ddE>0.005?'neg':''}">${r.src==='equity'?(r.ddE>0.005?money(-r.ddE,2)+' · −'+ddPct(r.ddEp):'0.00'):'<span class="muted">–</span>'}</td><td class="${cls(r.pnl)}">${r.n?(r.pnl>0?'+':'')+money(r.pnl,2):'–'}</td><td>${r.n||'–'}</td><td>${tag(r)}</td></tr>`).join('')}</tbody></table></div>
+    <td class="${r.ddE>0.005?'neg':''}">${r.src==='equity'?(r.ddE>0.005?money(-r.ddE,2)+' · '+ddPct(r.ddEp):'0.00'):'<span class="muted">–</span>'}</td><td class="${cls(r.pnl)}">${r.n?(r.pnl>0?'+':'')+money(r.pnl,2):'–'}</td><td>${r.n||'–'}</td><td>${tag(r)}</td></tr>`).join('')}</tbody></table></div>
   <p class="muted" style="font-size:12px">Showing the last ${Math.min(20,rows.length)} days with activity. The dashed line is your ${pct(lim,0)} limit; red rows broke it. ${rows.some(r=>r.src==='closed')?'Days marked “closed only” come from closed trades, so dips in open trades that later recovered are not counted; from 25 Nov 2026 every day includes open trades.':''}</p></section>`;
 }
 function acctDD(a){const accts=[...new Set(S.trades.filter(t=>inSel(t.acct,a)).map(t=>t.acct))];
-  return dailyDD(S.trades.filter(t=>inSel(t.acct,a)),S.eq.filter(r=>r.magic==='ALL'&&inSel(r.acct,a)),accts)}
+  const E=S.eq.filter(r=>r.magic==='ALL'&&inSel(r.acct,a));E.byEq=true;
+  return dailyDD(S.trades.filter(t=>inSel(t.acct,a)),E,accts,(S.pos||[]).filter(p=>inSel(p.acct,a)))}
 function eaDD(fam,a){const T=S.trades.filter(t=>t.fam===fam&&inSel(t.acct,a)),accts=[...new Set(T.map(t=>t.acct))];
   const keys=new Set(T.map(t=>t.acct+'|'+t.magic));for(const p of S.pos||[]) if(p.fam===fam&&inSel(p.acct,a))keys.add(p.acct+'|'+p.magic);
   const E=S.eq.filter(r=>r.magic!=='ALL'&&keys.has(r.acct+'|'+r.magic)&&famFor(r.acct,r.magic,r.comment)===fam);
-  return dailyDD(T,E,[...new Set([...accts,...[...keys].map(k=>k.split('|')[0])])])}
+  return dailyDD(T,E,[...new Set([...accts,...[...keys].map(k=>k.split('|')[0])])],(S.pos||[]).filter(p=>p.fam===fam&&inSel(p.acct,a)))}
 const _renderAcctDetail=renderAcctDetail;
 renderAcctDetail=function(ctx){_renderAcctDetail(ctx);const el=$('#acctDetail');if(!el||el.hidden)return;
   const html=ddPanel(acctDD(ctx.a),'Daily drawdown','How far each day fell below where it started, closed and open trades together.');
