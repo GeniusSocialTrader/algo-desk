@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127181918">
+<meta name="desk-build" content="20261127185338">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127181918',busy=false;
+(function(){var mine='20261127185338',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -703,6 +703,10 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 }
 #acctDetail:empty{display:none!important}
 
+/* v37 archive note */
+.arch-note{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:var(--sunk);border:1px dashed var(--line);font-size:13px;color:var(--muted);line-height:1.5}
+.arch-note b{color:var(--ink)}.arch-note b.pos{color:var(--pos)}.arch-note b.neg{color:var(--neg)}
+.linkish{background:none;border:0;padding:0;font:inherit;color:var(--accent);text-decoration:underline;cursor:pointer}
 /* v36 pro analytics */
 .ptiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:900px){.ptiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -770,6 +774,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 
 <div class="wrap" style="margin-top:22px">
 <div id="err" class="err" hidden></div>
+<p class="arch-note" id="archNote" hidden></p>
 <div class="ticker" id="ticker" role="region" aria-label="Live ticker" hidden></div>
 
 <section class="hero" data-tab="overview" aria-label="Where you stand">
@@ -1302,16 +1307,17 @@ function spark(vals){
   const col=v[v.length-1]>=v[0]?'var(--pos)':'var(--neg)';
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,${H} ${pts} ${W},${H}" fill="color-mix(in srgb,${col} 14%,transparent)" stroke="none"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
 }
+const actOnly=T=>typeof EA_ARCH!=='undefined'&&EA_ARCH.size?T.filter(t=>!EA_ARCH.has(t.fam)):T;
 function capIn(acct){if(!/^\d+$/.test(acct))return [...new Set(S.trades.filter(t=>inSel(t.acct,acct)).map(t=>t.acct))].reduce((s,a)=>s+capIn(a),0);let f=Infinity;for(const t of S.trades)if(t.acct===acct&&t.ct<f)f=t.ct;let v=0;for(const x of S.cash)if(x.acct===acct&&!x.reb&&(x.t<=f||x.amt>0))v+=x.amt;return v}
 function acctStats(acct,cap){
-  const T=S.trades.filter(t=>inSel(t.acct,acct)).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(x=>inSel(x.acct,acct));
+  let T=S.trades.filter(t=>inSel(t.acct,acct)).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(x=>inSel(x.acct,acct));
   if(!T.length) return null;
-  const b=baseFor(T,C,cap),M=metrics(T,b.Cuse,b.cap0,b.base);
+  const T0=T,Ta=actOnly(T0),b=baseFor(T0,C,cap),Mall=metrics(T0,b.Cuse,b.cap0,b.base),M=Ta.length&&Ta.length<T0.length?metrics(Ta,b.Cuse,b.cap0,b.base):Mall;if(Ta.length)T=Ta;
   const nowRows=S.now.filter(r=>r.magic==='ALL'&&(inSel(r.acct,acct)));
-  const bal=nowRows.length?nowRows.reduce((s,r)=>s+r.bal,0):M.sr.end,eqv=nowRows.length?nowRows.reduce((s,r)=>s+r.eq,0):null;
+  const bal=nowRows.length?nowRows.reduce((s,r)=>s+r.bal,0):Mall.sr.end,eqv=nowRows.length?nowRows.reduce((s,r)=>s+r.eq,0):null;
   const dep=C.reduce((s,x)=>s+(x.reb?0:Math.max(x.amt,0)),0),reb=C.reduce((s,x)=>s+(x.reb?x.amt:0),0),ci=capIn(acct),rb=ci>0?ci:Math.max(dep,b.base);
   return {T,M,base:rb,bal,eq:eqv,fl:eqv==null?null:eqv-bal,deposits:dep,reb,score:health(M,rb),plat:T[0].plat,
-    age:nowRows.length?Math.max(...nowRows.map(r=>r.age)):null,curve:M.sr.pts.map(p=>p.bal)};
+    age:nowRows.length?Math.max(...nowRows.map(r=>r.age)):null,curve:Mall.sr.pts.map(p=>p.bal),T0,Mall,arch:{n:T0.length-T.length,net:Mall.net-M.net}};
 }
 let PCUT=0;   // start of the picked period (0 = all time), shared with the account page
 
@@ -1325,10 +1331,10 @@ const isDemoAcct=a=>{const o=acctTypes()[a];return o!=null?o:/demo/i.test(nm(a))
 function render(){
   try{
   const c=cfg(),a=$('#acct').value,f=x=>inSel(x.acct,a);
-  let T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);const Tall=T;
+  const T0=S.trades.filter(f).sort((x,y)=>x.ct-y.ct);/* archived EAs stay out of every analysis; balances and equity still count them */let T=actOnly(T0),C=S.cash.filter(f),E=S.eq.filter(f);const Tall=T;
   periodBar();const PS=periodSlice(T,C,E,c.cap);PCUT=PS&&PS.cut||0;if(PS){T=PS.T;if(PS.E)E=PS.E}
   $('#mode').className='pill '+(S.demo?'demo':'live');$('#mode').textContent=S.demo?'Demo data':S.live?'Live':'Your files';
-  if(!T.length){$('#err').hidden=false;$('#err').textContent=PS?'No closed trades in this period for this selection. Pick a longer period.':'No closed trades found for this selection.';return}
+  if(!T.length){$('#err').hidden=false;$('#err').textContent=T0.length&&!Tall.length?'Only archived EAs traded on this selection. Unarchive one on the EA map tab to analyse it.':PS?'No closed trades in this period for this selection. Pick a longer period.':'No closed trades found for this selection.';return}
   $('#err').hidden=true;
   const {base:b0,cap0,Cuse}=PS?{base:PS.base,cap0:PS.cap0,Cuse:PS.Cuse}:baseFor(T,C,c.cap);
   const P=metrics(T,Cuse,cap0,b0),EQ=eqSeries(E);
@@ -1356,7 +1362,9 @@ function render(){
   const EAs=mkEAs(T,P);
 
   const NMAP={};for(const e of EAs) NMAP[e.k]=e.name;EAN=t=>NMAP[keyOf(t,c.grp)]||t.fam;
-  const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all,Tall};
+  const Tarch=EA_ARCH.size?(PCUT?T0.filter(t=>t.ct>=PCUT):T0).filter(t=>EA_ARCH.has(t.fam)):[];
+  const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all,Tall,Tarch};
+  archNote(all);
   // insights judge only active EAs: archived ones are history, not advice (they come back when unarchived)
   const Ta=EA_ARCH.size?T.filter(t=>!EA_ARCH.has(t.fam)):T;let actx=ctx;
   if(Ta.length&&Ta.length<T.length){const Pa=metrics(Ta,Cuse,cap0,b0);actx={...ctx,T:Ta,P:Pa,EAs:mkEAs(Ta,Pa),MC:monteCarlo(Ta.map(t=>t.net),base,c.ruin),arch:T.length-Ta.length}}
@@ -1382,7 +1390,7 @@ function renderHero({T,P,EQ,all,ccy,base,Tall}){
   $('#heroHealth').innerHTML=`${ring(sc,'big')}<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font:600 17px var(--f-display)">Health ${sc}/100</b>
     <span class="muted" style="font-size:13px">Scores edge (profit factor), recovery, drawdown and how many trades back it up. ${sc>=65?'Solid.':sc>=45?'Workable, with weak spots below.':'Needs attention: see Good to know.'}</span></div>`;
   const acc=css('--accent'),cool=css('--cool');
-  const balPts=P.sr.pts.filter(p=>p.t>=P.t0),bal=sample(balPts,700,'bal').map(p=>({x:p.t,y:p.bal}));
+  const balPts=((all&&all.Mall)||P).sr.pts.filter(p=>p.t>=P.t0),bal=sample(balPts,700,'bal').map(p=>({x:p.t,y:p.bal}));
   const ds=[{label:'Closed balance',data:bal,borderColor:acc,backgroundColor:acc+'22',fill:'origin',borderWidth:2,pointRadius:0,stepped:true,order:1}];
   const eqp=EQ?EQ.pts.filter(p=>p.t>=P.t0):[];
   if(eqp.length>1) ds.push({label:'Equity',data:sample(eqp,900,'eq').map(p=>({x:p.t,y:p.eq})),borderColor:cool,borderWidth:1.5,pointRadius:0,order:0});
@@ -1486,7 +1494,7 @@ function renderCards({c,a}){
     return `<button type="button" class="acard${a===id?' sel':''}" data-a="${esc(id)}" style="animation-delay:${i*40}ms" aria-pressed="${a===id}">
       <div class="top"><span class="name"><b><span class="dot ${dot}" title="${st.age==null?'No live equity':st.age>900?'Last report '+Math.round(st.age/60)+' min ago':'Reporting'}"></span>${esc(label)}</b><span class="tag">${esc(sub)}</span></span>${ring(st.score)}</div>
       <div><span class="k">Equity</span><div class="big2">${money(st.eq!=null?st.eq:st.bal)}</div>
-        <div class="row"><span class="${cls(st.M.net)}">${st.M.net>=0?'▲':'▼'} ${money(Math.abs(st.M.net))} net · ${pct(st.M.net/st.base)}</span><span class="${cls(st.fl)}">${st.fl==null?'':'open '+money(st.fl)}</span></div></div>
+        <div class="row"><span class="${cls(st.M.net)}">${st.M.net>=0?'▲':'▼'} ${money(Math.abs(st.M.net))} net${st.arch&&st.arch.n?' active EAs':''} · ${pct(st.M.net/st.base)}</span><span class="${cls(st.fl)}">${st.fl==null?'':'open '+money(st.fl)}</span></div></div>
       ${spark(st.curve)}
       <div class="mini"><div><span>Max DD</span><span class="neg">${pct(st.M.maxDDp,0)}</span></div><div><span>Win rate</span><span>${pct(st.M.wr,0)}</span></div><div><span>PF</span><span>${fmt(st.M.pf)}</span></div></div>
     </button>`};
@@ -1673,16 +1681,24 @@ function renderPlumbing({T,P,ccy,a}){
 $('#knowMore').onclick=()=>{UI.knowAll=!UI.knowAll;render()};
 $('#boardMore').onclick=()=>{UI.boardAll=!UI.boardAll;render()};
 
+// one line on every tab: what is left out and where it still counts
+function archNote(all){const el=$('#archNote');if(!el)return;const ar=all&&all.arch;
+  if(!ar||!ar.n){el.hidden=true;return}
+  const k=new Set(all.T0.filter(t=>EA_ARCH.has(t.fam)).map(t=>t.fam)).size;
+  el.hidden=false;el.innerHTML=`🗄 <b>Active EAs only.</b> ${k} archived EA${k>1?'s':''} (${ar.n.toLocaleString()} trades, net <b class="${cls(ar.net)}">${ar.net>0?'+':''}${money(ar.net,2)}</b>) ${k>1?'are':'is'} left out of every figure and chart. ${k>1?'They':'It'} still count${k>1?'':'s'} in balance and equity, because that money is real. <button type="button" class="linkish" data-go="map">Unarchive on the EA map</button>`;
+  el.querySelector('[data-go]').onclick=()=>showTab('map',true)}
+
 
 /* ---------- EA deep dive: one family, split by pair and account ---------- */
 UI.ea=null;
-function renderDive({T,base,ccy}){
-  const fams={};for(const t of T)(fams[t.fam]=fams[t.fam]||[]).push(t);
-  const list=Object.entries(fams).map(([k,ts])=>[k,ts,ts.reduce((s,t)=>s+t.net,0)]).sort((x,y)=>y[2]-x[2]);
+function renderDive({T,Tarch,base,ccy}){
+  // archived EAs can still be opened from the archive list; they sort last and are marked
+  const fams={};for(const t of T.concat(Tarch||[]))(fams[t.fam]=fams[t.fam]||[]).push(t);
+  const list=Object.entries(fams).map(([k,ts])=>[k,ts,ts.reduce((s,t)=>s+t.net,0)]).sort((x,y)=>EA_ARCH.has(x[0])-EA_ARCH.has(y[0])||y[2]-x[2]);
   if(!list.length) return;
   if(!fams[UI.ea]) UI.ea=list[0][0];
   const sel=$('#eaPick');
-  sel.innerHTML=list.map(([k,ts,n])=>`<option value="${esc(k)}">${esc(k)} · ${ts.length} trades · ${money(n)}</option>`).join('');
+  sel.innerHTML=list.map(([k,ts,n])=>`<option value="${esc(k)}">${EA_ARCH.has(k)?'🗄 archived · ':''}${esc(k)} · ${ts.length} trades · ${money(n)}</option>`).join('');
   sel.value=UI.ea;
   const ts=fams[UI.ea].slice().sort((x,y)=>x.ct-y.ct),M=metrics(ts,[],base,base),sc=health(M,base);
   const recent=ts.slice(-30),rExp=mean(recent.map(t=>t.net));
@@ -1959,7 +1975,7 @@ let RR=[];
 function renderRiskEA({EAs,c,a}){
   const acctBase={},acctSt={};const stOf=ac=>acctSt[ac]??=(acctStats(ac,c.cap)||{}),baseOf=ac=>acctBase[ac]??=(stOf(ac).bal||stOf(ac).base||c.cap);
   // account balance just before time t: a drawdown % is measured against what the account held at the EA's high, not the first deposit
-  const balAt=(ac,t)=>{const p=(stOf(ac).M||{sr:{pts:[]}}).sr.pts;let lo=0,hi=p.length-1,v=null;while(lo<=hi){const m=(lo+hi)>>1;if(p[m].t<=t){v=p[m].bal;lo=m+1}else hi=m-1}return v>0?v:baseOf(ac)};
+  const balAt=(ac,t)=>{const p=(stOf(ac).Mall||{sr:{pts:[]}}).sr.pts;let lo=0,hi=p.length-1,v=null;while(lo<=hi){const m=(lo+hi)>>1;if(p[m].t<=t){v=p[m].bal;lo=m+1}else hi=m-1}return v>0?v:baseOf(ac)};
   RR=[];
   for(const e of EAs){
     const byA={};for(const ts of Object.values(e.syms)) for(const t of ts)(byA[t.acct]=byA[t.acct]||[]).push(t);
@@ -2309,10 +2325,10 @@ function profileOf(k,ts){
 const SORTS={score:p=>-(p.S.band==='Too early'?-1:p.S.s),profit:p=>-p.M.net,dd:p=>p.S.ddp};
 
 /* ---------- EA lab: one card per EA ---------- */
-function renderLab({T}){
+function renderLab({T,Tarch}){
   EB={};PROF={};NOW_T=T.length?Math.max(...T.slice(-200).map(t=>t.ct)):0;
   const el=$('#lab');if(!el) return;
-  const fams={};for(const t of T)(fams[t.fam]=fams[t.fam]||[]).push(t);
+  const fams={};for(const t of T.concat(Tarch||[]))(fams[t.fam]=fams[t.fam]||[]).push(t);   
   const L0=Object.entries(fams).filter(([,ts])=>ts.length>=2).map(([k,ts])=>profileOf(k,ts)).sort((x,y)=>SORTS[UI.labSort](x)-SORTS[UI.labSort](y));
   const L=L0.filter(p=>!EA_ARCH.has(p.k)),LA=L0.filter(p=>EA_ARCH.has(p.k));
   const cnt={Keep:0,Watch:0,Review:0,'Too early':0};for(const p of L) cnt[p.S.band]++;
@@ -2343,9 +2359,9 @@ function quietOf(ts){
   return idle>lim?{days:Math.round(idle/864e5),usual:Math.max(1,Math.round(p90/864e5))}:null;
 }
 const costOf=ts=>{const c=-ts.reduce((s,t)=>s+(t.comm||0)+(t.swap||0),0),gw=ts.reduce((s,t)=>s+Math.max(t.gross!=null?t.gross:t.net,0),0);return {c,share:gw?c/gw:0}};
-function renderProfile({T}){
+function renderProfile({T,Tarch}){
   const el=$('#eaHero');if(!el||!UI.ea) return;
-  const ts0=T.filter(t=>t.fam===UI.ea);if(!ts0.length){el.innerHTML='';return}   // a 1-trade EA still gets its own report: returning early left the previous EA's score on screen
+  const ts0=(EA_ARCH.has(UI.ea)?Tarch||[]:T).filter(t=>t.fam===UI.ea);if(!ts0.length){el.innerHTML='';return}   // a 1-trade EA still gets its own report: returning early left the previous EA's score on screen
   const p=profileOf(UI.ea,ts0),{ts,M,S:Sc,V,rc,base}=p,col=`var(${BANDC[Sc.band]})`;
   const last=ts[ts.length-1].ct,day=dayKey(last),today=ts.filter(t=>dayKey(t.ct)===day).reduce((s,t)=>s+t.net,0);
   const LP=(S.pos||[]).filter(q=>p.accts.includes(q.acct)&&isLiveAcct(q.acct)&&q.fam===UI.ea&&q.fl!=null),G=(S.now||[]).filter(r=>r.magic!=='ALL'&&p.accts.includes(r.acct)&&!isLiveAcct(r.acct)&&famFor(r.acct,r.magic,r.comment)===UI.ea),fl=G.reduce((s,r)=>s+r.fl,0)+LP.reduce((s,q)=>s+q.fl,0),nOpen=LP.length+G.length;
@@ -2856,7 +2872,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v36';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v37';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3130,7 +3146,7 @@ async function liveTick(){
     S.pos=(S.pos||[]).filter(p=>!isLiveAcct(p.acct)).concat(fresh);
     const nl=nw[0]&&nw[0].csv?nw[0].csv.split('\n'):[];
     if(nl.length) S.now=nl.map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],eq:+v[4],fl:+v[5],t:parseTime(v[6]),age:+v[7]}});
-    const a=$('#acct').value,T=S.trades.filter(t=>inSel(t.acct,a)).sort((x,y)=>x.ct-y.ct);
+    const a=$('#acct').value,T=actOnly(S.trades.filter(t=>inSel(t.acct,a))).sort((x,y)=>x.ct-y.ct);
     renderOpenNow({a});renderLive({T,a});renderRiskNow({a});if(typeof clampAll==='function')clampAll();
   }catch(e){console.warn('live refresh',e)}finally{liveBusy=false}
 }
@@ -3192,7 +3208,7 @@ function renderAcctDetail({a,c}){
   // peak of the closed balance; trusted only when the trade history rebuilds today's balance (deposits all recorded)
   // withdrawals are not losses: peak of the trading curve (balance minus money moved so far), put back on today's cash level
   const CS=S.cash.filter(x=>inSel(x.acct,a)).sort((x,y)=>x.t-y.t),netCash=CS.reduce((s,x)=>s+x.amt,0),cashBy=t=>{let s=0;for(const x of CS){if(x.t>t)break;s+=x.amt}return s};
-  const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal-cashBy(p.t)),st.bal-netCash)+netCash:null;
+  const synced=Math.abs(st.Mall.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...st.Mall.sr.pts.map(p=>p.bal-cashBy(p.t)),st.bal-netCash)+netCash:null;
   const downPk=peak?((st.eq!=null?st.eq:st.bal)-peak)/peak:null;
   const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0&&!x.reb).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0&&!x.reb).reduce((s,x)=>s+x.amt,0),reb=C.filter(x=>x.reb).reduce((s,x)=>s+x.amt,0);
   // the period chips at the top also scope Trading statistics, EAs and By symbol (the period table and calendar stay calendar-based)
@@ -3234,7 +3250,7 @@ function renderAcctDetail({a,c}){
     ${tile('Balance',money(st.bal,2))}${tile('Equity',st.eq!=null?money(st.eq,2):'–',st.eq!=null?`${fl>=0?'+':''}${money(fl,2)} open`:'',st.eq!=null?cls(fl):'')}
     ${tile('Today',sign(P[0].p),P[0].n?`${P[0].n} trade${P[0].n>1?'s':''} closed${P[0].g!=null?' · '+pct(P[0].g,2):''}`:'nothing closed yet',cls(P[0].p))}
     ${tile('This month',sign(P.find(x=>x.lab==='This month').p),P.find(x=>x.lab==='This month').g!=null?pct(P.find(x=>x.lab==='This month').g,2):'',cls(P.find(x=>x.lab==='This month').p))}
-    ${tile('Net profit',sign(M.net),(st.base?pct(M.net/st.base,1)+' gain':'')+(reb?` · ${sign(reb)} rebates and fees on top`:''),cls(M.net))}
+    ${tile('Net profit',sign(M.net),(st.base?pct(M.net/st.base,1)+' gain':'')+(reb?` · ${sign(reb)} rebates and fees on top`:'')+(st.arch.n?` · active EAs; archived ${sign(st.arch.net)} is in the balance`:''),cls(M.net))}
     ${tile('Open now',ps.length?`${ps.length} trade${ps.length>1?'s':''}`:'none',ps.length?`${sign(fl)}${risk&&risk.noSL<risk.n?` · if stops hit ${money(risk.sum,0)}`:risk?' · no stop losses':''}`:'',ps.length?cls(fl):'')}
     ${peak?tile('Below peak',downPk<-0.0005?pct(downPk,2):'at peak',`equity vs peak ${money(peak,0)}${wdr?', withdrawals excluded':''}`,downPk<-0.0005?'neg':'pos'):tile('Drawdown now',st.eq!=null&&st.bal?pct(Math.min(0,fl/st.bal),2):'–','open loss vs balance',fl<0?'neg':'')}
     ${tile('Deposits',money(dep,0),wdr?`withdrawn ${money(wdr,0)}`:'no withdrawals')}
@@ -3276,7 +3292,7 @@ function renderAcctDetail({a,c}){
     </div></section>
 
   <section class="panel"><header><h3>EAs on ${one?'this account':'these accounts'}${pLab?' · '+pLab:''}</h3><p>Tap an EA for its full report.</p></header>
-    <div class="scroll"><table id="adEA"><thead><tr><th>EA</th><th>Trades</th><th>Net</th><th>Today</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${EA.map(r=>`<tr data-ea="${esc(r.k)}" class="ad-click" tabindex="0"><td>${avatar(r.k,18)} <b>${esc(r.k)}</b><span class="tag"> last ${dayKey(r.last)}</span></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.today)}">${r.today?sign(r.today):'–'}</td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oEA[r.k]||0)}">${cntEA[r.k]?`${cntEA[r.k]} · ${sign(oEA[r.k])}`:'–'}</td></tr>`).join('')}</tbody></table></div></section>
+    <div class="scroll"><table id="adEA"><thead><tr><th>EA</th><th>Trades</th><th>Net</th><th>Today</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${EA.map(r=>`<tr data-ea="${esc(r.k)}" class="ad-click" tabindex="0"><td>${avatar(r.k,18)} <b>${esc(r.k)}</b><span class="tag"> last ${dayKey(r.last)}</span></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.today)}">${r.today?sign(r.today):'–'}</td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oEA[r.k]||0)}">${cntEA[r.k]?`${cntEA[r.k]} · ${sign(oEA[r.k])}`:'–'}</td></tr>`).join('')}</tbody>${(()=>{const AR=(PCUT?st.T0.filter(t=>t.ct>=PCUT):st.T0).filter(t=>EA_ARCH.has(t.fam));if(!AR.length)return '';const n=AR.reduce((x,t)=>x+t.net,0),k=new Set(AR.map(t=>t.fam)).size;return `<tfoot><tr class="arch-row"><td>🗄 <b>Archived EAs</b><span class="tag"> ${k} EA${k>1?'s':''}, kept out of the figures above, still in the balance</span></td><td>${AR.length}</td><td class="${cls(n)}">${sign(n)}</td><td colspan="5"></td></tr></tfoot>`})()}</table></div></section>
   <section class="panel"><header><h3>By symbol${pLab?' · '+pLab:''}</h3><p>Where the money was made and lost, ${SY.length} symbol${SY.length>1?'s':''}.</p></header>
     <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
 
@@ -3364,7 +3380,7 @@ renderProfile=function(ctx){_renderProfile(ctx);let el=$('#eaDD');
 
 /* ---------- v25: every closed trade of the account, filterable, with where the losses came from ---------- */
 UI.adF={acct:null};
-function adTradesOf(a){return S.trades.filter(t=>inSel(t.acct,a))}
+function adTradesOf(a){return actOnly(S.trades.filter(t=>inSel(t.acct,a)))}
 function renderAdTrades(a){
   const el=$('#adTrades');if(!el)return;
   let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:10};
@@ -3682,6 +3698,19 @@ function renderHeat({T,ccy}){
 {const _rr=renderRisk;renderRisk=function(x){_rr(x);try{renderTail(x)}catch(e){console.error(e)}}}
 {const _rt=renderTiming;renderTiming=function(x){_rt(x);try{renderHeat(x)}catch(e){console.error(e)}}}
 {const _rl=renderLab;renderLab=function(x){_rl(x);try{renderEdge(x)}catch(e){console.error(e)}}}
+
+// v37: tell the server which account|magic pairs belong to archived EAs, so Telegram alerts and the morning brief skip them too
+let ARCH_SIG=null;
+function syncArchKeys(){
+  if(!S.live||typeof mcp==='undefined'||!mcp||!S.trades.length) return;
+  const by={};for(const t of S.trades){if(t.magic==='0')continue;const k=t.acct+'|'+t.magic,o=(by[k]=by[k]||{a:0,n:0});o.n++;if(EA_ARCH.has(t.fam))o.a++}
+  const keys=Object.keys(by).filter(k=>by[k].a===by[k].n).sort();   // a magic shared with an active EA is never silenced
+  const sig=keys.join(',');if(sig===ARCH_SIG)return;ARCH_SIG=sig;
+  let prev=null;try{prev=localStorage.getItem('fx-archkeys')}catch(e){}
+  if(prev===sig)return;
+  sql(`select public.ea_arch_put(array[${keys.map(k=>`'${k.replace(/[^0-9|-]/g,'')}'`).join(',')}]::text[]) as n`).then(()=>{try{localStorage.setItem('fx-archkeys',sig)}catch(e){}}).catch(e=>{ARCH_SIG=null;console.warn('archive keys',e)});
+}
+{const _rn=render;render=function(){_rn();try{syncArchKeys()}catch(e){console.warn(e)}}}
 
 </script>
 
