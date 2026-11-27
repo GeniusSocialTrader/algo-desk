@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127130203">
+<meta name="desk-build" content="20261127152322">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127130203',busy=false;
+(function(){var mine='20261127152322',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -1094,16 +1094,16 @@ function metrics(T,C,cap0,base){
   let gp=0,gl=0,w=0,hw=0,hl=0,cur=0,curW=0,maxL=0,maxW=0;const ls={};
   for(const t of T){
     if(t.net>0){gp+=t.net;w++;hw+=t.ct-t.ot;if(cur)ls[cur]=(ls[cur]||0)+1;cur=0;curW++;maxW=Math.max(maxW,curW)}
-    else{gl-=t.net;hl+=t.ct-t.ot;cur++;curW=0;maxL=Math.max(maxL,cur)}
+    else if(t.net<0){gl-=t.net;hl+=t.ct-t.ot;cur++;curW=0;maxL=Math.max(maxL,cur)}
   }
   if(cur) ls[cur]=(ls[cur]||0)+1;
-  const l=n-w,net=gp-gl,sr=series(T,C,cap0),D=dense(T,C,cap0);
+  const l=T.filter(t=>t.net<0).length,even=n-w-l,net=gp-gl,sr=series(T,C,cap0),D=dense(T,C,cap0);
   const r=D.map(d=>d.start>0?d.pnl/d.start:0),m=mean(r),sd=std(r),dn=Math.sqrt(mean(r.map(x=>Math.min(x,0)**2)));
   const yrs=Math.max((T[n-1].ct-T[0].ot)/(365.25*DAY),1/52);
   // shortcut: growth measured on starting base; later deposits are not time-weighted.
   const cagr=Math.pow(Math.max((base+net)/base,1e-9),1/yrs)-1;
   let worst=D[0],best=D[0],maxDaily=D[0];for(const d of D){if(d.pnl<worst.pnl)worst=d;if(d.pnl>best.pnl)best=d;if(d.ddp>maxDaily.ddp)maxDaily=d}
-  return {n,w,l,gp,gl,net,pf:gl?gp/gl:Infinity,wr:w/n,avgW:w?gp/w:0,avgL:l?gl/l:0,exp:net/n,
+  return {n,w,l,even,gp,gl,net,pf:gl?gp/gl:Infinity,wr:w/n,avgW:w?gp/w:0,avgL:l?gl/l:0,exp:net/n,
     payoff:l&&w?(gp/w)/(gl/l):0,maxDD:sr.maxDD,maxDDp:sr.maxDDp,sharpe:sd?m/sd*Math.sqrt(252):0,sortino:dn?m/dn*Math.sqrt(252):0,
     cagr,calmar:sr.maxDDp?cagr/sr.maxDDp:0,rec:sr.maxDD?net/sr.maxDD:0,maxL,maxW,ls,holdW:w?hw/w/HOUR:0,holdL:l?hl/l/HOUR:0,
     D,sr,worst,best,maxDaily,yrs,t0:T[0].ot,t1:T[n-1].ct};
@@ -2201,6 +2201,10 @@ let EB={};
 function eaBase(ts){const c=cfg().cap;return [...new Set(ts.map(t=>t.acct))].reduce((s,a)=>s+(EB[a]??=((acctStats(a,c)||{}).base||c)),0)}
 const clamp01=x=>Math.max(0,Math.min(1,x));
 const dowOf=t=>new Date(t).getUTCDay();
+// trade times are Singapore clock; rollover and the weekend follow the broker's own calendar (server clock), so Friday-night closes in Singapore are not weekend holds
+const toSrv=t=>{const w=dstWin(new Date(t).getUTCFullYear()),u=t-5*36e5;return t-(u>=w[0]&&u<w[1]?5:6)*36e5};
+const srvDay=t=>Math.floor(toSrv(t)/864e5);
+const heldWeekend=t=>{for(let d=srvDay(t.ot),e=srvDay(t.ct);d<=e;d++)if(new Date(d*864e5).getUTCDay()===6)return true;return false};
 // grid, martingale, averaging down, hedging, stop use, weekend holds: from open/close overlap of its own positions
 function riskChars(ts){
   const uniq=new Map();for(const t of ts){const k=t.acct+'|'+(t.pos||t.id);if(!uniq.has(k))uniq.set(k,t)}
@@ -2213,7 +2217,7 @@ function riskChars(ts){
     for(const side of ['buy','sell']){const s=a.filter(t=>t.side===side).sort((x,y)=>x.ot-y.ot);let end=-1,first=null;
       for(const t of s){if(t.ot>end) first=t;else if(first){if(first.lots>0)mart=Math.max(mart,t.lots/first.lots);if(t.op&&first.op&&(side==='buy'?t.op<first.op:t.op>first.op))avgDown++}end=Math.max(end,t.ct)}}
   }
-  for(const t of P){if(t.ct-t.ot>=6*864e5){wk++;continue}let d=t.ot-t.ot%864e5;while(d<=t.ct){if(dowOf(d)===6){wk++;break}d+=864e5}}
+  for(const t of P)if(heldWeekend(t))wk++;
   return {maxOpen,mart,avgDown,hedge,wk,n:P.length,grid:maxOpen>=3,isMart:mart>=1.5&&maxOpen>=2,sl:ts.filter(t=>t.sl).length/ts.length};
 }
 // 0-100 score: profitability, risk, consistency, significance; hard rules cap it below 45
@@ -2289,7 +2293,7 @@ function quietOf(ts){
 const costOf=ts=>{const c=-ts.reduce((s,t)=>s+(t.comm||0)+(t.swap||0),0),gw=ts.reduce((s,t)=>s+Math.max(t.gross!=null?t.gross:t.net,0),0);return {c,share:gw?c/gw:0}};
 function renderProfile({T}){
   const el=$('#eaHero');if(!el||!UI.ea) return;
-  const ts0=T.filter(t=>t.fam===UI.ea);if(ts0.length<2){el.innerHTML='';return}
+  const ts0=T.filter(t=>t.fam===UI.ea);if(!ts0.length){el.innerHTML='';return}   // a 1-trade EA still gets its own report: returning early left the previous EA's score on screen
   const p=profileOf(UI.ea,ts0),{ts,M,S:Sc,V,rc,base}=p,col=`var(${BANDC[Sc.band]})`;
   const last=ts[ts.length-1].ct,day=dayKey(last),today=ts.filter(t=>dayKey(t.ct)===day).reduce((s,t)=>s+t.net,0);
   const LP=(S.pos||[]).filter(q=>p.accts.includes(q.acct)&&isLiveAcct(q.acct)&&q.fam===UI.ea&&q.fl!=null),G=(S.now||[]).filter(r=>r.magic!=='ALL'&&p.accts.includes(r.acct)&&!isLiveAcct(r.acct)&&famFor(r.acct,r.magic,r.comment)===UI.ea),fl=G.reduce((s,r)=>s+r.fl,0)+LP.reduce((s,q)=>s+q.fl,0),nOpen=LP.length+G.length;
@@ -2367,7 +2371,7 @@ function renderScore(p){
   (M.pf>=1.2?F:A).push(`Profit factor <b>${fmt(M.pf)}</b>: ${fmt(M.pf)} earned for every 1 lost`);
   if(M.payoff) (M.payoff>=1||M.wr>=.6&&M.payoff>=.6?F:A).push(`Win rate <b>${pct(M.wr,0)}</b>, average win ${money(M.avgW,2)} vs average loss ${money(M.avgL,2)}`);
   const q=sqnOf(ts);(q>=2?F:q<1?A:F).push(`SQN <b>${fmt(q,2)}</b>: ${q>=2?'statistically dependable':q>=1?'average system quality':'results are noisy'}`);
-  (Sc.blocks[0]/Math.max(Sc.blocks[1],1)>=.6?F:A).push(`<b>${Sc.blocks[0]} of ${Sc.blocks[1]}</b> 30-day blocks in profit`);
+  if(Sc.blocks[1]>=2)(Sc.blocks[0]/Sc.blocks[1]>=.6?F:A).push(`<b>${Sc.blocks[0]} of ${Sc.blocks[1]}</b> 30-day blocks in profit`);   // one block proves nothing
   const L=ts.filter(t=>t.side==='buy').reduce((s,t)=>s+t.net,0),Sh=ts.filter(t=>t.side==='sell').reduce((s,t)=>s+t.net,0);
   if(L>0&&Sh>0) F.push('Long and short both profitable, not a one-way bet');else if(L<0||Sh<0) A.push(`${L<0?'Longs':'Shorts'} lose <b>${money(Math.min(L,Sh))}</b>`);
   if(isFinite(V.psr)) (V.psr>=.9?F:A).push(`<b>${pct(V.psr,0)}</b> sure the edge is real${V.need?`, needs ${V.need} more trading days for 95%`:''}`);
@@ -2389,7 +2393,7 @@ function renderBehaviour(p){
   const {ts}=p,h=t=>{const x=new Date(t.ot).getUTCHours();return x<6?x+24:x};
   const se=SESS.map(([n,a,b])=>{const x=ts.filter(t=>h(t)>=a&&h(t)<b);return {n,a,b,net:x.reduce((s,t)=>s+t.net,0),k:x.length}}),mxs=Math.max(...se.map(s=>Math.abs(s.net)),1),best=se.slice().sort((x,y)=>y.net-x.net)[0];
   const side=s=>{const x=ts.filter(t=>t.side===s);return {k:x.length,net:x.reduce((q,t)=>q+t.net,0),wr:x.length?x.filter(t=>t.net>0).length/x.length:0}},Lg=side('buy'),Sh=side('sell'),lp=Lg.k/Math.max(ts.length,1);
-  const hold={Intraday:[],Overnight:[],Weekend:[]};for(const t of ts){const d0=dayKey(t.ot),d1=dayKey(t.ct);let wk=false;if(d0!==d1){let d=t.ot-t.ot%864e5;while(d<=t.ct&&!wk){if(dowOf(d)===6)wk=true;d+=864e5}}hold[d0===d1?'Intraday':wk?'Weekend':'Overnight'].push(t)}
+  const hold={Intraday:[],Overnight:[],Weekend:[]};for(const t of ts){const on=srvDay(t.ot)!==srvDay(t.ct);hold[!on?'Intraday':heldWeekend(t)?'Weekend':'Overnight'].push(t)}   // overnight = held past the broker's daily rollover
   const hs=Object.entries(hold).map(([k,x])=>({k,n:x.length,net:x.reduce((s,t)=>s+t.net,0)})),mxh=Math.max(...hs.map(x=>Math.abs(x.net)),1);
   const row=(l,sub,v,mx)=>`<div class="bh-row"><span>${l}<span class="tag">${sub}</span></span><span class="div-bar" style="height:12px"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/mx*50}%;background:var(${v>=0?'--pos':'--neg'})"></b></span><b class="num ${cls(v)}">${money(v)}</b></div>`;
   $('#eaBehave').innerHTML=`<div class="bh"><span class="k">Sessions · Singapore time</span>${se.map(s=>row(s.n,`${String(s.a%24).padStart(2,'0')}–${String(s.b%24).padStart(2,'0')} · ${s.k}`,s.net,mxs)).join('')}<p class="tag">${best.net>=0?'Best':'Least bad'} session: ${best.n} (${money(best.net)})</p></div>
@@ -2800,7 +2804,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v33';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v34';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3197,7 +3201,7 @@ function renderAcctDetail({a,c}){
   <section class="panel"><header><h3>Trading statistics</h3><p>All closed trades on ${one?'this account':'these accounts'}.</p></header>
     <div class="ad-stats">
     ${tile('Trades',T.length.toLocaleString(),`${fmt(T.reduce((s,t)=>s+t.lots,0),2)} lots`)}
-    ${tile('Win rate',pct(M.wr,1),`${M.w} won · ${M.l} lost`)}
+    ${tile('Win rate',pct(M.wr,1),`${M.w} won · ${M.l} lost${M.even?` · ${M.even} at 0.00`:''}`)}
     ${tile('Longs won',longs.length?pct(wr(longs),0):'–',`${longs.length} buys · ${money(longs.reduce((s,t)=>s+t.net,0),0)}`)}
     ${tile('Shorts won',shorts.length?pct(wr(shorts),0):'–',`${shorts.length} sells · ${money(shorts.reduce((s,t)=>s+t.net,0),0)}`)}
     ${tile('Profit factor',pfT(M.pf),'gross win ÷ gross loss',M.pf>=1.5?'pos':M.pf<1?'neg':'')}
