@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261126170910">
+<meta name="desk-build" content="20261127031659">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261126170910',busy=false;
+(function(){var mine='20261127031659',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -659,6 +659,9 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
  .eh-arch{display:block;margin:6px 0 4px}
 }
 
+/* v30: Singapore clock in the header */
+.sgt-clock{font:600 12px var(--f-data,ui-monospace,monospace);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+@media (max-width:420px){.sgt-clock{display:none}}
 /* v29: news outlook, US holidays, Overview market strip */
 .wrap>div:has(>#mktStrip[hidden]){display:none}
 .mkt-strip{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 14px;min-width:0}
@@ -675,7 +678,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 .hol.closed{border-color:color-mix(in srgb,var(--neg) 40%,var(--line));background:color-mix(in srgb,var(--neg) 8%,var(--surface))}
 .hol.bank{border-color:color-mix(in srgb,var(--cool) 40%,var(--line));background:color-mix(in srgb,var(--cool) 8%,var(--surface))}
 .hol-f{font-size:24px;line-height:1}.hol b{display:block;font-size:15px;margin:2px 0}.hol p{font-size:13px;color:var(--muted)}
-.hol.live .k::after{content:" · now";color:var(--neg);font-weight:700}
+.hol.live .k{color:var(--neg);font-weight:700}
 .op-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:20px;align-items:start}
 .op-cur,.op-main{display:flex;flex-direction:column;gap:8px;min-width:0}
 .op-ccy{grid-template-columns:54px minmax(0,1fr) 64px!important}.op-ccy .tag{display:none}
@@ -705,7 +708,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 
 <div class="bar-top"><div class="bar-in">
   <div class="brand"><span class="logo" aria-hidden="true"></span>
-    <div style="display:flex;flex-direction:column;min-width:0"><div style="display:flex;gap:8px;align-items:center"><h1>Algo Portfolio Desk</h1><span id="mode" class="pill demo">Demo data</span></div>
+    <div style="display:flex;flex-direction:column;min-width:0"><div style="display:flex;gap:8px;align-items:center"><h1>Algo Portfolio Desk</h1><span id="mode" class="pill demo">Demo data</span><span class="sgt-clock" id="sgtClock" title="All times on this desk are Singapore time"></span></div>
     <span id="sync" aria-live="polite"></span></div></div>
   <div class="ctrls">
     <label for="acct" class="k" style="position:absolute;width:1px;height:1px;overflow:hidden">Account</label>
@@ -854,7 +857,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   <div class="sec-h"><div><span class="kicker">Risk</span><h2 id="hRisk">How deep it can hurt</h2></div><p>Drawdown is the drop from your last high. This is what blows accounts and prop challenges.</p></div>
   <div class="panel" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px"><label for="riskEA" class="k">Show risk for</label><select id="riskEA" style="font:600 15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%"></select><span class="muted" id="riskScope" style="font-size:13px;min-width:0"></span></div>
   <div class="gauges" id="gauges"></div>
-  <section class="panel"><header><h3>Risk by EA and account</h3><p>Every EA on every account, deepest drawdown first. Dates are when it happened (server time). Tap a row to show the whole tab for that EA.</p></header><div class="scroll"><table id="riskEATbl"></table></div><button type="button" class="more" id="riskEAMore" hidden>Show all</button></section>
+  <section class="panel"><header><h3>Risk by EA and account</h3><p>Every EA on every account, deepest drawdown first. Dates are when it happened (Singapore time). Tap a row to show the whole tab for that EA.</p></header><div class="scroll"><table id="riskEATbl"></table></div><button type="button" class="more" id="riskEAMore" hidden>Show all</button></section>
   <section class="panel"><header><h3>Which EAs deepen your worst drawdown</h3><p>Portfolio worst drawdown with and without each EA, on closed trades in the chosen period</p></header><div class="checks" id="marg"></div></section>
   <div class="g2">
     <section class="panel"><header><h3>Drawdown from the last high</h3><p>0% means at a new high; the deeper the dip, the more pain</p></header><div class="chart"><canvas id="cDD"></canvas></div><div class="explain" id="xDD"></div></section>
@@ -877,7 +880,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <div class="op-grid"><div class="op-cur"><span class="k">Currencies</span><div id="nCcy"></div><p class="tag">From forecast against the last figure: hotter inflation, a hike, stronger jobs or growth firm a currency; the opposite softens it. High impact counts double.</p></div>
     <div class="op-main"><span class="k">Your pairs<span class="swipe-hint"> · swipe</span></span><div class="op-pairs" id="nPairs"></div></div></div>
     <p class="explain" id="nOutNote" style="margin:0"><b>A lean, not a signal.</b> Markets price the forecast in before the release. The real move comes when the actual figure beats or misses it, and speeches or headlines can override all of this. Indices follow their currency's growth and jobs, and fall on hotter inflation or higher rates. Gold moves against the dollar.</p></section>
-  <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><h3>Coming up, next 7 days</h3><p id="newsSum"></p></div><div class="seg" id="newsImp" role="group" aria-label="Impact level"></div></header><div id="newsUp"></div><p class="tag">Times in your time zone. Red rows hit a currency you hold right now: open MT5 trades, or MT4 EAs with open trades on the pairs they have traded lately.</p></section>
+  <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><h3>Coming up, next 7 days</h3><p id="newsSum"></p></div><div class="seg" id="newsImp" role="group" aria-label="Impact level"></div></header><div id="newsUp"></div><p class="tag">Times are Singapore time. Red rows hit a currency you hold right now: open MT5 trades, or MT4 EAs with open trades on the pairs they have traded lately.</p></section>
   <section class="panel"><header><h3>How your EAs trade through news</h3><p>Average result of trades that were open when a high-impact release came out on one of their currencies, against their other trades.</p></header>
     <div class="chart" style="height:260px"><canvas id="cNews" role="img" aria-label="Average result per trade through news versus other trades, by EA"></canvas></div>
     <div class="explain" id="newsNote" style="margin:0"></div>
@@ -1000,7 +1003,10 @@ function assignFamilies(){
   for(const t of S.trades) t.fam=magName(t.acct,t.magic)||(t.magic!=='0'?best[t.acct+'|'+t.magic]:t.famRaw)||(t.magic==='0'?'Manual':'Magic '+t.magic);
   eaIdentity();
 }
-function parseTime(s){const m=String(s||'').match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):NaN}
+const DSTW={};function dstWin(y){if(DSTW[y])return DSTW[y];const sun=(m,k)=>{const d=new Date(Date.UTC(y,m,1)).getUTCDay();return 1+(7-d)%7+7*(k-1)};return DSTW[y]=[Date.UTC(y,2,sun(2,2),9),Date.UTC(y,10,sun(10,1),9)]}
+// server clock ms -> Singapore clock ms (US DST switches at 02:00 New York = 09:00 server)
+function toSGT(ms){if(!isFinite(ms))return ms;const w=dstWin(new Date(ms).getUTCFullYear());return ms+(ms>=w[0]&&ms<w[1]?5:6)*36e5}
+function parseTime(s){const m=String(s||'').match(/(\d{4})[.\-\/](\d{2})[.\-\/](\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);return m?toSGT(Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0))):NaN}
 // Strip what brokers append to comments so one strategy keeps one name.
 function cleanComment(c){return String(c||'').replace(/\[(sl|tp|so)[^\]]*\]/ig,'').replace(/\b(from|to)\s*#\d+/ig,'').replace(/\bso:.*$/i,'').replace(/partial close/ig,'').trim()}
 function ingest(text,name){
@@ -1313,7 +1319,7 @@ function renderHero({T,P,EQ,all,ccy,base}){
   $('#heroK').textContent=`Equity now${ccy?' · '+ccy:''}`;
   countUp($('#heroEq'),eqv,v=>money(v));
   $('#heroSub').innerHTML=all&&all.eq!=null?`Balance ${money(all.bal)} · open trades <b class="${cls(all.fl)}">${money(all.fl,2)}</b> (${pct(all.fl/(all.bal||1))})`:'Closed balance. Open trades show once the EA is running.';
-  const chips=[[UI.period==='all'?'Net profit':'Net profit · '+PERIODS.find(x=>x[0]===UI.period)[1],P.net,`${pct(P.net/base)} of ${money(base)} in`],['Last day',sumIf(t=>dayKey(t.ct)===today),today],
+  const chips=[[UI.period==='all'?'Net profit':'Net profit · '+PERIODS.find(x=>x[0]===UI.period)[1],P.net,`${pct(P.net/base)} of ${money(base)} in`],[S.srvNow&&today===dayKey(S.srvNow)?'Today':'Last day',sumIf(t=>dayKey(t.ct)===today),today],
     ['Last 7 days',sumIf(t=>t.ct>last-7*DAY),''],['This month',sumIf(t=>dayKey(t.ct).startsWith(mo)),''],['This year',sumIf(t=>dayKey(t.ct).startsWith(yr)),'']];
   $('#heroChips').innerHTML=chips.map(([k,v,s],i)=>`<div class="chipv" title="${esc(s)}"><span>${k}</span><b class="${cls(v)}" id="hc${i}">–</b></div>`).join('');
   chips.forEach(([,v],i)=>countUp($('#hc'+i),v,x=>(x>0?'+':'')+money(x)));
@@ -1383,7 +1389,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
   if(wdo[0][1]<0) add(2,'📅',`${WDL[wdo[0][0]]} cost you money`,money(wdo[0][1]),`Trades opened on ${WDL[wdo[0][0]]} lost ${money(-wdo[0][1])} in total, while ${WDL[wdo[4][0]]} made ${money(wdo[4][1])}. Mostly ${whoList(blame(T.filter(t=>new Date(t.ot).getUTCDay()===wdo[0][0]),3))}.`);
   const hr=new Array(24).fill(0);for(const t of T) hr[new Date(t.ot).getUTCHours()]+=t.net;
   let wb=[0,0];for(let h=0;h<24;h++){const v=hr[h]+hr[(h+1)%24];if(v<wb[1])wb=[h,v]}
-  if(wb[1]<0&&-wb[1]>Math.abs(tot)*.1) add(2,'🕓',`${String(wb[0]).padStart(2,'0')}:00 to ${String((wb[0]+2)%24).padStart(2,'0')}:00 is your worst window`,money(wb[1]),`Entries in these two hours (server time) lost ${money(-wb[1])}. Mostly ${whoList(blame(T.filter(t=>{const h=new Date(t.ot).getUTCHours();return h===wb[0]||h===(wb[0]+1)%24}),3))}. A time filter on those EAs is the cheapest improvement to test.`);
+  if(wb[1]<0&&-wb[1]>Math.abs(tot)*.1) add(2,'🕓',`${String(wb[0]).padStart(2,'0')}:00 to ${String((wb[0]+2)%24).padStart(2,'0')}:00 is your worst window`,money(wb[1]),`Entries in these two hours (Singapore time) lost ${money(-wb[1])}. Mostly ${whoList(blame(T.filter(t=>{const h=new Date(t.ot).getUTCHours();return h===wb[0]||h===(wb[0]+1)%24}),3))}. A time filter on those EAs is the cheapest improvement to test.`);
   // 6. months
   const byM={};for(const d of P.D){const k=d.key.slice(0,7);byM[k]=(byM[k]||0)+d.pnl}
   const ms=Object.entries(byM).sort((x,y)=>x[1]-y[1]);
@@ -1602,7 +1608,7 @@ function renderPlumbing({T,P,ccy,a}){
     ['How far each trade went for and against you','Known as MAE and MFE. The 5-minute equity lows per EA are a rough proxy; exact figures need the EA to track open positions tick by tick.'],
     ['Slippage and spread at entry','The requested price and spread at order time are not recorded, so execution quality per broker and session cannot be measured.'],
     ['A backtest to compare against','Live results cannot be checked against each EA\'s backtest or vendor stats, the quickest way to spot an EA that stopped working.'],
-    ['Broker time zones','Times are broker server time. Hour-of-day results shift if your brokers sit on different GMT offsets.'],
+    ['Singapore time','Every time and day on this desk is Singapore time, converted from the broker server clock (New York + 7 hours, so Singapore is 6 hours ahead in US winter and 5 in US summer). A day runs midnight to midnight Singapore.'],
     ['Transfers between your own accounts','Moves between your accounts look like deposits and withdrawals, so a single account\'s return can be overstated. The combined view cancels them out.'],
   ];
   $('#gaps').innerHTML=G.map(([k,v])=>`<li><b>${esc(k)}</b><span class="muted">${esc(v)}</span></li>`).join('');
@@ -2181,7 +2187,7 @@ $('#varSeg')&&($('#varSeg').onclick=e=>{const b=e.target.closest('[data-v]');if(
 
 /* ---------- v17: EA lab (cards) and EA profile. Layout ideas from EAProof's EA report, monthly grid from Myfxbook/MQL5 Signals ---------- */
 UI.labSort='score';UI.eaTab='eq';UI.monthUnit='%';
-const SESS=[['Asia',0,8],['Europe',8,16],['US',16,24]];
+const SESS=[['Asia',6,14],['Europe',14,22],['US',22,30]];  // Singapore hours (server 00-08, 08-16, 16-24 in US winter)
 let EB={};
 // capital behind an EA = starting capital of the accounts it trades on
 function eaBase(ts){const c=cfg().cap;return [...new Set(ts.map(t=>t.acct))].reduce((s,a)=>s+(EB[a]??=((acctStats(a,c)||{}).base||c)),0)}
@@ -2372,13 +2378,13 @@ function renderScore(p){
     <span class="k">Risk profile</span><div class="eh-chips">${chipY('Grid',rc.grid,rc.grid?'max '+rc.maxOpen+' open':'')}${chipY('Martingale',rc.isMart,rc.isMart?fmt(rc.mart,1)+'× lots':'')}${chipY('Averaging down',rc.avgDown>0,rc.avgDown?rc.avgDown+'×':'')}${chipY('Hedging',rc.hedge>0,rc.hedge?rc.hedge+'×':'')}${chipY('Held over weekend',rc.wk>0,rc.wk?rc.wk+' trades':'')}<span class="chip ${rc.sl>=.9?'pass':rc.sl<.5?'warn':''}">Stop loss · ${pct(rc.sl,0)} of trades</span></div>`;
 }
 function renderBehaviour(p){
-  const {ts}=p,h=t=>new Date(t.ot).getUTCHours();
+  const {ts}=p,h=t=>{const x=new Date(t.ot).getUTCHours();return x<6?x+24:x};
   const se=SESS.map(([n,a,b])=>{const x=ts.filter(t=>h(t)>=a&&h(t)<b);return {n,a,b,net:x.reduce((s,t)=>s+t.net,0),k:x.length}}),mxs=Math.max(...se.map(s=>Math.abs(s.net)),1),best=se.slice().sort((x,y)=>y.net-x.net)[0];
   const side=s=>{const x=ts.filter(t=>t.side===s);return {k:x.length,net:x.reduce((q,t)=>q+t.net,0),wr:x.length?x.filter(t=>t.net>0).length/x.length:0}},Lg=side('buy'),Sh=side('sell'),lp=Lg.k/Math.max(ts.length,1);
   const hold={Intraday:[],Overnight:[],Weekend:[]};for(const t of ts){const d0=dayKey(t.ot),d1=dayKey(t.ct);let wk=false;if(d0!==d1){let d=t.ot-t.ot%864e5;while(d<=t.ct&&!wk){if(dowOf(d)===6)wk=true;d+=864e5}}hold[d0===d1?'Intraday':wk?'Weekend':'Overnight'].push(t)}
   const hs=Object.entries(hold).map(([k,x])=>({k,n:x.length,net:x.reduce((s,t)=>s+t.net,0)})),mxh=Math.max(...hs.map(x=>Math.abs(x.net)),1);
   const row=(l,sub,v,mx)=>`<div class="bh-row"><span>${l}<span class="tag">${sub}</span></span><span class="div-bar" style="height:12px"><b style="${v>=0?'left:50%':'right:50%'};width:${Math.abs(v)/mx*50}%;background:var(${v>=0?'--pos':'--neg'})"></b></span><b class="num ${cls(v)}">${money(v)}</b></div>`;
-  $('#eaBehave').innerHTML=`<div class="bh"><span class="k">Sessions · server time</span>${se.map(s=>row(s.n,`${String(s.a).padStart(2,'0')}–${String(s.b).padStart(2,'0')} · ${s.k}`,s.net,mxs)).join('')}<p class="tag">${best.net>=0?'Best':'Least bad'} session: ${best.n} (${money(best.net)})</p></div>
+  $('#eaBehave').innerHTML=`<div class="bh"><span class="k">Sessions · Singapore time</span>${se.map(s=>row(s.n,`${String(s.a%24).padStart(2,'0')}–${String(s.b%24).padStart(2,'0')} · ${s.k}`,s.net,mxs)).join('')}<p class="tag">${best.net>=0?'Best':'Least bad'} session: ${best.n} (${money(best.net)})</p></div>
     <div class="bh"><span class="k">Long versus short</span><div class="ls-bar"><b style="width:${lp*100}%"></b></div><div class="ls-leg"><span>Long ${pct(lp,0)} · ${Lg.k}</span><span>Short ${pct(1-lp,0)} · ${Sh.k}</span></div>
       ${row('Long',`${pct(Lg.wr,0)} wins`,Lg.net,Math.max(Math.abs(Lg.net),Math.abs(Sh.net),1))}${row('Short',`${pct(Sh.wr,0)} wins`,Sh.net,Math.max(Math.abs(Lg.net),Math.abs(Sh.net),1))}</div>
     <div class="bh"><span class="k">Holding time</span>${hs.map(x=>row(x.k,x.n+' trades',x.net,mxh)).join('')}<p class="tag">${hs[2].n?`${hs[2].n} trades held over a weekend: gap risk.`:'Never held over a weekend.'}</p></div>`;
@@ -2441,7 +2447,7 @@ function renderNews({T}){
   el.innerHTML=up.length?up.map(e=>{
     const ex=EX.filter(x=>symCcys(x.sym).includes(e.ccy)),by={};for(const x of ex)(by[x.acct]=by[x.acct]||new Set()).add(x.sym+(x.ea?` (${x.ea})`:''));
     const d=new Date(e.ms);
-    return `<div class="nrow ${ex.length?'hot':''}"><div class="nt"><b>${d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})}</b><span>${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><span class="tag">${when(e.ms)}</span></div>
+    return `<div class="nrow ${ex.length?'hot':''}"><div class="nt"><b>${d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',timeZone:'Asia/Singapore'})}</b><span>${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'Asia/Singapore'})}</span><span class="tag">${when(e.ms)}</span></div>
       <div class="ne"><span class="nimp ${e.imp==='High'?'hi':'md'}" title="${e.imp} impact"></span><span class="chip">${esc(e.ccy)}</span> <b>${esc(e.title)}</b>${e.fc||e.pv?` <span class="tag">forecast ${esc(String(e.fc||'–').replace(/\s+/g,''))} · previous ${esc(String(e.pv||'–').replace(/\s+/g,''))}</span>`:''}</div>
       <div class="nx">${ex.length?Object.entries(by).map(([ac,s])=>`<span class="chip fail">${esc(nm(ac))}</span> <span class="tag">${[...s].slice(0,4).map(esc).join(', ')}${s.size>4?' +'+(s.size-4):''}</span>`).join('<br>'):'<span class="tag">No open trades in '+esc(e.ccy)+'</span>'}</div></div>`}).join(''):
     `<p class="muted">${N.length?'Nothing scheduled in the next 7 days at this impact level. The weekly calendar refreshes every hour; next week appears on Sunday.':''}</p>`;
@@ -2483,7 +2489,7 @@ function renderNewsHistory(T,N){
   const K=Object.entries(by).map(([k,ts])=>({k,...agg(ts)})).sort((x,y)=>x.net-y.net),mx=Math.max(1,...K.map(r=>Math.abs(r.net)));
   $('#newsKinds').innerHTML=K.length?K.map(r=>`<div class="mrow"><span><b>${esc(r.k)}</b></span><span class="div-bar" style="height:14px"><b style="${r.net<0?'right:50%':'left:50%'};width:${Math.abs(r.net)/mx*50}%;background:var(${r.net<0?'--neg':'--pos'})"></b></span><span class="num ${cls(r.net)}">${money(r.net)}</span><span class="tag">${r.n} trades · ${pct(r.wr,0)} wins · ${money(r.avg,2)} each</span></div>`).join(''):'<p class="muted">No trades held through high-impact news in this selection.</p>';
   const cov=N.filter(e=>e.imp==='High'),ff=cov.filter(e=>e.ccy!=='USD');
-  $('#newsCov').textContent=S.demo?'Demo calendar.':`History: ${cov.length} high-impact releases. US jobs, CPI, PPI and Fed decisions go back to ${first?dstr(first):'–'}; other currencies' events are collected from now on (${ff.length} so far). Times use your brokers' server clock (New York close = midnight).`;
+  $('#newsCov').textContent=S.demo?'Demo calendar.':`History: ${cov.length} high-impact releases. US jobs, CPI, PPI and Fed decisions go back to ${first?dstr(first):'–'}; other currencies' events are collected from now on (${ff.length} so far). All times are Singapore time.`;
 }
 
 /* ---------- Alerts (Telegram via Supabase) ---------- */
@@ -2520,7 +2526,7 @@ function paintAlerts(){
   const muted=new Set((Array.isArray(s.muted)?s.muted:String(s.muted||'').replace(/[{}]/g,'').split(',')).filter(v=>v!==''&&v!=null).map(String)),acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   $('#alMute').innerHTML=acc.map(a=>`<label class="al-acc"><input type="checkbox" value="${esc(a)}" ${muted.has(String(a))?'':'checked'}> ${esc(nm(a))}</label>`).join('');
   $('#alNow').innerHTML=now.length?now.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div><span class="chip ${r.sent?'pass':''}">${r.sent?'sent':'next check'}</span></div>`}).join(''):'<p class="muted">Nothing would alert right now. All quiet.</p>';
-  $('#alLog').innerHTML=log.length?log.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l} · ${new Date(r.at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div>${r.episode?`<span class="chip ${r.active?'warn':''}">${r.active?'ongoing':'ended'}</span>`:''}</div>`}).join(''):'<p class="muted">No alerts yet.</p>';
+  $('#alLog').innerHTML=log.length?log.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l} · ${new Date(r.at).toLocaleString([], {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'Asia/Singapore'})}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div>${r.episode?`<span class="chip ${r.active?'warn':''}">${r.active?'ongoing':'ended'}</span>`:''}</div>`}).join(''):'<p class="muted">No alerts yet.</p>';
 }
 // keep the names Telegram shows in step with the dashboard (accounts, and the EA behind each magic)
 function syncAlertNames(){
@@ -2778,7 +2784,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v29';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v30';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2850,8 +2856,8 @@ function show(c,note){
   S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],pr:v[10]===''||v[10]==null?null:+v[10],fl:v[10]===''||v[10]==null?null:(+v[10]||0)+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
   S.news=parseNews(c.nv||[]);
   fillAccounts();render();$('#syncBtn').hidden=false;
-  const lastClose=c.tr.reduce((m,l)=>{const v=l.split(',')[9]||'';return v>m?v:m},'');
-  setSync(`${note}: ${S.trades.length.toLocaleString()} closed trades, last close ${lastClose} server time (${BUILD}).`);
+  const lc=c.tr.reduce((m,l)=>{const v=l.split(',')[9]||'';return v>m?v:m},''),lastClose=lc?new Date(parseTime(lc)).toISOString().slice(0,16).replace('T',' ').replace(/-/g,'.'):'–';
+  setSync(`${note}: ${S.trades.length.toLocaleString()} closed trades, last close ${lastClose} Singapore time (${BUILD}).`);
 }
 async function syncNow(){
   if(!mcp||syncing) return;syncing=true;const t0=performance.now();
@@ -2869,7 +2875,7 @@ async function syncNow(){
     const where=since?` where received_at > '${since.replace(/[^0-9T:. -]/g,'')}'::timestamp - interval '15 minutes'`:'';
     if(!since) setSync('Loading live accounts…');
     const trQ=`select account,platform,currency,ticket,position,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS') as open_time,to_char(close_time,'YYYY.MM.DD HH24:MI:SS') as close_time,commission,swap,profit,magic,comment,sl,open_price,close_price,to_char(received_at,'YYYY-MM-DD"T"HH24:MI:SS.US') as received_at from public.trades${where}`;
-    const DAY=`e.bucket>=date_trunc('day',l.b)`;
+    const DAY=`e.bucket>=public.sgt_day0()`;  // 'today' = Singapore calendar day
     const [tr,eq,nw,pos,dd,nv,eo]=await Promise.all([
       pageAll(trQ,TC,'trades','close_time,account,ticket'),
       pageAll(`select to_char(date_trunc('hour',bucket),'YYYY.MM.DD HH24:MI:SS') as time,account,min(balance) as balance,min(equity_min) as equity,case when magic=-1 then 'ALL' else magic::text end as magic,min(floating_min) as floating,comment from public.equity group by 1,2,magic,comment`,EC,'equity','1,2,5,7'),
@@ -3158,7 +3164,7 @@ function renderAcctDetail({a,c}){
   ${ps.length?`<p class="ad-open"><button type="button" class="btn" id="adOpen">See the ${ps.length} open trade${ps.length>1?'s':''}</button> <span class="muted">${Object.keys(cntEA).map(k=>`${esc(k)} ${cntEA[k]}`).join(' · ')}</span></p>`:''}
 
   <div class="ad-grid">
-  <section class="panel"><header><h3>Profit by period</h3><p>Closed trades in broker server time. Gain is against the balance when the period began.</p></header>
+  <section class="panel"><header><h3>Profit by period</h3><p>Closed trades, by Singapore calendar day. Gain is against the balance when the period began.</p></header>
     <div class="scroll"><table id="adPer"><thead><tr><th>Period</th><th>Profit</th><th>Gain</th><th>Trades</th><th>Won</th><th>Lots</th><th>Best</th><th>Worst</th></tr></thead><tbody>${P.map(x=>`<tr><td>${esc(x.lab)}</td><td class="${cls(x.p)}"><b>${sign(x.p)}</b></td><td class="${cls(x.p)}">${x.g==null?'–':pct(x.g,2)}</td><td>${x.n}</td><td>${x.wr==null?'–':pct(x.wr,0)}</td><td>${fmt(x.lots,2)}</td><td class="${cls(x.best)}">${x.best==null?'–':money(x.best,2)}</td><td class="${cls(x.worst)}">${x.worst==null?'–':money(x.worst,2)}</td></tr>`).join('')}</tbody></table></div></section>
 
   <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined. Tap a day to see its trades.</p></header>
@@ -3413,13 +3419,23 @@ function holUpcoming(days){
     return {...h,start,live,close};
   });
 }
+// Everything is framed in the viewer's own clock (Singapore for Gaston): a US day runs 13:00 to 13:00 the next day there.
+const SG={timeZone:'Asia/Singapore',hourCycle:'h23'},sgDay=ms=>Math.floor((ms+8*36e5)/864e5),locDays=ms=>sgDay(ms)-sgDay(Date.now());
+const relDay=ms=>{const n=locDays(ms);return n===0?'Today':n===1?'Tomorrow':n===-1?'Yesterday':new Date(ms).toLocaleDateString([],{weekday:'long',...SG})};
+const onDay=ms=>{const n=locDays(ms);return n===0?'today':n===1?'tomorrow':'on '+new Date(ms).toLocaleDateString([],{weekday:'short',...SG})};
+const hm=ms=>new Date(ms).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',...SG});
 function holLine(h,short){
-  const day=new Date(nyMs(h.d,12)).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'}),
-    t=ms=>{const d=new Date(ms),loc=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(loc!==h.d?' '+d.toLocaleDateString([],{weekday:'short'}):'')},
-    srvT=ms=>{const d=new Date(ms+7*36e5+tzOff(ms,'America/New_York'));return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')};
-  const when=h.live?'Today in New York':day;
-  const what=h.kind==='closed'?'US markets closed':h.kind==='early'?`Early close 13:00 New York (${srvT(h.close)} server, ${t(h.close)} your time)`:'US banks and bonds closed, stocks open';
-  if(short) return `${h.live?'Today':day.split(',')[0]}: ${h.kind==='closed'?'US closed':h.kind==='early'?'US early close '+srvT(h.close)+' server':'US banks closed'} · ${esc(h.name)}`;
+  const open=nyMs(h.d,9)+30*6e4,end=nyMs(h.d,24),shut=h.kind==='early'?h.close:nyMs(h.d,16),
+    srvT=ms=>{const d=new Date(ms+7*36e5+tzOff(ms,'America/New_York'));return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0')},
+    date=ms=>new Date(ms).toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',...SG});
+  if(short) return h.live&&h.kind==='closed'?`Now: US closed until ${hm(end)} ${onDay(end)}`
+    :h.kind==='closed'?`${relDay(open)}: US closed`
+    :h.kind==='early'?`${relDay(open)}: US early close ${hm(shut)} ${onDay(shut)}`
+    :`${relDay(open)}: US banks closed`;
+  const when=h.live&&h.kind!=='early'?'Now':`${relDay(open)}, ${date(open)}`;
+  const what=h.kind==='closed'?(h.live?`US markets closed until ${hm(end)} ${onDay(end)}`:`US markets closed for the whole US session (${hm(open)} ${onDay(open)} to ${hm(shut)} ${onDay(shut)} Singapore time)`)
+    :h.kind==='early'?`US early close at ${hm(shut)} ${onDay(shut)} Singapore time (13:00 New York, ${srvT(shut)} server). The US session opens ${hm(open)} ${onDay(open)}.`
+    :`US banks and bonds closed${h.live?` until ${hm(end)} ${onDay(end)}`:''}, stocks open`;
   return {when,what,tip:h.kind==='closed'?'No US data and thin liquidity: wider spreads and odd spikes on USD pairs, US30 and gold. Index CFDs may not quote.':h.kind==='early'?'Liquidity thins out through the US afternoon. Expect wider spreads on US30, USD pairs and gold.':'Stocks trade, but USD liquidity can be lighter than usual.'};
 }
 
@@ -3480,6 +3496,10 @@ function renderMarketStrip(){
 }
 CLAMPS.push(['#nPairs',':scope>.op-card',6,'pairs','desk']);
 {const _r29=render;render=function(){_r29.apply(this,arguments);try{renderOutlook();renderMarketStrip();clampAll()}catch(e){console.error('outlook',e)}}}
+
+// v30: a small Singapore clock beside the title, so every time on the desk has a reference
+function tickSGT(){const el=$('#sgtClock');if(!el)return;const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Singapore',weekday:'short',hour:'2-digit',minute:'2-digit'});el.textContent=f.format(Date.now())+' SGT'}
+tickSGT();setInterval(tickSGT,30000);
 
 </script>
 
