@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127171224">
+<meta name="desk-build" content="20261127181918">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127171224',busy=false;
+(function(){var mine='20261127181918',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -615,7 +615,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 #acctDetail th,#acctDetail td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 #acctDetail th:first-child,#acctDetail td:first-child{text-align:left}#acctDetail th{font:500 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .ad-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:10px}.ad-stats .ad-t{background:var(--sunk);border:0}
-.ad-cal{display:flex;flex-direction:column;gap:4px}.ad-cr{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) minmax(0,1.1fr);gap:4px}
+.ad-cal{display:flex;flex-direction:column;gap:4px}.ad-cr{display:grid;grid-template-columns:repeat(var(--nd,5),minmax(0,1fr)) minmax(0,1.1fr);gap:4px}
 .ad-cr span{border-radius:8px;padding:6px 7px;min-height:48px;display:flex;flex-direction:column;justify-content:space-between;background:var(--sunk);font:12px var(--f-data);min-width:0;overflow:hidden}
 .ad-cr span i{font-style:normal;color:var(--muted);font-size:10.5px}.ad-cr span b{font-weight:600;text-align:right;white-space:nowrap}
 .ad-cr.hd span{min-height:0;background:none;padding:0 2px;font:500 10.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -702,6 +702,38 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
  .mkt-strip{flex-wrap:wrap;padding:10px}.ms-i .pairb,.ms-i .muted{display:none}.ms-i{padding:4px 8px;font-size:12.5px}.ms-items{order:3;flex-basis:100%}.ms-go{margin-left:auto}
 }
 #acctDetail:empty{display:none!important}
+
+/* v36 pro analytics */
+.ptiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:900px){.ptiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pt{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pt .k{font:500 11px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pt b{font:600 20px var(--f-data);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pt .tag{font:12px/1.35 var(--f-body);color:var(--muted)}
+.eps{display:flex;flex-direction:column;gap:6px}
+.ep{display:grid;grid-template-columns:84px minmax(0,1fr) 58px minmax(0,1fr) 92px;gap:8px;align-items:center;font:12px var(--f-data)}
+.ep .bar{height:10px;background:var(--sunk);border-radius:6px;overflow:hidden;display:block}
+.ep .bar i{display:block;height:100%;border-radius:6px}
+.ep .dep{background:var(--neg);margin-left:auto}.ep .heal{background:var(--pos)}.ep .open{background:var(--warn)}
+.ep .d,.ep .t{color:var(--muted)}.ep b{text-align:right}
+.ep-h{display:grid;grid-template-columns:84px minmax(0,1fr) 58px minmax(0,1fr) 92px;gap:8px;font:500 10.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.edge-h,.edge{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) 108px;gap:12px;align-items:center}
+.edge-h{font:500 10.5px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:0 8px}
+.edge-h .axis{position:relative;height:14px}.edge-h .axis i{position:absolute;transform:translateX(-50%);font:10.5px var(--f-data);font-style:normal;text-transform:none;letter-spacing:0}
+.edge{padding:7px 8px;border-radius:10px;cursor:pointer}.edge:hover,.edge:focus-visible{background:var(--sunk)}
+.edge .n{display:flex;gap:6px;align-items:center;min-width:0}.edge .n b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edge .track{position:relative;height:18px}
+.edge .track .zero{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.edge .track .link{position:absolute;top:8px;height:2px;border-radius:2px}.edge .link.down{background:var(--neg)}.edge .link.up{background:var(--pos)}
+.edge .track .dot{position:absolute;top:3px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%)}
+.edge .dot.life{background:var(--surface);border:2px solid var(--muted)}.edge .dot.rec.pos{background:var(--pos)}.edge .dot.rec.neg{background:var(--neg)}
+.edge .chip{justify-self:start}
+.edge-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.edge-key i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.hw{overflow-x:auto}.hw-r{display:grid;grid-template-columns:38px repeat(24,minmax(14px,1fr));gap:3px;min-width:420px;margin-bottom:3px}
+.hw-r i{display:block;height:22px;border-radius:4px;background:var(--sunk)}.hw-r span{font:11px var(--f-data);color:var(--muted);align-self:center}
+.hw-r.hd span{font-size:10px}
+@media (max-width:640px){.ep,.ep-h{grid-template-columns:70px minmax(0,1fr) 50px minmax(0,1fr) 70px;gap:5px;font-size:11px}.edge{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n c" "t t";gap:4px 8px}.edge .n{grid-area:n}.edge .chip{grid-area:c}.edge .track{grid-area:t}
+.edge-h{grid-template-columns:minmax(0,1fr)}.edge-h>span:first-child,.edge-h>span:last-child{display:none}.pt b{font-size:17px}}
 </style>
 </head>
 <body>
@@ -811,6 +843,11 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <details class="fold"><summary>Full statistics table</summary><div class="scroll"><table id="eaTable"></table></div></details></details>
 </section>
 
+<section class="sec" data-tab="eas" aria-labelledby="hEdge">
+  <div class="sec-h"><div><span class="kicker">Edge check</span><h2 id="hEdge">Is each EA's edge still holding?</h2></div><p>Average profit per trade over its whole history against its last 30 trades. A recent dot far left of the ring is an edge that is fading, flagged when the gap is too big to be luck (more than 2 standard errors).</p></div>
+  <section class="panel"><div class="lab-bar"><div class="lab-sum" id="edgeSum"></div><div class="edge-key"><span><i style="border:2px solid var(--muted)"></i>whole history</span><span><i style="background:var(--pos)"></i>last 30 trades</span></div></div><div id="edgeRows"></div></section>
+</section>
+
 <section class="sec" data-tab="eas" aria-labelledby="hDive">
   <div class="sec-h"><div><span class="kicker">EA report</span><h2 id="hDive">One EA, in full</h2></div><p>Pick an EA here or tap a card above. Trades merge across magic numbers and accounts by EA name, so RBO_US30 and DEL_AFP_RBO_XAUUSD both count as RBO.</p></div>
   <div class="ea-pick"><label for="eaPick" class="k">EA</label><select id="eaPick"></select><span id="eaVerdict" hidden></span></div>
@@ -829,7 +866,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
   </div>
   <div class="g2">
     <section class="panel"><header><h3>How its trades close</h3></header><div class="meter" id="eaExitBar" style="height:16px"></div><div class="checks" id="eaExit"></div></section>
-    <section class="panel"><header><h3>By hour of entry</h3><p>Server time</p></header><div class="chart sm"><canvas id="cEAHour"></canvas></div></section>
+    <section class="panel"><header><h3>By hour of entry</h3><p>Singapore time</p></header><div class="chart sm"><canvas id="cEAHour"></canvas></div></section>
   </div>
   <details class="fold panel"><summary>All statistics</summary><div class="nums" id="eaNums"></div><div hidden><canvas id="cEA"></canvas></div></details>
 </section>
@@ -844,11 +881,12 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 </section>
 
 <section class="sec" data-tab="timing" aria-labelledby="hTime">
-  <div class="sec-h"><div><span class="kicker">Timing</span><h2 id="hTime">When you make and lose money</h2></div><p>Server time of your brokers. Use it to test time filters on your EAs.</p></div>
+  <div class="sec-h"><div><span class="kicker">Timing</span><h2 id="hTime">When you make and lose money</h2></div><p>Hours are Singapore time; weekdays follow the broker calendar. Use it to test time filters on your EAs.</p></div>
   <div class="g2">
-    <section class="panel"><header><h3>By hour of entry</h3><p>Total net profit of trades opened in each hour</p></header><div class="chart"><canvas id="cHour"></canvas></div><div class="explain" id="xHour"></div></section>
-    <section class="panel"><header><h3>By weekday</h3><p>Total net profit of trades opened on each day</p></header><div class="chart"><canvas id="cDay"></canvas></div><div class="explain" id="xDay"></div></section>
+    <section class="panel"><header><h3>By hour of entry</h3><p>Total net profit of trades opened in each hour, Singapore time</p></header><div class="chart"><canvas id="cHour"></canvas></div><div class="explain" id="xHour"></div></section>
+    <section class="panel"><header><h3>By weekday</h3><p>Net profit by the trading day a trade opened on (broker calendar, so a Friday-night New York trade counts as Friday)</p></header><div class="chart"><canvas id="cDay"></canvas></div><div class="explain" id="xDay"></div></section>
   </div>
+  <section class="panel"><header><h3>Hour by weekday</h3><p>Net profit of trades opened in each hour (Singapore time) on each trading day (broker calendar). Hover a square for the detail.</p></header><div class="hw" id="hwMap"></div><div class="explain" id="xHw"></div></section>
   <section class="panel"><header><h3>Every trading day</h3><p>Each square is a day, darker means a bigger win or loss. Last 53 weeks.</p></header>
     <div class="cal" id="cal"></div><div class="legend" id="calLegend"></div></section>
   <section class="panel"><header><h3>Month by month</h3><p>Return as a share of the balance at the start of each month</p></header><div class="scroll"><table class="heat" id="monthly"></table></div></section>
@@ -872,6 +910,17 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <section class="panel"><header><h3>Losing streaks</h3><p>How often you lost 1, 2, 3 or more trades in a row</p></header><div class="chart sm"><canvas id="cStreak"></canvas></div><div class="explain" id="xStreak"></div></section>
     <section class="panel"><header><h3>Do your EAs move together?</h3><p>Daily P/L correlation. Red means they lose on the same days.</p></header><div class="scroll"><table class="heat" id="corr"></table></div></section>
   </div>
+</section>
+
+<section class="sec" data-tab="risk" aria-labelledby="hTail">
+  <div class="sec-h"><div><span class="kicker">Tail risk and recovery</span><h2 id="hTail">How bad a bad day gets, and how long it takes to heal</h2></div><p>The numbers allocators and prop firms look at after max drawdown. Follows the account, period and EA picked above.</p></div>
+  <div class="ptiles" id="tailTiles"></div>
+  <div class="g2">
+    <section class="panel"><header><h3>Daily P/L spread</h3><p>How many days landed at each result. Red is the worst 1 in 20.</p></header><div class="chart sm"><canvas id="cDist" role="img" aria-label="Histogram of daily profit and loss"></canvas></div><div class="explain" id="xDist"></div></section>
+    <section class="panel"><header><h3>Who loses on the worst days</h3><p>Net of each EA on the portfolio's worst 10% of days</p></header><div class="chart sm"><canvas id="cWorst" role="img" aria-label="Each EA's profit or loss on the worst days"></canvas></div><div class="explain" id="worstBy"></div></section>
+  </div>
+  <section class="panel"><header><h3>The deepest dips</h3><p>Left bar: how far it fell from the high. Right bar: how long until it was back (green), or still open (amber).</p></header>
+    <div class="ep-h"><span>Started</span><span style="text-align:right">Depth</span><span></span><span>Time to recover</span><span></span></div><div class="eps" id="ddEps"></div></section>
 </section>
 
 <section class="sec" data-tab="news" aria-labelledby="hNews">
@@ -1066,15 +1115,15 @@ function labelOf(key,trades){
 /* ---------- core analytics ---------- */
 function events(T,C){return T.map(t=>({t:t.ct,v:t.net,tr:1})).concat(C.map(c=>({t:c.t,v:c.amt,tr:0}))).sort((a,b)=>a.t-b.t)}
 function series(T,C,cap0){
-  let bal=cap0,peak=cap0,maxDD=0,maxDDp=0;const pts=[];
+  let bal=cap0,peak=cap0,maxDD=0,maxDDp=0,ddAtP=0,pAtDD=0;const pts=[];
   for(const e of events(T,C)){
     bal+=e.v; if(!e.tr) peak+=e.v; // deposits/withdrawals move the high-water mark too
     if(bal>peak) peak=bal;
     const dd=peak-bal, ddp=peak>0?dd/peak:0;
-    if(dd>maxDD) maxDD=dd; if(ddp>maxDDp) maxDDp=ddp;
+    if(dd>maxDD){maxDD=dd;pAtDD=ddp} if(ddp>maxDDp){maxDDp=ddp;ddAtP=dd}
     pts.push({t:e.t,bal,ddp});
   }
-  return {pts,maxDD,maxDDp,end:bal};
+  return {pts,maxDD,maxDDp,ddAtP,pAtDD,end:bal};
 }
 function dense(T,C,cap0){
   const ev=events(T,C);if(!ev.length) return [];
@@ -1264,6 +1313,7 @@ function acctStats(acct,cap){
   return {T,M,base:rb,bal,eq:eqv,fl:eqv==null?null:eqv-bal,deposits:dep,reb,score:health(M,rb),plat:T[0].plat,
     age:nowRows.length?Math.max(...nowRows.map(r=>r.age)):null,curve:M.sr.pts.map(p=>p.bal)};
 }
+let PCUT=0;   // start of the picked period (0 = all time), shared with the account page
 
 /* ---------- rendering: one function per section, all fed from render() ---------- */
 const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],WDL=['Sundays','Mondays','Tuesdays','Wednesdays','Thursdays','Fridays','Saturdays'];
@@ -1275,10 +1325,10 @@ const isDemoAcct=a=>{const o=acctTypes()[a];return o!=null?o:/demo/i.test(nm(a))
 function render(){
   try{
   const c=cfg(),a=$('#acct').value,f=x=>inSel(x.acct,a);
-  let T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);
-  periodBar();const PS=periodSlice(T,C,E,c.cap);if(PS){T=PS.T;if(PS.E)E=PS.E}
+  let T=S.trades.filter(f).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(f),E=S.eq.filter(f);const Tall=T;
+  periodBar();const PS=periodSlice(T,C,E,c.cap);PCUT=PS&&PS.cut||0;if(PS){T=PS.T;if(PS.E)E=PS.E}
   $('#mode').className='pill '+(S.demo?'demo':'live');$('#mode').textContent=S.demo?'Demo data':S.live?'Live':'Your files';
-  if(!T.length){$('#err').hidden=false;$('#err').textContent='No closed trades found for this selection.';return}
+  if(!T.length){$('#err').hidden=false;$('#err').textContent=PS?'No closed trades in this period for this selection. Pick a longer period.':'No closed trades found for this selection.';return}
   $('#err').hidden=true;
   const {base:b0,cap0,Cuse}=PS?{base:PS.base,cap0:PS.cap0,Cuse:PS.Cuse}:baseFor(T,C,c.cap);
   const P=metrics(T,Cuse,cap0,b0),EQ=eqSeries(E);
@@ -1306,7 +1356,7 @@ function render(){
   const EAs=mkEAs(T,P);
 
   const NMAP={};for(const e of EAs) NMAP[e.k]=e.name;EAN=t=>NMAP[keyOf(t,c.grp)]||t.fam;
-  const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all};
+  const ctx={T,C,E,P,EQ,MC,EAs,base,c,ccy,a,all,Tall};
   // insights judge only active EAs: archived ones are history, not advice (they come back when unarchived)
   const Ta=EA_ARCH.size?T.filter(t=>!EA_ARCH.has(t.fam)):T;let actx=ctx;
   if(Ta.length&&Ta.length<T.length){const Pa=metrics(Ta,Cuse,cap0,b0);actx={...ctx,T:Ta,P:Pa,EAs:mkEAs(Ta,Pa),MC:monteCarlo(Ta.map(t=>t.net),base,c.ruin),arch:T.length-Ta.length}}
@@ -1317,9 +1367,9 @@ function render(){
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
-function renderHero({T,P,EQ,all,ccy,base}){
-  const last=Math.max(T[T.length-1].ct,...S.now.map(r=>r.t||0)),today=dayKey(last),mo=today.slice(0,7),yr=today.slice(0,4);
-  const sumIf=f=>T.filter(f).reduce((s,t)=>s+t.net,0);
+function renderHero({T,P,EQ,all,ccy,base,Tall}){
+  /* the desk's now, the same for every selection */const last=Math.max(S.srvNow||0,S.trades.reduce((m,t)=>t.ct>m?t.ct:m,0)),today=dayKey(last),mo=today.slice(0,7),yr=today.slice(0,4);
+  const sumIf=f=>Tall.filter(f).reduce((s,t)=>s+t.net,0);   // day/week/month/year chips are calendar facts, not cut by the period chips
   const eqv=all&&all.eq!=null?all.eq:all?all.bal:0;
   $('#heroK').textContent=`Equity now${ccy?' · '+ccy:''}`;
   countUp($('#heroEq'),eqv,v=>money(v));
@@ -1389,7 +1439,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
   const cold=EAs.filter(e=>e.nRecent>=10&&e.rExp<0&&e.M.exp>0);
   if(cold.length) add(1,'🧊',`${cold.length} profitable EA${cold.length>1?'s are':' is'} cooling off`,cold.length+'',`${cold.slice(0,3).map(e=>e.name).join(', ')}${cold.length>3?' and more':''} made money overall but lost on average over their last 30 trades: ${cold.slice(0,3).map(e=>`${esc(e.name)} ${money(e.rExp,2)} per trade lately vs ${money(e.M.exp,2)} lifetime`).join('; ')}. That is the first sign an edge is fading.`);
   // 5. weekday and hour
-  const wd=[0,0,0,0,0,0,0];for(const t of T) wd[new Date(t.ot).getUTCDay()]+=t.net;
+  const wd=[0,0,0,0,0,0,0];for(const t of T) wd[new Date(toSrv(t.ot)).getUTCDay()]+=t.net;
   const wdo=[1,2,3,4,5].map(i=>[i,wd[i]]).sort((x,y)=>x[1]-y[1]);
   if(wdo[0][1]<0) add(2,'📅',`${WDL[wdo[0][0]]} cost you money`,money(wdo[0][1]),`Trades opened on ${WDL[wdo[0][0]]} lost ${money(-wdo[0][1])} in total, while ${WDL[wdo[4][0]]} made ${money(wdo[4][1])}. Mostly ${whoList(blame(T.filter(t=>new Date(t.ot).getUTCDay()===wdo[0][0]),3))}.`);
   const hr=new Array(24).fill(0);for(const t of T) hr[new Date(t.ot).getUTCHours()]+=t.net;
@@ -1499,14 +1549,15 @@ function barChart(id,labels,vals,tip){
 }
 function renderTiming({T,P,ccy}){
   const hs=new Array(24).fill(0),hn=new Array(24).fill(0),ds=new Array(7).fill(0),dn=new Array(7).fill(0);
-  for(const t of T){const d=new Date(t.ot),h=d.getUTCHours(),w=d.getUTCDay();hs[h]+=t.net;hn[h]++;ds[w]+=t.net;dn[w]++}
+  for(const t of T){const d=new Date(t.ot),h=d.getUTCHours(),w=new Date(toSrv(t.ot)).getUTCDay();   // hours in SGT, weekday by the broker's trading day (Fri night NY is Sat morning SGT)
+   hs[h]+=t.net;hn[h]++;ds[w]+=t.net;dn[w]++}
   barChart('cHour',hs.map((_,i)=>String(i).padStart(2,'0')),hs,i=>`${money(i.raw,0)} ${ccy} from ${hn[i.dataIndex]} trades`);
   const hb=hs.indexOf(Math.max(...hs)),hw=hs.indexOf(Math.min(...hs));
   $('#xHour').innerHTML=`<b>Best hour:</b> ${String(hb).padStart(2,'0')}:00 (${money(hs[hb])}). <b>Worst hour:</b> ${String(hw).padStart(2,'0')}:00 (${money(hs[hw])}), mostly ${whoList(blame(T.filter(t=>new Date(t.ot).getUTCHours()===hw),2))}.`;
   const idx=[1,2,3,4,5,6,0].filter(i=>dn[i]);
   barChart('cDay',idx.map(i=>WD[i]),idx.map(i=>ds[i]),i=>`${money(i.raw,0)} ${ccy} from ${dn[idx[i.dataIndex]]} trades`);
   const db=idx.reduce((x,i)=>ds[i]>ds[x]?i:x,idx[0]),dw=idx.reduce((x,i)=>ds[i]<ds[x]?i:x,idx[0]);
-  $('#xDay').innerHTML=`<b>Best day:</b> ${WDL[db]} (${money(ds[db])}). <b>Worst day:</b> ${WDL[dw]} (${money(ds[dw])}), mostly ${whoList(blame(T.filter(t=>new Date(t.ot).getUTCDay()===dw),2))}.`;
+  $('#xDay').innerHTML=`<b>Best day:</b> ${WDL[db]} (${money(ds[db])}). <b>Worst day:</b> ${WDL[dw]} (${money(ds[dw])}), mostly ${whoList(blame(T.filter(t=>new Date(toSrv(t.ot)).getUTCDay()===dw),2))}.`;
   /* calendar */
   const byDay={};for(const d of P.D) byDay[d.key]=d;
   const last=T[T.length-1].ct,end=Math.floor(last/DAY)*DAY,startD=end-(52*7+new Date(end).getUTCDay())*DAY,mx=Math.max(...P.D.map(d=>Math.abs(d.pnl)),1);
@@ -1537,7 +1588,7 @@ function renderRisk({T,P,EQ,MC,EAs,base,c,a,E,ccy,riskEA}){
   const eqp=EQ?EQ.pts.filter(p=>p.t>=P.t0):[];
   if(eqp.length>1) dd.push({label:'Equity',data:sample(eqp.map(p=>({t:p.t,v:-p.ddp})),900,'v').map(p=>({x:p.t,y:p.v*100})),borderColor:neg,borderWidth:1,pointRadius:0,order:0});
   chart('cDD',{type:'line',data:{datasets:dd},options:baseOpts({animation:{duration:700},scales:{x:xLin(P),y:{grid:{color:css('--line')},ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:eqp.length>1,labels:{boxWidth:10}},tooltip:tipT}})});
-  $('#xDD').innerHTML=`<b>Worst:</b> ${pct(P.maxDDp)} (${money(P.maxDD)} ${ccy}). ${EQ?`<b>Including open trades:</b> ${pct(EQ.maxDDp)}. `:''}Your limit in Settings is ${pct(c.ml,0)}.`+(()=>{const w=ddWindow(P);return w&&P.maxDD>0?` <b>When:</b> ${dstr(w.t0)} to ${dstr(w.t1)}. <b>Biggest losers in that stretch:</b> ${whoList(blame(T.filter(t=>t.ct>w.t0&&t.ct<=w.t1),3))}.`:''})();
+  $('#xDD').innerHTML=`<b>Worst:</b> ${pct(P.maxDDp)} (${money(P.sr.ddAtP)} ${ccy} at that low)${P.maxDD>P.sr.ddAtP+1?`. <b>Largest in money:</b> ${money(P.maxDD)} ${ccy} (${pct(P.sr.pAtDD)}), a later dip on a bigger balance`:''}. ${EQ?`<b>Including open trades:</b> ${pct(EQ.maxDDp)}. `:''}Your limit in Settings is ${pct(c.ml,0)}.`+(()=>{const w=ddWindow(P);return w&&P.maxDD>0?` <b>When:</b> ${dstr(w.t0)} to ${dstr(w.t1)}. <b>Biggest losers in that stretch:</b> ${whoList(blame(T.filter(t=>t.ct>w.t0&&t.ct<=w.t1),3))}.`:''})();
   const bins=new Array(30).fill(0),top=Math.max(MC.p99*1.1,.01);for(const v of MC.dds)bins[Math.min(29,Math.floor(v/top*30))]++;
   chart('cMC',{type:'bar',data:{labels:bins.map((_,i)=>pct(i*top/30,0)),datasets:[{data:bins,backgroundColor:bins.map((_,i)=>i*top/30>=MC.p95?neg:acc),borderRadius:3,borderSkipped:false}]},
     options:baseOpts({animation:{duration:700},plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>'Worst drawdown about '+i[0].label,label:i=>i.raw+' of 2,000 runs'}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8}},y:{grid:{color:css('--line')}}}})});
@@ -1733,7 +1784,7 @@ function gauge(v,lo,hi,col,label,sub,whoHtml){
 /* ---------- Overview: picture tiles that jump to each tab ---------- */
 function renderExplore({T,P,EAs,c,ccy}){
   const ac={};for(const t of T) ac[t.acct]=(ac[t.acct]||0)+t.net;const bestA=Object.entries(ac).sort((x,y)=>y[1]-x[1])[0];
-  const wd=new Array(7).fill(0);for(const t of T) wd[new Date(t.ot).getUTCDay()]+=t.net;const bd=wd.indexOf(Math.max(...wd));
+  const wd=new Array(7).fill(0);for(const t of T) wd[new Date(toSrv(t.ot)).getUTCDay()]+=t.net;const bd=wd.indexOf(Math.max(...wd));
   const sy={};for(const t of T) sy[t.sym]=(sy[t.sym]||0)+t.net;const bs=Object.entries(sy).sort((x,y)=>y[1]-x[1])[0];
   const cost=-(T.reduce((s,t)=>s+t.comm+t.swap,0));
   const tiles=[
@@ -2077,7 +2128,7 @@ const PERIODS=[['all','All'],['365','1Y'],['90','90D'],['30','30D'],['7','7D']];
 // Trades, cash and equity for the chosen period. Base = balance at the period start (deposits + profit before it).
 function periodSlice(T,C,E,cap){
   if(UI.period==='all'||!T.length) return null;
-  const end=Math.max(T[T.length-1].ct,...C.map(x=>x.t)),cut=end-(+UI.period)*864e5;
+  /* count back from now, not from this selection's last trade */const end=Math.max(S.srvNow||0,S.trades.reduce((m,t)=>t.ct>m?t.ct:m,0)),cut=end-(+UI.period)*864e5;
   const b0=C.filter(x=>x.t<cut).reduce((s,x)=>s+x.amt,0)+T.filter(t=>t.ct<cut).reduce((s,t)=>s+t.net,0);
   const Tp=T.filter(t=>t.ct>=cut);if(!Tp.length) return {T:Tp};
   const ok=b0>0;
@@ -2805,7 +2856,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v35';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v36';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3144,16 +3195,21 @@ function renderAcctDetail({a,c}){
   const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal-cashBy(p.t)),st.bal-netCash)+netCash:null;
   const downPk=peak?((st.eq!=null?st.eq:st.bal)-peak)/peak:null;
   const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0&&!x.reb).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0&&!x.reb).reduce((s,x)=>s+x.amt,0),reb=C.filter(x=>x.reb).reduce((s,x)=>s+x.amt,0);
-  const comm=T.reduce((s,t)=>s+(t.comm||0),0),swap=T.reduce((s,t)=>s+(t.swap||0),0);
-  const longs=T.filter(t=>t.side==='buy'),shorts=T.filter(t=>t.side==='sell'),wr=ts=>ts.length?ts.filter(t=>t.net>0).length/ts.length:null;
-  const bestT=T.reduce((b,t)=>t.net>b.net?t:b,T[0]),worstT=T.reduce((b,t)=>t.net<b.net?t:b,T[0]);
-  const hold=T.reduce((s,t)=>s+(t.ct-t.ot),0)/T.length/HOUR;
+  // the period chips at the top also scope Trading statistics, EAs and By symbol (the period table and calendar stay calendar-based)
+  const Tp0=PCUT?T.filter(t=>t.ct>=PCUT):T,Tq=Tp0.length?Tp0:T,pLab=PCUT&&Tp0.length?({365:'last 12 months',90:'last 90 days',30:'last 30 days',7:'last 7 days'})[UI.period]||'':'';
+  const Mq=Tq===T?M:metrics(Tq,CS.filter(x=>x.t>=PCUT),0,startBal(PCUT));
+  const comm=Tq.reduce((s,t)=>s+(t.comm||0),0),swap=Tq.reduce((s,t)=>s+(t.swap||0),0);
+  const longs=Tq.filter(t=>t.side==='buy'),shorts=Tq.filter(t=>t.side==='sell'),wr=ts=>ts.length?ts.filter(t=>t.net>0).length/ts.length:null;
+  const bestT=Tq.reduce((b,t)=>t.net>b.net?t:b,Tq[0]),worstT=Tq.reduce((b,t)=>t.net<b.net?t:b,Tq[0]);
+  const hold=Tq.reduce((s,t)=>s+(t.ct-t.ot),0)/Tq.length/HOUR;
   const holdTxt=h=>h<1?Math.round(h*60)+' min':h<48?fmt(h,1)+' h':fmt(h/24,1)+' days';
   const days=D.filter(d=>d.pnl!==0),upDays=days.filter(d=>d.pnl>0).length;
   const sign=v=>(v>0?'+':'')+money(v,2);
 
   // daily calendar: the last 6 weeks, Monday to Friday, with a week total
-  const cal=[];for(let w=5;w>=0;w--){const ws=wk0-w*7*DAY,row=[];let tot=0;for(let i=0;i<5;i++){const t=ws+i*DAY,dd=D.find(x=>x.d===t),v=dd?dd.pnl:0;tot+=v;row.push({t,v,has:!!dd&&dd.pnl!==0,fut:t>d0,start:dd?dd.start:0})}cal.push({ws,row,tot})}
+  // a Friday-night New York close lands on Saturday in Singapore, so a Sat column appears when there is any
+  const nd=D.some(x=>x.d>=wk0-35*DAY&&new Date(x.d).getUTCDay()===6&&x.pnl!==0)?6:5;
+  const cal=[];for(let w=5;w>=0;w--){const ws=wk0-w*7*DAY,row=[];let tot=0;for(let i=0;i<nd;i++){const t=ws+i*DAY,dd=D.find(x=>x.d===t),v=dd?dd.pnl:0;tot+=v;row.push({t,v,has:!!dd&&dd.pnl!==0,fut:t>d0,start:dd?dd.start:0})}cal.push({ws,row,tot})}
   const big=Math.max(1,...cal.flatMap(w=>w.row.map(x=>Math.abs(x.v))));
   const tint=v=>v?`background:color-mix(in srgb,var(${v>0?'--pos':'--neg'}) ${Math.round(12+48*Math.min(1,Math.abs(v)/big))}%,var(--surface))`:'';
   // monthly returns, compounded from daily returns
@@ -3162,7 +3218,7 @@ function renderAcctDetail({a,c}){
   const mt=v=>v==null?'':`background:color-mix(in srgb,var(${v>0?'--pos':'--neg'}) ${Math.round(10+40*Math.min(1,Math.abs(v)/.1))}%,transparent)`;
 
   // EAs and symbols on this account
-  const grp=(f)=>{const G={};for(const t of T){const k=f(t);(G[k]=G[k]||[]).push(t)}return Object.entries(G).map(([k,ts])=>{const n=ts.reduce((s,t)=>s+t.net,0),gp=ts.filter(t=>t.net>0).reduce((s,t)=>s+t.net,0),gl=-ts.filter(t=>t.net<0).reduce((s,t)=>s+t.net,0);
+  const grp=(f)=>{const G={};for(const t of Tq){const k=f(t);(G[k]=G[k]||[]).push(t)}return Object.entries(G).map(([k,ts])=>{const n=ts.reduce((s,t)=>s+t.net,0),gp=ts.filter(t=>t.net>0).reduce((s,t)=>s+t.net,0),gl=-ts.filter(t=>t.net<0).reduce((s,t)=>s+t.net,0);
     return {k,ts,n,wr:wr(ts),pf:gl?gp/gl:Infinity,today:ts.filter(t=>t.ct>=d0).reduce((s,t)=>s+t.net,0),mo:ts.filter(t=>t.ct>=mo0).reduce((s,t)=>s+t.net,0),last:ts[ts.length-1].ct,lots:ts.reduce((s,t)=>s+t.lots,0)}}).sort((x,y)=>y.n-x.n)};
   const EA=grp(t=>t.fam),SY=grp(t=>t.sym);
   const openBy=f=>{const o={};for(const p of ps){const k=f(p);o[k]=(o[k]||0)+(p.fl||0)}return o},oEA=openBy(p=>p.fam),oSY=openBy(p=>p.sym);
@@ -3190,7 +3246,7 @@ function renderAcctDetail({a,c}){
     <div class="scroll"><table id="adPer"><thead><tr><th>Period</th><th>Profit</th><th>Gain</th><th>Trades</th><th>Won</th><th>Lots</th><th>Best</th><th>Worst</th></tr></thead><tbody>${P.map(x=>`<tr><td>${esc(x.lab)}</td><td class="${cls(x.p)}"><b>${sign(x.p)}</b></td><td class="${cls(x.p)}">${x.g==null?'–':pct(x.g,2)}</td><td>${x.n}</td><td>${x.wr==null?'–':pct(x.wr,0)}</td><td>${fmt(x.lots,2)}</td><td class="${cls(x.best)}">${x.best==null?'–':money(x.best,2)}</td><td class="${cls(x.worst)}">${x.worst==null?'–':money(x.worst,2)}</td></tr>`).join('')}</tbody></table></div></section>
 
   <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined. Tap a day to see its trades.</p></header>
-    <div class="ad-cal" role="table" aria-label="Daily profit calendar"><div class="ad-cr hd" role="row">${['Mon','Tue','Wed','Thu','Fri','Week'].map(x=>`<span role="columnheader">${x}</span>`).join('')}</div>
+    <div class="ad-cal" role="table" aria-label="Daily profit calendar" style="--nd:${nd}"><div class="ad-cr hd" role="row">${['Mon','Tue','Wed','Thu','Fri'].concat(nd>5?['Sat']:[],['Week']).map(x=>`<span role="columnheader">${x}</span>`).join('')}</div>
     ${cal.map(w=>`<div class="ad-cr" role="row">${w.row.map(x=>`<span role="cell" class="${x.t===d0?'today':''}${x.fut?' fut':''}${x.has?' ad-day':''}"${x.has?` data-day="${x.t}" tabindex="0"`:''} style="${tint(x.v)}" title="${dayKey(x.t)}: ${money(x.v,2)}${x.start?' ('+pct(x.v/x.start,2)+')':''}"><i>${new Date(x.t).getUTCDate()}</i>${x.has?`<b>${x.v>0?'+':''}${money(x.v,0)}</b>`:''}</span>`).join('')}<span role="cell" class="wk ${cls(w.tot)}"><i>&nbsp;</i><b>${w.tot?(w.tot>0?'+':'')+money(w.tot,0):'0'}</b></span></div>`).join('')}</div>
     <p class="muted" style="font-size:12px">${upDays} of ${days.length} trading days in profit (${pct(days.length?upDays/days.length:0,0)}). Best day ${money(M.best.pnl,2)} on ${M.best.key}, worst ${money(M.worst.pnl,2)} on ${M.worst.key}.</p></section>
   </div>
@@ -3199,29 +3255,29 @@ function renderAcctDetail({a,c}){
     <div class="scroll"><table id="adMon" class="ad-mon"><thead><tr><th>Year</th>${MON.map(m=>`<th>${m}</th>`).join('')}<th>Year</th></tr></thead><tbody>${years.map(y=>{const o=MR[y];let yr=1,yp=0;for(const m in o.m){yr*=o.m[m];yp+=o.p[m]}
       return `<tr><td><b>${y}</b></td>${MON.map((_,i)=>{const v=o.m[i]==null?null:o.m[i]-1;return `<td style="${mt(v)}" title="${v==null?'':money(o.p[i],2)}">${v==null?'':pct(v,1)}</td>`}).join('')}<td class="${cls(yr-1)}" title="${money(yp,2)}"><b>${pct(yr-1,1)}</b></td></tr>`}).join('')}</tbody></table></div></section>
 
-  <section class="panel"><header><h3>Trading statistics</h3><p>All closed trades on ${one?'this account':'these accounts'}.</p></header>
+  <section class="panel"><header><h3>Trading statistics</h3><p>${pLab?'Closed trades in the '+pLab+' (period picked at the top)':'All closed trades'} on ${one?'this account':'these accounts'}.</p></header>
     <div class="ad-stats">
-    ${tile('Trades',T.length.toLocaleString(),`${fmt(T.reduce((s,t)=>s+t.lots,0),2)} lots`)}
-    ${tile('Win rate',pct(M.wr,1),`${M.w} won · ${M.l} lost${M.even?` · ${M.even} at 0.00`:''}`)}
+    ${tile('Trades',Tq.length.toLocaleString(),`${fmt(Tq.reduce((s,t)=>s+t.lots,0),2)} lots`)}
+    ${tile('Win rate',pct(Mq.wr,1),`${Mq.w} won · ${Mq.l} lost${Mq.even?` · ${Mq.even} at 0.00`:''}`)}
     ${tile('Longs won',longs.length?pct(wr(longs),0):'–',`${longs.length} buys · ${money(longs.reduce((s,t)=>s+t.net,0),0)}`)}
     ${tile('Shorts won',shorts.length?pct(wr(shorts),0):'–',`${shorts.length} sells · ${money(shorts.reduce((s,t)=>s+t.net,0),0)}`)}
-    ${tile('Profit factor',pfT(M.pf),'gross win ÷ gross loss',M.pf>=1.5?'pos':M.pf<1?'neg':'')}
-    ${tile('Expectancy',money(M.exp,2),'average per trade',cls(M.exp))}
-    ${tile('Average win',money(M.avgW,2),`average loss ${money(-M.avgL,2)}`,'pos')}
-    ${tile('Payoff',fmt(M.payoff,2),'average win ÷ average loss')}
+    ${tile('Profit factor',pfT(Mq.pf),'gross win ÷ gross loss',Mq.pf>=1.5?'pos':Mq.pf<1?'neg':'')}
+    ${tile('Expectancy',money(Mq.exp,2),'average per trade',cls(Mq.exp))}
+    ${tile('Average win',money(Mq.avgW,2),`average loss ${money(-Mq.avgL,2)}`,'pos')}
+    ${tile('Payoff',fmt(Mq.payoff,2),'average win ÷ average loss')}
     ${tile('Best trade',money(bestT.net,2),`${esc(bestT.sym)} · ${dayKey(bestT.ct)}`,'pos')}
     ${tile('Worst trade',money(worstT.net,2),`${esc(worstT.sym)} · ${dayKey(worstT.ct)}`,'neg')}
-    ${tile('Average hold',holdTxt(hold),`wins ${holdTxt(M.holdW)} · losses ${holdTxt(M.holdL)}`)}
-    ${tile('Max drawdown',pct(M.maxDDp,1),'deepest dip in money '+money(-M.maxDD,0),'neg')}
-    ${tile('Losing run',M.maxL+' in a row',`winning run ${M.maxW}`)}
-    ${tile('Sharpe',fmt(M.sharpe,2),`Sortino ${fmt(M.sortino,2)}`)}
+    ${tile('Average hold',holdTxt(hold),`wins ${holdTxt(Mq.holdW)} · losses ${holdTxt(Mq.holdL)}`)}
+    ${tile('Max drawdown',pct(Mq.maxDDp,1),'deepest dip in money '+money(-Mq.maxDD,0),'neg')}
+    ${tile('Losing run',Mq.maxL+' in a row',`winning run ${Mq.maxW}`)}
+    ${tile('Sharpe',fmt(Mq.sharpe,2),`Sortino ${fmt(Mq.sortino,2)}`)}
     ${tile('Costs',money(comm+swap,2),`commission ${money(comm,0)} · swap ${money(swap,0)}`,cls(comm+swap))}
-    ${tile('Stop-outs',String(T.filter(t=>t.so).length),`no stop loss on ${pct(T.filter(t=>!t.sl).length/T.length,0)} of trades`,T.some(t=>t.so)?'neg':'')}
+    ${tile('Stop-outs',String(Tq.filter(t=>t.so).length),`no stop loss on ${pct(Tq.filter(t=>!t.sl).length/Tq.length,0)} of trades`,Tq.some(t=>t.so)?'neg':'')}
     </div></section>
 
-  <section class="panel"><header><h3>EAs on ${one?'this account':'these accounts'}</h3><p>Tap an EA for its full report.</p></header>
+  <section class="panel"><header><h3>EAs on ${one?'this account':'these accounts'}${pLab?' · '+pLab:''}</h3><p>Tap an EA for its full report.</p></header>
     <div class="scroll"><table id="adEA"><thead><tr><th>EA</th><th>Trades</th><th>Net</th><th>Today</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${EA.map(r=>`<tr data-ea="${esc(r.k)}" class="ad-click" tabindex="0"><td>${avatar(r.k,18)} <b>${esc(r.k)}</b><span class="tag"> last ${dayKey(r.last)}</span></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.today)}">${r.today?sign(r.today):'–'}</td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oEA[r.k]||0)}">${cntEA[r.k]?`${cntEA[r.k]} · ${sign(oEA[r.k])}`:'–'}</td></tr>`).join('')}</tbody></table></div></section>
-  <section class="panel"><header><h3>By symbol</h3><p>Where the money was made and lost, ${SY.length} symbol${SY.length>1?'s':''}.</p></header>
+  <section class="panel"><header><h3>By symbol${pLab?' · '+pLab:''}</h3><p>Where the money was made and lost, ${SY.length} symbol${SY.length>1?'s':''}.</p></header>
     <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
 
   <section class="panel" id="adTrades" aria-labelledby="hADT"></section>`;
@@ -3522,6 +3578,110 @@ CLAMPS.push(['#nPairs',':scope>.op-card',6,'pairs','desk']);
 // v30: a small Singapore clock beside the title, so every time on the desk has a reference
 function tickSGT(){const el=$('#sgtClock');if(!el)return;const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Singapore',weekday:'short',hour:'2-digit',minute:'2-digit'});el.textContent=f.format(Date.now())+' SGT'}
 tickSGT();setInterval(tickSGT,30000);
+
+/* ---------- v36: pro analytics. Tail risk and recovery (Risk), edge check (EAs), hour x weekday map (Timing) ---------- */
+// drawdown episodes on the closed-balance curve: start at a high, trough, back to the high (or still open)
+function ddEpisodes(pts){
+  const out=[];let ep=null;
+  for(const p of pts){
+    if(p.ddp>5e-4){if(!ep)ep={t0:p.t,tl:p.t,depth:0};if(p.ddp>ep.depth){ep.depth=p.ddp;ep.tl=p.t}}
+    else if(ep){ep.t1=p.t;out.push(ep);ep=null}}
+  if(ep){ep.t1=null;out.push(ep)}
+  return out}
+const q5=a=>{const s=[...a].sort((x,y)=>x-y);return s.length?s[Math.floor(.05*(s.length-1))]:0};
+const daysTxt=d=>d<1?'under a day':d<2?'1 day':Math.round(d)+' days';
+
+function renderTail({T,P,ccy,riskEA}){
+  const el=$('#tailTiles');if(!el)return;
+  const now=Math.max(S.srvNow||0,T[T.length-1].ct),pts=P.sr.pts.filter(p=>p.t>=P.t0);
+  const eps=ddEpisodes(pts),closed=eps.filter(e=>e.t1),open=eps.find(e=>!e.t1);
+  const dur=e=>((e.t1||now)-e.t0)/DAY,longest=eps.reduce((b,e)=>dur(e)>dur(b)?e:b,eps[0]);
+  const rec=closed.filter(e=>e.depth>=.01).map(dur),avgRec=rec.length?mean(rec):null;
+  const D=P.D.filter(d=>Math.abs(d.pnl)>=.005),pl=D.map(d=>d.pnl),rp=D.filter(d=>d.start>0).map(d=>d.pnl/d.start);
+  const ulcer=Math.sqrt(mean(P.D.map(d=>(d.ddp||0)**2)));
+  const v=q5(pl),tail=pl.filter(x=>x<=v),es=tail.length?mean(tail):0,vp=q5(rp);
+  const m=mean(pl),sd=std(pl),sk=sd?mean(pl.map(x=>((x-m)/sd)**3)):0,ku=sd?mean(pl.map(x=>((x-m)/sd)**4)):0;
+  const lastHigh=open?open.t0:now,since=(now-lastHigh)/DAY;
+  const tile=(k,v,sub,c2)=>`<div class="pt"><span class="k">${k}</span><b class="${c2||''}">${v}</b><span class="tag">${sub}</span></div>`;
+  el.innerHTML=
+    tile('Bad day, 1 in 20',money(v,0),`${pct(vp,2)} of balance · daily value at risk`,'neg')+
+    tile('Average of those days',money(es,0),'expected shortfall, the real tail','neg')+
+    tile('Ulcer index',fmt(ulcer*100,2),ulcer<.02?'shallow, short dips':ulcer<.05?'moderate pain':'deep or long dips',ulcer<.02?'pos':ulcer<.05?'':'neg')+
+    tile('Since last high',open?daysTxt(since):'at a high',open?`down ${pct(-open.depth,1)} at worst in this dip`:'new high on the last close',open&&open.depth>.01?'neg':'pos')+
+    tile('Longest under water',longest?daysTxt(dur(longest)):'–',longest?`${dstr(longest.t0)} to ${longest.t1?dstr(longest.t1):'still open'}`:'never below a high')+
+    tile('Typical recovery',avgRec!=null?daysTxt(avgRec):'–',`average over ${rec.length} dips of 1% or more`)+
+    tile('Fat tails',fmt(ku,1),(ku>6?'extreme days far more often than normal':ku>4?'some outsized days':'close to normal')+' (a bell curve is 3)',ku>6?'neg':'')+
+    tile('Skew',fmt(sk,2),sk<-.5?'losses come bigger than wins':sk>.5?'wins come bigger than losses':'balanced',sk<-.5?'neg':sk>.5?'pos':'');
+  // the 8 deepest dips: depth and how long each took to heal
+  const top=[...eps].sort((x,y)=>y.depth-x.depth).slice(0,8);
+  const mxd=Math.max(...top.map(e=>e.depth),.001),mxt=Math.max(...top.map(dur),1);
+  $('#ddEps').innerHTML=top.length?top.map(e=>`<div class="ep" title="${dstr(e.t0)}: fell ${pct(e.depth,2)} by ${dstr(e.tl)}, ${e.t1?'back to the high on '+dstr(e.t1):'not recovered yet'}">
+    <span class="d">${dstr(e.t0)}</span><span class="bar"><i class="dep" style="width:${(e.depth/mxd*100).toFixed(1)}%"></i></span><b class="neg">${pct(-e.depth,1)}</b>
+    <span class="bar"><i class="${e.t1?'heal':'open'}" style="width:${(dur(e)/mxt*100).toFixed(1)}%"></i></span><span class="t">${daysTxt(dur(e))}${e.t1?'':' · open'}</span></div>`).join(''):'<p class="muted">No drawdown in this period.</p>';
+  // histogram of daily P/L with the 1-in-20 line
+  if(pl.length>=5){
+    // clip at the 2nd and 98th percentile so one freak day does not squash the picture; the edge bars hold the rest
+    const so=[...pl].sort((x,y)=>x-y),lo=Math.min(v,so[Math.floor(.02*(so.length-1))]),hi=so[Math.ceil(.98*(so.length-1))],nb=Math.min(28,Math.max(8,Math.round(Math.sqrt(pl.length)))),w=(hi-lo)/nb||1;
+    const bins=new Array(nb).fill(0);for(const x of pl)bins[Math.max(0,Math.min(nb-1,Math.floor((x-lo)/w)))]++;
+    const labs=bins.map((_,i)=>lo+w*(i+.5)),pos=css('--pos'),neg=css('--neg'),warn=css('--warn');
+    const tl=labs.map((x,i)=>i===0&&so[0]<lo?'≤ '+money(lo+w,0):i===nb-1&&so[so.length-1]>hi?'≥ '+money(hi-w,0):money(x,0));
+    chart('cDist',{type:'bar',data:{labels:tl,datasets:[{data:bins,backgroundColor:labs.map(x=>x<=v?neg:x<0?warn:pos),borderRadius:3,barPercentage:1,categoryPercentage:.92}]},
+      options:baseOpts({animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>`Around ${i[0].label} a day`,label:i=>`${i.raw} day${i.raw>1?'s':''}`}}},scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:7}},y:{grid:{color:css('--line')},ticks:{precision:0}}}})});
+    $('#xDist').innerHTML=`<b>${D.length} trading days.</b> Red bars are the worst 1 in 20 days (${money(v,0)} or worse, ${tail.length} days). ${ku>6?'The tail is fat: big days happen far more often than a bell curve would say, so size for the red bars, not the average.':''}`}
+  else{chart('cDist',{type:'bar',data:{labels:[],datasets:[]},options:baseOpts()});$('#xDist').textContent='Needs at least 5 trading days.'}
+  // which EAs lose on the worst days (portfolio view only)
+  const wb=$('#worstBy');if(!wb)return;
+  if(riskEA){wb.innerHTML=`<p class="muted">Pick “every EA” above to see which EAs lose together on the worst days.</p>`;chart('cWorst',{type:'bar',data:{labels:[],datasets:[]},options:baseOpts()});return}
+  const worst=new Set([...D].sort((x,y)=>x.pnl-y.pnl).slice(0,Math.max(3,Math.round(D.length*.1))).map(d=>d.key));
+  const tot=[...worst].reduce((s,k)=>s+(D.find(d=>d.key===k)||{pnl:0}).pnl,0);
+  const by={};for(const t of T){const k=dayKey(t.ct);if(!worst.has(k))continue;const o=(by[t.fam]=by[t.fam]||{n:0,days:new Set()});o.n+=t.net;o.days.add(k)}
+  const L=Object.entries(by).map(([k,o])=>({k,n:o.n,d:o.days.size})).filter(x=>Math.abs(x.n)>=.5).sort((x,y)=>x.n-y.n).slice(0,10);
+  const pos=css('--pos'),neg=css('--neg');
+  chart('cWorst',{type:'bar',data:{labels:L.map(x=>x.k),datasets:[{data:L.map(x=>+x.n.toFixed(2)),backgroundColor:L.map(x=>x.n<0?neg:pos),borderRadius:4,maxBarThickness:22}]},
+    options:baseOpts({indexAxis:'y',animation:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>`${money(i.raw,2)} on ${L[i.dataIndex].d} of the ${worst.size} worst days`}}},scales:{x:{grid:{color:css('--line')},ticks:{callback:v=>money(v)}},y:{grid:{display:false}}}})});
+  const lead=L[0],hedge=[...L].reverse().find(x=>x.n>0);
+  wb.innerHTML=lead?`<b>${worst.size} worst days cost ${money(tot,0)}.</b> ${esc(lead.k)} lost ${money(-lead.n,0)} of it (${pct(tot?lead.n/tot:0,0)})${L[1]&&L[1].n<0?`, then ${esc(L[1].k)} ${money(-L[1].n,0)}`:''}.${hedge?` ${esc(hedge.k)} made ${money(hedge.n,0)} on those days, so it softens the blow.`:' No EA made money on those days, so nothing hedges the tail.'}`:'';
+}
+
+// EAs tab: lifetime edge against the last 30 trades, one row per EA
+function renderEdge({EAs}){
+  const el=$('#edgeRows');if(!el)return;
+  const L=EAs.filter(e=>e.M.n>=40&&!EA_ARCH.has(e.k)).map(e=>{const ts=Object.values(e.syms).flat().sort((x,y)=>x.ct-y.ct),r=ts.slice(-30).map(t=>t.net),all=ts.map(t=>t.net);
+    const sd=std(all),z=sd?(mean(r)-e.M.exp)/(sd/Math.sqrt(r.length)):0;
+    const st=e.M.exp<=0?(z>2&&mean(r)>0?'hot':'none'):z<-1.5&&mean(r)<0?'lost':z<-2?'fade':z>2?'hot':'ok';/* flag only a gap too big to be luck */return {e,life:e.M.exp,rec:mean(r),z,st}});
+  if(!L.length){el.innerHTML='<p class="muted">Needs EAs with 40 or more trades in this period.</p>';$('#edgeSum').innerHTML='';return}
+  const ord={lost:0,fade:1,none:2,ok:3,hot:4};L.sort((x,y)=>ord[x.st]-ord[y.st]||x.z-y.z);
+  const mx=Math.max(...L.flatMap(x=>[Math.abs(x.life),Math.abs(x.rec)]),.01),X=v=>+(50+Math.sign(v)*Math.sqrt(Math.abs(v)/mx)*48).toFixed(1);   // square-root scale so small EAs stay readable next to big ones
+  const lab={lost:['Edge gone','fail'],fade:['Fading','warn'],none:['No edge yet','fail'],ok:['Holding','pass'],hot:['Running hot','pass']};
+  const show=UI.edgeAll?L:L.slice(0,12);
+  el.innerHTML=`<div class="edge-h"><span>EA</span><span class="axis"><i style="left:2%">−${money(mx,0)}</i><i style="left:50%">0</i><i style="left:98%">+${money(mx,0)}</i></span><span>Verdict</span></div>`+show.map(x=>{const a=X(x.life),b=X(x.rec),l=Math.min(a,b),w=Math.abs(a-b);
+    return `<div class="edge" data-ea="${esc(x.e.k)}" tabindex="0" title="${esc(x.e.name)}: ${money(x.life,2)} a trade over ${x.e.M.n} trades, ${money(x.rec,2)} over the last 30">
+      <span class="n">${avatar(x.e.k,18)}<b>${esc(x.e.name)}</b></span>
+      <span class="track"><i class="zero"></i><i class="link ${x.rec<x.life?'down':'up'}" style="left:${l}%;width:${w}%"></i><i class="dot life" style="left:${a}%"></i><i class="dot rec ${x.rec<0?'neg':'pos'}" style="left:${b}%"></i></span>
+      <span class="chip ${lab[x.st][1]}">${lab[x.st][0]}</span></div>`}).join('')+(L.length>12?`<button type="button" class="more" id="edgeMore">${UI.edgeAll?'Show the first 12':'Show all '+L.length+' EAs'}</button>`:'');
+  const em=$('#edgeMore');if(em)em.onclick=()=>{UI.edgeAll=!UI.edgeAll;renderEdge({EAs})};
+  el.querySelectorAll('.edge[data-ea]').forEach(r=>{const go=()=>{UI.ea=r.dataset.ea;render();const d=document.getElementById('hDive');if(d)d.scrollIntoView({block:'start',behavior:'smooth'})};r.onclick=go;r.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go()}}});
+  const n=s=>L.filter(x=>x.st===s).length;
+  $('#edgeSum').innerHTML=`<span class="lab-pill" style="--c:var(--neg)"><i></i><b>${n('lost')}</b> edge gone</span><span class="lab-pill" style="--c:var(--warn)"><i></i><b>${n('fade')}</b> fading</span><span class="lab-pill" style="--c:var(--muted)"><i></i><b>${n('none')}</b> no edge yet</span><span class="lab-pill" style="--c:var(--pos)"><i></i><b>${n('ok')+n('hot')}</b> holding</span>`;
+}
+
+// Timing tab: weekday (broker calendar) by hour (Singapore) map of net profit
+function renderHeat({T,ccy}){
+  const el=$('#hwMap');if(!el)return;
+  const G={};for(const t of T){const w=new Date(toSrv(t.ot)).getUTCDay(),h=new Date(t.ot).getUTCHours(),k=w+'|'+h;const o=(G[k]=G[k]||{n:0,c:0,w:0});o.n+=t.net;o.c++;if(t.net>0)o.w++}
+  const days=[1,2,3,4,5,6,0].filter(w=>Object.keys(G).some(k=>k.startsWith(w+'|')));
+  const ab=Object.values(G).map(o=>Math.abs(o.n)).sort((x,y)=>x-y),mx=Math.max(ab[Math.floor(.9*(ab.length-1))]||1,1);   // colour saturates at the 90th percentile so one huge hour does not wash out the rest
+  const cell=(w,h)=>{const o=G[w+'|'+h];if(!o)return '<i></i>';const p=Math.round(12+70*Math.min(1,Math.sqrt(Math.abs(o.n)/mx)));
+    return `<i style="background:color-mix(in srgb,var(${o.n>=0?'--pos':'--neg'}) ${p}%,var(--sunk))" title="${WD[w]} ${String(h).padStart(2,'0')}:00 SGT: ${money(o.n,2)} from ${o.c} trade${o.c>1?'s':''}, ${pct(o.w/o.c,0)} won"></i>`};
+  el.innerHTML=`<div class="hw-r hd"><span></span>${Array.from({length:24},(_,h)=>`<span>${h%3?'':String(h).padStart(2,'0')}</span>`).join('')}</div>`+days.map(w=>`<div class="hw-r"><span>${WD[w]}</span>${Array.from({length:24},(_,h)=>cell(w,h)).join('')}</div>`).join('');
+  const cells=Object.entries(G).filter(([,o])=>o.c>=5),best=cells.sort((x,y)=>y[1].n-x[1].n)[0],worst=cells[cells.length-1];
+  const nm2=k=>{const [w,h]=k.split('|');return `${WDL[w]} ${String(h).padStart(2,'0')}:00`};
+  $('#xHw').innerHTML=best?`<b>Sweet spot:</b> ${nm2(best[0])} (${money(best[1].n,0)} from ${best[1].c} trades). `+(worst&&worst[1].n<0?`<b>Money pit:</b> ${nm2(worst[0])} (${money(worst[1].n,0)} from ${worst[1].c} trades), worth testing a time filter there.`:''):'';
+}
+
+{const _rr=renderRisk;renderRisk=function(x){_rr(x);try{renderTail(x)}catch(e){console.error(e)}}}
+{const _rt=renderTiming;renderTiming=function(x){_rt(x);try{renderHeat(x)}catch(e){console.error(e)}}}
+{const _rl=renderLab;renderLab=function(x){_rl(x);try{renderEdge(x)}catch(e){console.error(e)}}}
 
 </script>
 
