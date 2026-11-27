@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127092322">
+<meta name="desk-build" content="20261127130203">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127092322',busy=false;
+(function(){var mine='20261127130203',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -983,7 +983,7 @@ function famOf(raw){
 }
 
 // XAUUSD.r, EURUSDm, US30.cash -> one symbol name per instrument
-function normSym(s){s=String(s||'').trim();const m=s.match(/^([A-Za-z0-9]{3,})[._+#-][A-Za-z0-9]*$/);if(m)s=m[1];const n=s.match(/^([A-Z0-9]{6,})[a-z]+$/);return n?n[1]:s}
+function normSym(s){s=String(s||'').trim();if(/^(WS30|DJ30|DJI30|US30Cash)$/i.test(s))return 'US30';const m=s.match(/^([A-Za-z0-9]{3,})[._+#-][A-Za-z0-9]*$/);if(m)s=m[1];const n=s.match(/^([A-Z0-9]{6,})[a-z]+$/);return n?n[1]:s}
 // Why a trade closed, from the tag the broker writes into the comment
 function exitOf(c){c=String(c||'');return /\bso:/i.test(c)?'so':/\[sl\b|^sl\b|\bsl:/i.test(c)?'sl':/\[tp\b|^tp\b|\btp:/i.test(c)?'tp':'ea'}
 // Money lost (negative) when a stop filled past its price: price gap times money-per-point taken from the trade's own P/L
@@ -1027,7 +1027,7 @@ function ingest(text,name){
       const acct=g(r,'account'),type=g(r,'type').toLowerCase(),ct=parseTime(g(r,'close_time')),ot=parseTime(g(r,'open_time'));
       const profit=+g(r,'profit')||0,comm=+g(r,'commission')||0,swap=+g(r,'swap')||0,sl=+g(r,'sl')||0;
       if(g(r,'currency')) S.ccy=g(r,'currency');
-      if(type==='balance'){S.cash.push({acct,t:isNaN(ct)?ot:ct,amt:profit+comm+swap,id:acct+'|'+g(r,'ticket')});continue}
+      if(type==='balance'){const cm=g(r,'comment');S.cash.push({acct,t:isNaN(ct)?ot:ct,amt:profit+comm+swap,id:acct+'|'+g(r,'ticket'),reb:!!cm&&!/dep|withdr|wdl|transf|trf|tfr|credit/i.test(cm)});continue}
       if(type!=='buy'&&type!=='sell'||isNaN(ct)) continue;
       const raw=g(r,'comment');
       S.trades.push({acct,plat:g(r,'platform'),id:acct+'|'+g(r,'ticket'),sym:normSym(g(r,'symbol')),so:/\bso:/i.test(raw),ex:exitOf(raw),pos:g(r,'position'),op:+g(r,'open_price')||0,cp:+g(r,'close_price')||0,famRaw:famOf(raw),side:type,lots:+g(r,'lots')||0,ot:isNaN(ot)?ct:ot,ct,
@@ -1253,14 +1253,15 @@ function spark(vals){
   const col=v[v.length-1]>=v[0]?'var(--pos)':'var(--neg)';
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,${H} ${pts} ${W},${H}" fill="color-mix(in srgb,${col} 14%,transparent)" stroke="none"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
 }
+function capIn(acct){if(!/^\d+$/.test(acct))return [...new Set(S.trades.filter(t=>inSel(t.acct,acct)).map(t=>t.acct))].reduce((s,a)=>s+capIn(a),0);let f=Infinity;for(const t of S.trades)if(t.acct===acct&&t.ct<f)f=t.ct;let v=0;for(const x of S.cash)if(x.acct===acct&&!x.reb&&(x.t<=f||x.amt>0))v+=x.amt;return v}
 function acctStats(acct,cap){
   const T=S.trades.filter(t=>inSel(t.acct,acct)).sort((x,y)=>x.ct-y.ct),C=S.cash.filter(x=>inSel(x.acct,acct));
   if(!T.length) return null;
   const b=baseFor(T,C,cap),M=metrics(T,b.Cuse,b.cap0,b.base);
   const nowRows=S.now.filter(r=>r.magic==='ALL'&&(inSel(r.acct,acct)));
   const bal=nowRows.length?nowRows.reduce((s,r)=>s+r.bal,0):M.sr.end,eqv=nowRows.length?nowRows.reduce((s,r)=>s+r.eq,0):null;
-  const dep=C.reduce((s,x)=>s+Math.max(x.amt,0),0),rb=Math.max(dep,b.base);
-  return {T,M,base:rb,bal,eq:eqv,fl:eqv==null?null:eqv-bal,deposits:dep,score:health(M,rb),plat:T[0].plat,
+  const dep=C.reduce((s,x)=>s+(x.reb?0:Math.max(x.amt,0)),0),reb=C.reduce((s,x)=>s+(x.reb?x.amt:0),0),ci=capIn(acct),rb=ci>0?ci:Math.max(dep,b.base);
+  return {T,M,base:rb,bal,eq:eqv,fl:eqv==null?null:eqv-bal,deposits:dep,reb,score:health(M,rb),plat:T[0].plat,
     age:nowRows.length?Math.max(...nowRows.map(r=>r.age)):null,curve:M.sr.pts.map(p=>p.bal)};
 }
 
@@ -1312,7 +1313,7 @@ function render(){
   const rE=EAs.find(e=>e.k===UI.riskEA);let rctx=ctx;
   if(rE){const Tr=Object.values(rE.syms).flat().sort((x,y)=>x.ct-y.ct),eb=[...new Set(Tr.map(t=>t.acct))].reduce((s,ac)=>s+((acctStats(ac,c.cap)||{}).bal||0),0)||base;   // an EA is measured against the accounts it trades on, not the whole portfolio
     rctx={...ctx,T:Tr,P:metrics(Tr,[],eb,eb),MC:monteCarlo(Tr.map(t=>t.net),eb,c.ruin),EQ:null,riskEA:rE,base:eb}}
-  renderLab(ctx);syncBands(ctx.EAs);if(actx!==ctx)syncBands(actx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(actx);renderExplore(ctx);renderKnow(actx);renderCards(ctx);renderNums(ctx);renderBoard(actx);renderDive(ctx);renderTiming(actx);renderEqualRisk(actx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(actx);renderNews(actx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRiskNow(ctx);renderRisk(rctx);renderWhere(actx);renderSymTiles(actx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
+  renderLab(ctx);syncBands(ctx.EAs);if(actx!==ctx)syncBands(actx.EAs);renderHero(ctx);celebrate(ctx);renderTicker(ctx);renderTreemap(ctx);renderExplore(ctx);renderKnow(actx);renderCards(ctx);renderNums(ctx);renderBoard(actx);renderDive(ctx);renderTiming(actx);renderEqualRisk(actx);renderProfile(ctx);renderRiskEA(ctx);renderMarginal(actx);renderNews(actx);loadAlerts();renderEAMap();renderOpenNow(ctx);renderRiskNow(ctx);renderRisk(rctx);renderWhere(ctx);renderSymTiles(ctx);renderLive(ctx);renderGauges(rctx);renderPlumbing(ctx);
   }catch(e){$('#err').hidden=false;$('#err').textContent='Could not analyse this data: '+e.message;console.error(e)}
 }
 
@@ -1766,7 +1767,7 @@ function renderSymTiles({T,ccy}){
   const by={};for(const t of T)(by[t.sym]=by[t.sym]||[]).push(t);
   const L=Object.entries(by).map(([s,a])=>{const n=a.reduce((x,t)=>x+t.net,0),w=a.filter(t=>t.net>0).length/a.length;return {s,n,k:a.length,w}}).sort((x,y)=>y.n-x.n);
   const mx=Math.max(...L.map(x=>Math.abs(x.n)),1);
-  $('#symTiles').innerHTML=L.map(x=>`<div class="stile"><div class="top">${pairBadge(x.s,26)}<b>${esc(x.s)}</b></div><div class="v ${cls(x.n)}">${money(x.n)}</div>
+  $('#symTiles').innerHTML=L.map(x=>`<div class="stile"><div class="top">${pairBadge(x.s,26)}<b>${esc(x.s)}</b></div><div class="v ${cls(x.n)}">${money(x.n,2)}</div>
     <div class="hbar"><b style="width:${(Math.abs(x.n)/mx*100).toFixed(1)}%;background:var(${x.n>=0?'--pos':'--neg'})"></b></div><span class="muted">${x.k} trades · ${pct(x.w,0)} won</span></div>`).join('');
 }
 
@@ -2799,7 +2800,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v32';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v33';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3137,7 +3138,7 @@ function renderAcctDetail({a,c}){
   const CS=S.cash.filter(x=>inSel(x.acct,a)).sort((x,y)=>x.t-y.t),netCash=CS.reduce((s,x)=>s+x.amt,0),cashBy=t=>{let s=0;for(const x of CS){if(x.t>t)break;s+=x.amt}return s};
   const synced=Math.abs(M.sr.end-st.bal)<=Math.max(5,st.bal*.01),peak=synced?Math.max(...M.sr.pts.map(p=>p.bal-cashBy(p.t)),st.bal-netCash)+netCash:null;
   const downPk=peak?((st.eq!=null?st.eq:st.bal)-peak)/peak:null;
-  const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0).reduce((s,x)=>s+x.amt,0);
+  const C=S.cash.filter(x=>inSel(x.acct,a)),dep=C.filter(x=>x.amt>0&&!x.reb).reduce((s,x)=>s+x.amt,0),wdr=-C.filter(x=>x.amt<0&&!x.reb).reduce((s,x)=>s+x.amt,0),reb=C.filter(x=>x.reb).reduce((s,x)=>s+x.amt,0);
   const comm=T.reduce((s,t)=>s+(t.comm||0),0),swap=T.reduce((s,t)=>s+(t.swap||0),0);
   const longs=T.filter(t=>t.side==='buy'),shorts=T.filter(t=>t.side==='sell'),wr=ts=>ts.length?ts.filter(t=>t.net>0).length/ts.length:null;
   const bestT=T.reduce((b,t)=>t.net>b.net?t:b,T[0]),worstT=T.reduce((b,t)=>t.net<b.net?t:b,T[0]);
@@ -3172,7 +3173,7 @@ function renderAcctDetail({a,c}){
     ${tile('Balance',money(st.bal,2))}${tile('Equity',st.eq!=null?money(st.eq,2):'–',st.eq!=null?`${fl>=0?'+':''}${money(fl,2)} open`:'',st.eq!=null?cls(fl):'')}
     ${tile('Today',sign(P[0].p),P[0].n?`${P[0].n} trade${P[0].n>1?'s':''} closed${P[0].g!=null?' · '+pct(P[0].g,2):''}`:'nothing closed yet',cls(P[0].p))}
     ${tile('This month',sign(P.find(x=>x.lab==='This month').p),P.find(x=>x.lab==='This month').g!=null?pct(P.find(x=>x.lab==='This month').g,2):'',cls(P.find(x=>x.lab==='This month').p))}
-    ${tile('Net profit',sign(M.net),st.base?pct(M.net/st.base,1)+' gain':'',cls(M.net))}
+    ${tile('Net profit',sign(M.net),(st.base?pct(M.net/st.base,1)+' gain':'')+(reb?` · ${sign(reb)} rebates and fees on top`:''),cls(M.net))}
     ${tile('Open now',ps.length?`${ps.length} trade${ps.length>1?'s':''}`:'none',ps.length?`${sign(fl)}${risk&&risk.noSL<risk.n?` · if stops hit ${money(risk.sum,0)}`:risk?' · no stop losses':''}`:'',ps.length?cls(fl):'')}
     ${peak?tile('Below peak',downPk<-0.0005?pct(downPk,2):'at peak',`equity vs peak ${money(peak,0)}${wdr?', withdrawals excluded':''}`,downPk<-0.0005?'neg':'pos'):tile('Drawdown now',st.eq!=null&&st.bal?pct(Math.min(0,fl/st.bal),2):'–','open loss vs balance',fl<0?'neg':'')}
     ${tile('Deposits',money(dep,0),wdr?`withdrawn ${money(wdr,0)}`:'no withdrawals')}
@@ -3206,7 +3207,7 @@ function renderAcctDetail({a,c}){
     ${tile('Best trade',money(bestT.net,2),`${esc(bestT.sym)} · ${dayKey(bestT.ct)}`,'pos')}
     ${tile('Worst trade',money(worstT.net,2),`${esc(worstT.sym)} · ${dayKey(worstT.ct)}`,'neg')}
     ${tile('Average hold',holdTxt(hold),`wins ${holdTxt(M.holdW)} · losses ${holdTxt(M.holdL)}`)}
-    ${tile('Max drawdown',pct(M.maxDDp,1),money(-M.maxDD,0)+' on closed balance','neg')}
+    ${tile('Max drawdown',pct(M.maxDDp,1),'deepest dip in money '+money(-M.maxDD,0),'neg')}
     ${tile('Losing run',M.maxL+' in a row',`winning run ${M.maxW}`)}
     ${tile('Sharpe',fmt(M.sharpe,2),`Sortino ${fmt(M.sortino,2)}`)}
     ${tile('Costs',money(comm+swap,2),`commission ${money(comm,0)} · swap ${money(swap,0)}`,cls(comm+swap))}
@@ -3215,8 +3216,8 @@ function renderAcctDetail({a,c}){
 
   <section class="panel"><header><h3>EAs on ${one?'this account':'these accounts'}</h3><p>Tap an EA for its full report.</p></header>
     <div class="scroll"><table id="adEA"><thead><tr><th>EA</th><th>Trades</th><th>Net</th><th>Today</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${EA.map(r=>`<tr data-ea="${esc(r.k)}" class="ad-click" tabindex="0"><td>${avatar(r.k,18)} <b>${esc(r.k)}</b><span class="tag"> last ${dayKey(r.last)}</span></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.today)}">${r.today?sign(r.today):'–'}</td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oEA[r.k]||0)}">${cntEA[r.k]?`${cntEA[r.k]} · ${sign(oEA[r.k])}`:'–'}</td></tr>`).join('')}</tbody></table></div></section>
-  <section class="panel"><header><h3>By symbol</h3><p>Where the money was made and lost${SY.length>12?`. Top 12 of ${SY.length} symbols`:''}.</p></header>
-    <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.slice(0,12).map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
+  <section class="panel"><header><h3>By symbol</h3><p>Where the money was made and lost, ${SY.length} symbol${SY.length>1?'s':''}.</p></header>
+    <div class="scroll"><table id="adSym"><thead><tr><th>Symbol</th><th>Trades</th><th>Net</th><th>This month</th><th>Won</th><th>PF</th><th>Open now</th></tr></thead><tbody>${SY.map(r=>`<tr><td>${pairBadge(r.k,16)} <b>${esc(r.k)}</b></td><td>${r.ts.length}</td><td class="${cls(r.n)}"><b>${sign(r.n)}</b></td><td class="${cls(r.mo)}">${r.mo?sign(r.mo):'–'}</td><td>${pct(r.wr,0)}</td><td>${pfT(r.pf)}</td><td class="${cls(oSY[r.k]||0)}">${oSY[r.k]!=null?sign(oSY[r.k]):'–'}</td></tr>`).join('')}</tbody></table></div></section>
 
   <section class="panel" id="adTrades" aria-labelledby="hADT"></section>`;
 
