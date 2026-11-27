@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127031659">
+<meta name="desk-build" content="20261127034553">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127031659',busy=false;
+(function(){var mine='20261127034553',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -890,7 +890,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
 
 <section class="panel" data-tab="map" aria-label="EA mapping"><header><h3>EA mapping</h3><p>One line per account and magic number. Trades that enter in the same minute and exit together on two accounts are matched as the same EA, whatever their magic or comment.</p></header><div id="eaMap"></div></section>
 <section class="sec" data-tab="alerts" aria-labelledby="hAlerts">
-  <div class="sec-h"><div><span class="kicker">Alerts</span><h2 id="hAlerts">Telegram alerts</h2></div><p>Supabase checks your accounts every 5 minutes and messages your Telegram bot once per event: drawdowns, stop-outs, quiet EAs, offline terminals, new highs, and news while you are exposed, plus a morning note on US market holidays. Free, nothing to install.</p></div>
+  <div class="sec-h"><div><span class="kicker">Alerts</span><h2 id="hAlerts">Telegram alerts</h2></div><p>Supabase checks your accounts every 5 minutes and messages your Telegram bot once per event: drawdowns, stop-outs, quiet EAs, offline terminals, new highs, and news while you are exposed, release results, and an 08:00 Singapore morning brief. Free, nothing to install.</p></div>
   <section class="panel"><header style="flex-direction:row;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h3>Telegram</h3><div style="display:flex;gap:8px"><button type="button" class="al-btn" id="alTest" hidden>Send a test</button><button type="button" class="al-btn" id="alRelink" hidden>Change bot</button></div></header>
     <div id="alStatus"></div>
     <div class="al-tok" id="alTokRow"><input id="alTok" type="password" autocomplete="off" spellcheck="false" placeholder="Bot token, like 123456789:AA…" aria-label="Telegram bot token"><button type="button" class="al-btn primary" id="alConnect">Connect</button></div>
@@ -905,7 +905,9 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
       <label><span>💤 …and at least this many days</span><input type="number" step="1" name="quiet_min_days" data-l="Quiet days"></label>
       <label><span>📰 Warn this many minutes before news on a currency you hold</span><input type="number" step="5" name="news_min" data-l="News minutes"></label>
       <label><span>📰 Include medium-impact news</span><input type="checkbox" name="news_medium"></label>
-      <label><span>🇺🇸 Morning note on US market holidays and early closes (08:00 Singapore)</span><input type="checkbox" name="holiday"></label>
+      <label><span>☀️ Morning brief at 08:00 Singapore: yesterday, open risk, today's releases, leans</span><input type="checkbox" name="brief"></label>
+      <label><span>📊 Release results: actual vs forecast for US CPI, PPI and jobs, with what it means for your open trades</span><input type="checkbox" name="news_actual"></label>
+      <label><span>🇺🇸 US market holidays and early closes (inside the morning brief)</span><input type="checkbox" name="holiday"></label>
       <label><span>🛑 Broker stop-outs</span><input type="checkbox" name="stopouts"></label>
       <label><span>🏆 New all-time highs</span><input type="checkbox" name="new_high"></label>
       <div class="full"><span class="k">Accounts to watch</span><div class="al-mute" id="alMute"></div></div>
@@ -2405,9 +2407,9 @@ function symCcys(s){
     :/^[A-Z]{6}/.test(u)?[u.slice(0,3),u.slice(3,6)]:[];
   return SYMC[s]=r;
 }
-const NVC=['st','ccy','title','impact','ms','fc','pv'];
-const NEWSQ=`select to_char(public.srv(t),'YYYY.MM.DD HH24:MI:SS') as st,ccy,title,impact,(extract(epoch from t)*1000)::bigint as ms,forecast as fc,previous as pv from public.news where impact in ('High','Medium')`;
-function parseNews(lines){return lines.map(l=>{const v=l.split(',');return {st:parseTime(v[0]),ccy:v[1],title:v[2],imp:v[3],ms:+v[4],fc:v[5]||'',pv:v[6]||''}}).filter(e=>isFinite(e.st)&&e.ccy).sort((x,y)=>x.st-y.st)}
+const NVC=['st','ccy','title','impact','ms','fc','pv','ac'];
+const NEWSQ=`select to_char(public.srv(t),'YYYY.MM.DD HH24:MI:SS') as st,ccy,title,impact,(extract(epoch from t)*1000)::bigint as ms,forecast as fc,previous as pv,actual as ac from public.news where impact in ('High','Medium')`;
+function parseNews(lines){return lines.map(l=>{const v=l.split(',');return {st:parseTime(v[0]),ccy:v[1],title:v[2],imp:v[3],ms:+v[4],fc:v[5]||'',pv:v[6]||'',ac:v[7]||''}}).filter(e=>isFinite(e.st)&&e.ccy).sort((x,y)=>x.st-y.st)}
 // demo: first-Friday jobs reports, mid-month CPI, and a few events in the coming days
 function demoNews(T){
   if(!T.length) return [];
@@ -2434,6 +2436,14 @@ function exposureNow(){
   return out;
 }
 UI.newsMed=false;
+// beat or miss chip for a released figure (direction from the release's own rule: hotter inflation, stronger jobs...)
+function actualChip(e){
+  const a=newsNum(e.ac),f=newsNum(e.fc)??newsNum(e.pv),r=newsRule(e.title);
+  if(a==null||f==null||!r) return `<span class="chip info">out</span>`;
+  if(a===f) return `<span class="chip">in line</span>`;
+  const up=a>f,w=r.k==='inflation'?(up?'hotter':'cooler'):r.k==='rates'?(up?'higher':'lower'):(up===(r.pol>0)?'stronger':'weaker'),good=(up?1:-1)*r.pol>0;
+  return `<span class="chip ${good?'pass':'fail'}" title="${good?'Supports':'Weighs on'} ${esc(e.ccy)}">${up?'▲':'▼'} ${w}</span>`;
+}
 function renderNews({T}){
   const el=$('#newsUp');if(!el) return;
   const N=S.news&&S.news.length?S.news:(S.demo?(S.news=demoNews(S.trades)):[]);
@@ -2448,7 +2458,7 @@ function renderNews({T}){
     const ex=EX.filter(x=>symCcys(x.sym).includes(e.ccy)),by={};for(const x of ex)(by[x.acct]=by[x.acct]||new Set()).add(x.sym+(x.ea?` (${x.ea})`:''));
     const d=new Date(e.ms);
     return `<div class="nrow ${ex.length?'hot':''}"><div class="nt"><b>${d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',timeZone:'Asia/Singapore'})}</b><span>${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hourCycle:'h23',timeZone:'Asia/Singapore'})}</span><span class="tag">${when(e.ms)}</span></div>
-      <div class="ne"><span class="nimp ${e.imp==='High'?'hi':'md'}" title="${e.imp} impact"></span><span class="chip">${esc(e.ccy)}</span> <b>${esc(e.title)}</b>${e.fc||e.pv?` <span class="tag">forecast ${esc(String(e.fc||'–').replace(/\s+/g,''))} · previous ${esc(String(e.pv||'–').replace(/\s+/g,''))}</span>`:''}</div>
+      <div class="ne"><span class="nimp ${e.imp==='High'?'hi':'md'}" title="${e.imp} impact"></span><span class="chip">${esc(e.ccy)}</span> <b>${esc(e.title)}</b>${e.ac?` ${actualChip(e)}`:''}${e.fc||e.pv?` <span class="tag">${e.ac?'actual '+esc(e.ac.replace(/\s+/g,''))+' · ':''}forecast ${esc(String(e.fc||'–').replace(/\s+/g,''))} · previous ${esc(String(e.pv||'–').replace(/\s+/g,''))}</span>`:''}</div>
       <div class="nx">${ex.length?Object.entries(by).map(([ac,s])=>`<span class="chip fail">${esc(nm(ac))}</span> <span class="tag">${[...s].slice(0,4).map(esc).join(', ')}${s.size>4?' +'+(s.size-4):''}</span>`).join('<br>'):'<span class="tag">No open trades in '+esc(e.ccy)+'</span>'}</div></div>`}).join(''):
     `<p class="muted">${N.length?'Nothing scheduled in the next 7 days at this impact level. The weekly calendar refreshes every hour; next week appears on Sunday.':''}</p>`;
   renderNewsHistory(T,N);
@@ -2493,7 +2503,7 @@ function renderNewsHistory(T,N){
 }
 
 /* ---------- Alerts (Telegram via Supabase) ---------- */
-const AL_KINDS={dd:['🔻','Open loss'],day:['📉','Daily loss'],off:['📴','Terminal offline'],so:['🛑','Stop-out'],ath:['🏆','New high'],quiet:['💤','EA gone quiet'],news:['📰','News while exposed'],holiday:['🇺🇸','US market holiday']};
+const AL_KINDS={dd:['🔻','Open loss'],day:['📉','Daily loss'],off:['📴','Terminal offline'],so:['🛑','Stop-out'],ath:['🏆','New high'],quiet:['💤','EA gone quiet'],news:['📰','News while exposed'],holiday:['🇺🇸','US market holiday'],actual:['📊','Release result'],brief:['☀️','Morning brief']};
 const jget=v=>typeof v==='string'?JSON.parse(v):v;
 const tgHtml=m=>esc(m).replace(/&lt;(\/?)b&gt;/g,'<$1b>');
 let AL=null,alBusy=false;
@@ -2522,7 +2532,7 @@ function paintAlerts(){
   $('#alRelink').hidden=!s.linked;$('#alTest').hidden=!s.linked;
   const f=$('#alForm');
   f.enabled.checked=s.enabled;f.float_dd_pct.value=+s.float_dd_pct;f.day_loss_pct.value=+s.day_loss_pct;f.offline_min.value=+s.offline_min;f.quiet_factor.value=+s.quiet_factor;f.quiet_min_days.value=+s.quiet_min_days;
-  f.stopouts.checked=s.stopouts;f.new_high.checked=s.new_high;f.news_min.value=+s.news_min;f.news_medium.checked=s.news_medium;f.holiday.checked=s.holiday!==false;
+  f.stopouts.checked=s.stopouts;f.new_high.checked=s.new_high;f.news_min.value=+s.news_min;f.news_medium.checked=s.news_medium;f.holiday.checked=s.holiday!==false;f.brief.checked=s.brief!==false;f.news_actual.checked=s.news_actual!==false;
   const muted=new Set((Array.isArray(s.muted)?s.muted:String(s.muted||'').replace(/[{}]/g,'').split(',')).filter(v=>v!==''&&v!=null).map(String)),acc=[...new Set(S.trades.map(t=>t.acct))].sort((x,y)=>nm(x).localeCompare(nm(y)));
   $('#alMute').innerHTML=acc.map(a=>`<label class="al-acc"><input type="checkbox" value="${esc(a)}" ${muted.has(String(a))?'':'checked'}> ${esc(nm(a))}</label>`).join('');
   $('#alNow').innerHTML=now.length?now.map(r=>{const [i,l]=AL_KINDS[r.kind]||['•',r.kind];return `<div class="al-row"><span class="al-i">${i}</span><div><span class="k">${l}</span><p>${tgHtml(r.msg.replace(/^\S+\s/,''))}</p></div><span class="chip ${r.sent?'pass':''}">${r.sent?'sent':'next check'}</span></div>`}).join(''):'<p class="muted">Nothing would alert right now. All quiet.</p>';
@@ -2564,7 +2574,7 @@ if($('#alForm')){
     e.preventDefault();const f=e.target,n=(k,lo,hi)=>{const v=+f[k].value;if(!isFinite(v)||v<lo||v>hi) throw new Error(`${f[k].dataset.l} must be between ${lo} and ${hi}`);return v};
     try{
       const acc=[...$('#alMute').querySelectorAll('input')],muted=acc.filter(i=>!i.checked).map(i=>i.value).filter(v=>/^\d+$/.test(v)).map(Number);
-      const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,holiday:f.holiday.checked,muted};
+      const p={enabled:f.enabled.checked,float_dd_pct:n('float_dd_pct',0,100),day_loss_pct:n('day_loss_pct',0,100),offline_min:Math.round(n('offline_min',0,1440)),quiet_factor:n('quiet_factor',0,50),quiet_min_days:n('quiet_min_days',0,60),stopouts:f.stopouts.checked,new_high:f.new_high.checked,news_min:Math.round(n('news_min',0,240)),news_medium:f.news_medium.checked,holiday:f.holiday.checked,brief:f.brief.checked,news_actual:f.news_actual.checked,muted};
       const b=$('#alSave');b.disabled=true;b.textContent='Saving…';alMsg('','', '#alSaveMsg');
       try{await sql(`select public.alert_save('${JSON.stringify(p)}'::jsonb) as ok`);await loadAlerts(true);
         alMsg(`✓ Saved at ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}. The next check (within 5 minutes) uses these settings.`,false,'#alSaveMsg')}
@@ -2784,7 +2794,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v30';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v31';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
