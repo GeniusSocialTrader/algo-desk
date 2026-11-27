@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127152322">
+<meta name="desk-build" content="20261127171224">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127152322',busy=false;
+(function(){var mine='20261127171224',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -1428,7 +1428,8 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
 }
 
 function renderCards({c,a}){
-  const accts=[...new Set(S.trades.map(t=>t.acct))];
+  // Real or Demo picked: only that group's accounts, with the group's own combined card first
+  const grpSel=a==='REAL'||a==='DEMO',accts=[...new Set(S.trades.map(t=>t.acct))].filter(x=>!grpSel||inSel(x,a));
   const stats=accts.map(x=>[x,acctStats(x,c.cap)]).filter(x=>x[1]).sort((x,y)=>y[1].M.net-x[1].M.net);
   const card=(id,st,label,sub,i)=>{
     const dot=st.age==null?'off':st.age>900?'stale':'';
@@ -1439,8 +1440,8 @@ function renderCards({c,a}){
       ${spark(st.curve)}
       <div class="mini"><div><span>Max DD</span><span class="neg">${pct(st.M.maxDDp,0)}</span></div><div><span>Win rate</span><span>${pct(st.M.wr,0)}</span></div><div><span>PF</span><span>${fmt(st.M.pf)}</span></div></div>
     </button>`};
-  const allSt=acctStats('ALL',c.cap);
-  $('#cards').innerHTML=(allSt?card('ALL',allSt,`All ${accts.length} accounts`,'combined portfolio',0):'')+stats.map(([x,st],i)=>card(x,st,nm(x),(st.plat?st.plat+' · ':'')+x+(isDemoAcct(x)?' · demo':''),i+1)).join('');
+  const gk=grpSel?a:'ALL',allSt=acctStats(gk,c.cap);
+  $('#cards').innerHTML=(allSt?card(gk,allSt,a==='REAL'?`${accts.length} real money accounts`:a==='DEMO'?`${accts.length} demo accounts`:`All ${accts.length} accounts`,'combined',0):'')+stats.map(([x,st],i)=>card(x,st,nm(x),(st.plat?st.plat+' · ':'')+x+(isDemoAcct(x)?' · demo':''),i+1)).join('');
   $('#cards').querySelectorAll('.acard').forEach(b=>b.onclick=()=>{$('#acct').value=b.dataset.a;render();window.scrollTo({top:0,behavior:'smooth'})});
 }
 
@@ -2716,7 +2717,7 @@ function renderEAMap(){
   const single=R.filter(e=>!multi.includes(e));
   const arch=new Set(EA_ARCH),last=e=>Math.max(...S.trades.filter(t=>t.fam===e.name).map(t=>t.ct)),idle=e=>Math.round((NOW_T-last(e))/864e5);
   const table=list=>`<div class="tblwrap"><table class="map-t"><thead><tr><th>EA</th><th>Account</th><th>Magic</th><th>Comment names</th><th>Trades</th><th>Matched by</th><th>Your name</th></tr></thead><tbody>${list.map(e=>e.gs.map((g,i)=>{const [c,why]=eaHow(g);return `<tr class="${i?'':'map-first'}"><td>${i?'':`<b>${esc(e.name)}</b><br><label class="map-arch"><input type="checkbox" data-arch="${esc(e.name)}" ${arch.has(e.name)?'checked':''}> Archived</label>${idle(e)>60?`<span class="muted"> · idle ${idle(e)} d</span>`:''}`}</td><td>${esc(nm(g.acct))} <span class="chip ${isDemoAcct(g.acct)?'':'pass'}">${isDemoAcct(g.acct)?'Demo':'Live'}</span></td><td>${esc(g.magic)}</td><td class="muted cw">${esc(Object.keys(g.raw).join(', '))} · ${esc([...g.syms].join('/'))}</td><td>${g.n}</td><td title="${esc(why)}">${chip(c)}</td><td><input class="map-in" data-k="${esc(g.k)}" value="${esc(EA_OVR[g.k]||'')}" placeholder="${esc(e.name)}" maxlength="60" aria-label="Your name for ${esc(nm(g.acct))} magic ${esc(g.magic)}"></td></tr>`}).join('')).join('')}</tbody></table></div>`;
-  el.innerHTML=`<p class="muted">${R.length} EAs. ${multi.length} run on more than one account. Tick Archived for an EA you stopped: it leaves the EA lab and alerts, and its history stays under Archived EAs. Rename any account + magic below and press Save; your names win over everything else and apply in the artifact, the iPhone app and Telegram.</p>
+  el.innerHTML=`<p class="muted">${R.length} EAs. ${multi.length} run on more than one account. This page always lists every account, whatever is picked at the top, because it matches EAs across accounts. Tick Archived for an EA you stopped: it leaves the EA lab and alerts, and its history stays under Archived EAs. Rename any account + magic below and press Save; your names win over everything else and apply in the artifact, the iPhone app and Telegram.</p>
   <h4>Running on more than one account (${multi.length})</h4>${table(multi)}
   <details class="fold"><summary>One account only (${single.length})</summary>${table(single)}</details>
   ${maybe.length?`<h4>Possible matches to check</h4><p class="muted">These trade in the same minute fairly often but not clearly enough to merge on their own. Press "Same EA" to merge one into the other.</p>
@@ -2804,7 +2805,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v34';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v35';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
