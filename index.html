@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261128021653">
+<meta name="desk-build" content="20261128023243">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261128021653',busy=false;
+(function(){var mine='20261128023243',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -1381,13 +1381,14 @@ function render(){
 }
 
 function renderHero({T,P,EQ,all,ccy,base,Tall}){
-  /* the desk's now, the same for every selection */const last=Math.max(S.srvNow||0,S.trades.reduce((m,t)=>t.ct>m?t.ct:m,0)),today=dayKey(last),mo=today.slice(0,7),yr=today.slice(0,4);
+  /* the desk's now, the same for every selection */const last=Math.max(S.srvNow||0,S.trades.reduce((m,t)=>t.ct>m?t.ct:m,0));let ls=dayStart(last);while([0,6].includes(new Date(ls).getUTCDay()))ls=dayAt(ls-DAY);   /* weekend: the last session */
+  const today=dayKey(ls),mo=dayKey(last).slice(0,7),yr=dayKey(last).slice(0,4);
   const sumIf=f=>Tall.filter(f).reduce((s,t)=>s+t.net,0);   // day/week/month/year chips are calendar facts, not cut by the period chips
   const eqv=all&&all.eq!=null?all.eq:all?all.bal:0;
   $('#heroK').textContent=`Equity now${ccy?' · '+ccy:''}`;
   countUp($('#heroEq'),eqv,v=>money(v));
   $('#heroSub').innerHTML=all&&all.eq!=null?`Balance ${money(all.bal)} · open trades <b class="${cls(all.fl)}">${money(all.fl,2)}</b> (${pct(all.fl/(all.bal||1))})`:'Closed balance. Open trades show once the EA is running.';
-  const chips=[[UI.period==='all'?'Net profit':'Net profit · '+PERIODS.find(x=>x[0]===UI.period)[1],P.net,`${pct(P.net/base)} of ${money(base)} in`],[S.srvNow&&today===dayKey(S.srvNow)?'Today':'Last day',sumIf(t=>dayKey(t.ct)===today),today],
+  const chips=[[UI.period==='all'?'Net profit':'Net profit · '+PERIODS.find(x=>x[0]===UI.period)[1],P.net,`${pct(P.net/base)} of ${money(base)} in`],[today===dayKey(last)?'Today':'Last session · '+new Date(ls).toUTCString().slice(0,3),sumIf(t=>dayKey(t.ct)===today),today+' (broker trading day, by close)'],
     ['Last 7 days',sumIf(t=>t.ct>last-7*DAY),''],['This month',sumIf(t=>dayKey(t.ct).startsWith(mo)),''],['This year',sumIf(t=>dayKey(t.ct).startsWith(yr)),'']];
   $('#heroChips').innerHTML=chips.map(([k,v,s],i)=>`<div class="chipv" title="${esc(s)}"><span>${k}</span><b class="${cls(v)}" id="hc${i}">–</b></div>`).join('');
   chips.forEach(([,v],i)=>countUp($('#hc'+i),v,x=>(x>0?'+':'')+money(x)));
@@ -2291,7 +2292,8 @@ function riskChars(ts){
       for(const t of s){if(t.ot>end) first=t;else if(first){if(first.lots>0)mart=Math.max(mart,t.lots/first.lots);if(t.op&&first.op&&(side==='buy'?t.op<first.op:t.op>first.op))avgDown++}end=Math.max(end,t.ct)}}
   }
   for(const t of P)if(heldWeekend(t))wk++;
-  return {maxOpen,mart,avgDown,hedge,wk,n:P.length,grid:maxOpen>=3,isMart:mart>=1.5&&maxOpen>=2,sl:ts.filter(t=>t.sl).length/ts.length};
+  /* entries per symbol per broker trading day (by open): catches an EA breaking its own once-a-day pattern */const pd={};for(const t of P){const k=t.acct+'|'+t.sym+'|'+dayKey(t.ot);pd[k]=(pd[k]||0)+1}const pv=Object.values(pd),one=pv.length?pv.filter(v=>v===1).length/pv.length:1,maxDay=pv.length?Math.max(...pv):0,extra=pv.filter(v=>v>1).length;
+  return {one,maxDay,extra,maxOpen,mart,avgDown,hedge,wk,n:P.length,grid:maxOpen>=3,isMart:mart>=1.5&&maxOpen>=2,sl:ts.filter(t=>t.sl).length/ts.length};
 }
 // 0-100 score: profitability, risk, consistency, significance; hard rules cap it below 45
 // floating P/L of an EA's open trades right now: live feed where it runs, 5-minute snapshot elsewhere
@@ -2460,7 +2462,7 @@ function renderScore(p){
   $('#eaScoreR').innerHTML=`<span class="k">Why ${Sc.band==='Too early'?'no score yet':Sc.s}?</span>${why}
     <div class="sc-cols"><div><span class="k pos">Speaks for it</span>${F.map(x=>`<p class="sc-li"><i class="pos">+</i><span>${x}</span></p>`).join('')||'<p class="muted">Nothing stands out yet.</p>'}</div>
     <div><span class="k neg">Speaks against it</span>${A.map(x=>`<p class="sc-li"><i class="neg">−</i><span>${x}</span></p>`).join('')||'<p class="muted">No warning signs.</p>'}</div></div>
-    <span class="k">Risk profile</span><div class="eh-chips">${chipY('Grid',rc.grid,rc.grid?'max '+rc.maxOpen+' open':'')}${chipY('Martingale',rc.isMart,rc.isMart?fmt(rc.mart,1)+'× lots':'')}${chipY('Averaging down',rc.avgDown>0,rc.avgDown?rc.avgDown+'×':'')}${chipY('Hedging',rc.hedge>0,rc.hedge?rc.hedge+'×':'')}${chipY('Held over weekend',rc.wk>0,rc.wk?rc.wk+' trades':'')}<span class="chip ${rc.sl>=.9?'pass':rc.sl<.5?'warn':''}">Stop loss · ${pct(rc.sl,0)} of trades</span></div>`;
+    <span class="k">Risk profile</span><div class="eh-chips">${chipY('Grid',rc.grid,rc.grid?'max '+rc.maxOpen+' open':'')}${chipY('Martingale',rc.isMart,rc.isMart?fmt(rc.mart,1)+'× lots':'')}${chipY('Averaging down',rc.avgDown>0,rc.avgDown?rc.avgDown+'×':'')}${chipY('Hedging',rc.hedge>0,rc.hedge?rc.hedge+'×':'')}${chipY('Held over weekend',rc.wk>0,rc.wk?rc.wk+' trades':'')}<span class="chip ${rc.sl>=.9?'pass':rc.sl<.5?'warn':''}">Stop loss · ${pct(rc.sl,0)} of trades</span>${rc.one>=.9&&rc.maxDay>1?`<span class="chip warn" title="Usually one entry per symbol per broker trading day; on ${rc.extra} day${rc.extra>1?'s':''} it opened more">One entry a day · broke it on ${rc.extra} day${rc.extra>1?'s':''}</span>`:rc.maxDay===1?'<span class="chip pass">One entry per symbol a day · always</span>':`<span class="chip">Entries per symbol a day · up to ${rc.maxDay}</span>`}</div>`;
 }
 function renderBehaviour(p){
   const {ts}=p,h=t=>{const x=new Date(t.ot).getUTCHours();return x<6?x+24:x};
@@ -2877,7 +2879,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v39';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v40';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2943,7 +2945,7 @@ function show(c,note){
   ingest([TC.join(',')].concat(c.tr).join('\n'),'trades');
   if(c.eq.length) ingest([EC.join(',')].concat(c.eq).join('\n'),'equity');
   S.demo=false;S.live=true;dedupe();
-  S.srvNow=Math.max(0,...S.now.map(r=>r.t||0))||Date.now();
+  S.srvNow=Math.max(Date.now()+8*36e5,...S.now.map(r=>r.t||0));   // real now on the Singapore clock, so weekends and quiet terminals don't freeze 'today'
   const num=x=>x===''||x==null?null:+x;
   S.dd=(c.dd||[]).map(l=>{const v=l.split(',');return {acct:v[0],magic:v[1],comment:v[2],bal:+v[3],flNow:num(v[4]),flToday:num(v[5]),flAll:num(v[6]),nToday:num(v[7]),nAll:num(v[8]),pToday:num(v[9]),pAll:num(v[10])}});
   S.pos=(c.pos||[]).map(l=>{const v=l.split(',');return {acct:v[0],ticket:v[1],sym:normSym(v[2]),side:v[3],lots:+v[4],ot:parseTime(v[5]),op:+v[6],px:+v[7],sl:+v[8],tp:+v[9],pr:v[10]===''||v[10]==null?null:+v[10],fl:v[10]===''||v[10]==null?null:(+v[10]||0)+(+v[11]||0)+(+v[12]||0),magic:v[13],comment:v[14],age:+v[15],fam:famFor(v[0],v[13],v[14])}});
