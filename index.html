@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261128015430">
+<meta name="desk-build" content="20261128021653">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261128015430',busy=false;
+(function(){var mine='20261128021653',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -2877,7 +2877,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v38';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v39';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -3388,11 +3388,12 @@ UI.adF={acct:null};
 function adTradesOf(a){return actOnly(S.trades.filter(t=>inSel(t.acct,a)))}
 function renderAdTrades(a){
   const el=$('#adTrades');if(!el)return;
-  let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:10};
+  let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',by:'open',ea:'',sym:'',res:'',ex:'',sort:'new',n:10};if(!F.by)F.by='open';
   const all=adTradesOf(a),now=S.srvNow||Date.now(),d0=dayStart(now),one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
   const wd=(new Date(d0).getUTCDay()+6)%7,mo0=monStart(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth());
-  const PER={today:['Today',d0],yday:['Yesterday',dayAt(d0-DAY)],week:['This week',dayAt(d0-wd*DAY)],'7':['Last 7 days',dayAt(d0-6*DAY)],'30':['Last 30 days',dayAt(d0-29*DAY)],month:['This month',mo0],'90':['Last 90 days',dayAt(d0-89*DAY)],all:['All time',0]};
-  const inPer=t=>F.day!=null?t.ct>=F.day&&t.ct<dayAt(F.day+DAY):F.per==='yday'?t.ct>=PER.yday[1]&&t.ct<d0:t.ct>=PER[F.per][1];
+  /* yesterday = the last session the market traded, so Monday looks back to Friday */let ys=dayAt(d0-DAY);while([0,6].includes(new Date(ys).getUTCDay()))ys=dayAt(ys-DAY);
+  const PER={today:['Today',d0],yday:['Yesterday',ys],week:['This week',dayAt(d0-wd*DAY)],'7':['Last 7 days',dayAt(d0-6*DAY)],'30':['Last 30 days',dayAt(d0-29*DAY)],month:['This month',mo0],'90':['Last 90 days',dayAt(d0-89*DAY)],all:['All time',0]};
+  const kt=t=>F.by==='close'?t.ct:t.ot,inPer=t=>{const x=kt(t);return F.day!=null?x>=F.day&&x<dayAt(F.day+DAY):F.per==='yday'?x>=ys&&x<dayAt(ys+DAY):x>=PER[F.per][1]};
   const EXN={so:'Stop-out',sl:'Stop loss hit',tp:'Take profit hit',ea:'Closed by EA or by hand'};
   const base=all.filter(inPer);
   const T=base.filter(t=>(!F.ea||t.fam===F.ea)&&(!F.sym||t.sym===F.sym)&&(!F.res||(F.res==='loss'?t.net<0:t.net>0))&&(!F.ex||t.ex===F.ex));
@@ -3407,16 +3408,17 @@ function renderAdTrades(a){
   const brk=(f,name)=>{const o={};for(const t of los){const k=f(t);(o[k]=o[k]||{n:0,v:0}).n++;o[k].v+=t.net}const r=Object.entries(o).sort((x,y)=>x[1].v-y[1].v).slice(0,5);
     return r.length?`<div class="lb"><span class="k">${name}</span>${r.map(([k,x])=>`<button type="button" class="lb-r" data-f="${name==='By EA'?'ea':name==='By symbol'?'sym':'ex'}" data-v="${esc(name==='How they closed'?Object.keys(EXN).find(e=>EXN[e]===k)||k:k)}"><span class="lb-n">${esc(k)} <span class="tag">${x.n}</span></span><span class="lb-b"><i style="width:${Math.max(2,x.v/(-gl||1)*100)}%"></i></span><b class="neg">${money(x.v,2)}</b></button>`).join('')}</div>`:''};
   const big=los.length?los.reduce((b,t)=>t.net<b.net?t:b,los[0]):null,top3=los.slice().sort((x,y)=>x.net-y.net).slice(0,3).reduce((s,t)=>s+t.net,0);
-  const perLab=F.day!=null?new Date(F.day).toUTCString().slice(0,11):PER[F.per][0];
-  el.innerHTML=`<header class="adt-h"><div><h3 id="hADT">Closed trades</h3><p>Every closed trade on ${one?'this account':'these accounts'}. Filter to find what caused a loss; tap a day in the calendar or the drawdown list to jump here.</p></div></header>
+  const dLab=d=>new Date(d).toUTCString().slice(0,11).replace(',',''),perLab=F.day!=null?dLab(F.day):F.per==='yday'?'Yesterday · '+dLab(ys):F.per==='today'?'Today · '+dLab(d0):PER[F.per][0];
+  el.innerHTML=`<header class="adt-h"><div><h3 id="hADT">Closed trades</h3><p>Every closed trade on ${one?'this account':'these accounts'}. Filter to find what caused a loss; tap a day in the calendar or the drawdown list to jump here. A day is one broker trading day (from 06:00 Singapore, 05:00 in US summer), and Yesterday is the last day the market traded. Calendar days count trades on the day they closed, so the total matches the calendar.</p></div></header>
   <div class="adt-f">
     <label><span class="k">Period</span><select data-k="per">${Object.entries(PER).map(([k,[n]])=>`<option value="${k}"${F.day==null&&F.per===k?' selected':''}>${n}</option>`).join('')}${F.day!=null?`<option value="" selected>${esc(perLab)}</option>`:''}</select></label>
+    <label><span class="k">Count a trade on</span><select data-k="by"><option value="open"${F.by!=='close'?' selected':''}>The day it opened</option><option value="close"${F.by==='close'?' selected':''}>The day it closed</option></select></label>
     <label><span class="k">EA</span><select data-k="ea">${opts(cnt(t=>t.fam),F.ea,'All EAs')}</select></label>
     <label><span class="k">Symbol</span><select data-k="sym">${opts(cnt(t=>t.sym),F.sym,'All symbols')}</select></label>
     <label><span class="k">Result</span><select data-k="res"><option value="">Wins and losses</option><option value="loss"${F.res==='loss'?' selected':''}>Losses only</option><option value="win"${F.res==='win'?' selected':''}>Wins only</option></select></label>
     <label><span class="k">Closed by</span><select data-k="ex"><option value="">Any</option>${Object.entries(EXN).map(([k,n])=>`<option value="${k}"${F.ex===k?' selected':''}>${n}</option>`).join('')}</select></label>
     <label><span class="k">Sort</span><select data-k="sort">${[['new','Newest first'],['old','Oldest first'],['loss','Biggest loss first'],['win','Biggest win first'],['lots','Largest lots'],['held','Held longest']].map(([k,n])=>`<option value="${k}"${F.sort===k?' selected':''}>${n}</option>`).join('')}</select></label>
-    ${F.day!=null||F.ea||F.sym||F.res||F.ex||F.per!=='30'?'<button type="button" class="btn" data-k="reset">Clear filters</button>':''}
+    ${F.day!=null||F.ea||F.sym||F.res||F.ex||F.per!=='30'||F.by==='close'?'<button type="button" class="btn" data-k="reset">Clear filters</button>':''}
   </div>
   <div class="ad-strip adt-s">
     <div class="ad-t"><span class="k">${esc(perLab)}</span><b class="${cls(net)}">${net>0?'+':''}${money(net,2)}</b><span class="tag">${T.length} trade${T.length===1?'':'s'}</span></div>
@@ -3437,7 +3439,7 @@ function renderAdTrades(a){
   const m=el.querySelector('[data-k=more]');if(m)m.onclick=()=>{F.n+=25;renderAdTrades(a)};
 }
 document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]');if(!c)return;
-  const a=$('#acct').value;if(UI.adF.acct!==a)renderAdTrades(a);Object.assign(UI.adF,{day:+c.dataset.day,ea:'',sym:'',ex:'',res:'',sort:'loss',n:10});renderAdTrades(a);
+  const a=$('#acct').value;if(UI.adF.acct!==a)renderAdTrades(a);Object.assign(UI.adF,{day:+c.dataset.day,by:'close',ea:'',sym:'',ex:'',res:'',sort:'loss',n:10});renderAdTrades(a);
   goTo($('#adTrades'))});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest&&e.target.closest('#acctDetail .ad-day[data-day]')){e.preventDefault();e.target.click()}});
 
