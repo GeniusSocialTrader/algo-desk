@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta name="desk-build" content="20261127185338">
+<meta name="desk-build" content="20261128015430">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest">
@@ -98,7 +98,7 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 </script>
 
 <script>
-(function(){var mine='20261127185338',busy=false;
+(function(){var mine='20261128015430',busy=false;
  function check(){if(busy||location.protocol==='file:')return;busy=true;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.text():''}).then(function(t){busy=false;
    var m=t.match(/name="desk-build" content="(\d+)"/);if(!m||m[1]<=mine)return;
@@ -989,6 +989,7 @@ code{font:12px var(--f-data);background:var(--sunk);padding:1px 5px;border-radiu
     <section class="panel"><header><h3>Trade quality</h3><p>How winners and losers behave</p></header><div class="checks" id="quality"></div></section>
     <section class="panel"><header><h3>Is every terminal reporting?</h3><p>Time since each account's last snapshot</p></header><div class="checks" id="health"></div></section>
   </div>
+  <section class="panel"><header><h3>Does the desk match the broker?</h3><p>Checked on the database each time the page loads: balance against trade history, trades opened with no close and no open position, and each EA's own rules</p></header><div class="checks" id="integ"><div class="check"><span class="muted">Checking…</span><span></span><span></span></div></div></section>
   <section class="panel"><header><h3>What your data cannot show yet</h3><p>Gaps a portfolio manager would want closed</p></header><ul class="gaps" id="gaps"></ul></section>
   <details class="panel howto fold"><summary>How the live sync is set up</summary>
     <ol>
@@ -1014,7 +1015,11 @@ const pct=(v,d=1)=>v==null||!isFinite(v)?'–':(v<0?'−':'')+fmt(Math.abs(v*100
 const cls=v=>v>0?'pos':v<0?'neg':'';
 const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
 const std=a=>{const m=mean(a);return a.length>1?Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)):0};
-const dayKey=t=>new Date(t).toISOString().slice(0,10);
+const srvOf=t=>{const w=dstWin(new Date(t).getUTCFullYear()),u=t-5*36e5;return t-(u>=w[0]&&u<w[1]?5:6)*36e5};
+const dayKey=t=>new Date(srvOf(t)).toISOString().slice(0,10);   // trading-day date of a Singapore-clock time
+const dayStart=t=>toSGT(Math.floor(srvOf(t)/DAY)*DAY);   // Singapore-clock start of that trading day
+const dayAt=t=>dayStart(t+3*36e5);   // snap day arithmetic (d0-7*DAY etc.) back onto a trading-day start across DST changes
+const monStart=(y,m)=>toSGT(Date.UTC(y,m,1));
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function rng(seed){return()=>{seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const cfg=()=>({cap:+$('#cap').value||10000,dl:(+$('#dl').value||5)/100,ml:(+$('#ml').value||10)/100,ruin:(+$('#ruin').value||30)/100,grp:$('#grp').value});
@@ -1132,11 +1137,11 @@ function series(T,C,cap0){
 }
 function dense(T,C,cap0){
   const ev=events(T,C);if(!ev.length) return [];
-  const d0=Math.floor(ev[0].t/DAY)*DAY,d1=Math.floor(ev[ev.length-1].t/DAY)*DAY;
+  const d0=dayStart(ev[0].t),d1=dayStart(ev[ev.length-1].t);
   let bal=cap0,i=0;const out=[];
-  for(let d=d0;d<=d1;d+=DAY){
+  for(let d=d0;d<=d1;d=dayAt(d+DAY)){
     const start=bal;let ref=bal,dd=0,pnl=0,any=false;
-    while(i<ev.length&&ev[i].t<d+DAY){const e=ev[i++];any=true;bal+=e.v;if(e.tr){pnl+=e.v;dd=Math.max(dd,ref-bal)}else ref+=e.v}
+    while(i<ev.length&&ev[i].t<dayAt(d+DAY)){const e=ev[i++];any=true;bal+=e.v;if(e.tr){pnl+=e.v;dd=Math.max(dd,ref-bal)}else ref+=e.v}
     const wd=new Date(d).getUTCDay();
     if(!any&&(wd===0||wd===6)) continue;
     out.push({d,key:dayKey(d),wd,start,end:bal,pnl,dd,ddp:start>0?dd/start:0});
@@ -1449,7 +1454,7 @@ function renderKnow({T,P,EQ,MC,EAs,base,c,a,all,arch}){
   // 5. weekday and hour
   const wd=[0,0,0,0,0,0,0];for(const t of T) wd[new Date(toSrv(t.ot)).getUTCDay()]+=t.net;
   const wdo=[1,2,3,4,5].map(i=>[i,wd[i]]).sort((x,y)=>x[1]-y[1]);
-  if(wdo[0][1]<0) add(2,'📅',`${WDL[wdo[0][0]]} cost you money`,money(wdo[0][1]),`Trades opened on ${WDL[wdo[0][0]]} lost ${money(-wdo[0][1])} in total, while ${WDL[wdo[4][0]]} made ${money(wdo[4][1])}. Mostly ${whoList(blame(T.filter(t=>new Date(t.ot).getUTCDay()===wdo[0][0]),3))}.`);
+  if(wdo[0][1]<0) add(2,'📅',`${WDL[wdo[0][0]]} cost you money`,money(wdo[0][1]),`Trades opened on ${WDL[wdo[0][0]]} lost ${money(-wdo[0][1])} in total, while ${WDL[wdo[4][0]]} made ${money(wdo[4][1])}. Mostly ${whoList(blame(T.filter(t=>new Date(toSrv(t.ot)).getUTCDay()===wdo[0][0]),3))}.`);
   const hr=new Array(24).fill(0);for(const t of T) hr[new Date(t.ot).getUTCHours()]+=t.net;
   let wb=[0,0];for(let h=0;h<24;h++){const v=hr[h]+hr[(h+1)%24];if(v<wb[1])wb=[h,v]}
   if(wb[1]<0&&-wb[1]>Math.abs(tot)*.1) add(2,'🕓',`${String(wb[0]).padStart(2,'0')}:00 to ${String((wb[0]+2)%24).padStart(2,'0')}:00 is your worst window`,money(wb[1]),`Entries in these two hours (Singapore time) lost ${money(-wb[1])}. Mostly ${whoList(blame(T.filter(t=>{const h=new Date(t.ot).getUTCHours();return h===wb[0]||h===(wb[0]+1)%24}),3))}. A time filter on those EAs is the cheapest improvement to test.`);
@@ -1568,8 +1573,8 @@ function renderTiming({T,P,ccy}){
   $('#xDay').innerHTML=`<b>Best day:</b> ${WDL[db]} (${money(ds[db])}). <b>Worst day:</b> ${WDL[dw]} (${money(ds[dw])}), mostly ${whoList(blame(T.filter(t=>new Date(toSrv(t.ot)).getUTCDay()===dw),2))}.`;
   /* calendar */
   const byDay={};for(const d of P.D) byDay[d.key]=d;
-  const last=T[T.length-1].ct,end=Math.floor(last/DAY)*DAY,startD=end-(52*7+new Date(end).getUTCDay())*DAY,mx=Math.max(...P.D.map(d=>Math.abs(d.pnl)),1);
-  let cal='';for(let d=startD;d<=end;d+=DAY){const k=dayKey(d),x=byDay[k];
+  const last=T[T.length-1].ct,end=dayStart(last),startD=dayAt(end-(52*7+new Date(end).getUTCDay())*DAY),mx=Math.max(...P.D.map(d=>Math.abs(d.pnl)),1);
+  let cal='';for(let d=startD;d<=end;d=dayAt(d+DAY)){const k=dayKey(d),x=byDay[k];
     const st=x&&x.pnl?`background:color-mix(in srgb,var(${x.pnl>0?'--pos':'--neg'}) ${Math.round(Math.sqrt(Math.abs(x.pnl)/mx)*80+18)}%,var(--sunk))`:'';
     cal+=`<i style="${st}" title="${k}: ${x?money(x.pnl,2):'no trades'}"></i>`}
   $('#cal').innerHTML=cal;
@@ -1666,14 +1671,14 @@ function renderPlumbing({T,P,ccy,a}){
     .map(([k,v])=>`<div class="check"><span>${k}</span><span class="num">${v}</span><span></span></div>`).join('');
   const nowAll=S.now.filter(r=>r.magic==='ALL'&&(inSel(r.acct,a)));
   $('#health').innerHTML=!nowAll.length?'<div class="check"><span class="muted">'+(S.demo?'Demo data has no terminals.':'No equity snapshots yet.')+'</span><span></span><span></span></div>':
-    nowAll.sort((x,y)=>y.age-x.age).map(r=>`<div class="check"><span style="display:flex;align-items:center;gap:8px"><span class="dot ${r.age>900?'stale':''}"></span>${esc(nm(r.acct))}</span><span class="num">${r.age<120?'just now':Math.round(r.age/60)+' min ago'}</span><span class="chip ${r.age>900?'fail':'pass'}">${r.age>900?'Silent':'OK'}</span></div>`).join('');
+    nowAll.sort((x,y)=>y.age-x.age).map(r=>`<div class="check"><span style="display:flex;align-items:center;gap:8px"><span class="dot ${r.age>900?'stale':''}"></span>${esc(nm(r.acct))}</span><span class="num">${r.age<120?'just now':Math.round(r.age/60)+' min ago'}</span><span class="chip ${r.age<=900?'pass':mktShut()?'':'fail'}">${r.age<=900?'OK':mktShut()?'Market closed':'Silent'}</span></div>`).join('');
   const nosl=T.filter(t=>!t.sl).length/T.length;
   const G=[
     ['Risk per trade (R-multiples)',`${pct(nosl,0)} of trades closed without a stop loss, and contract sizes are not sent, so the money at risk on each entry is unknown. With it, EAs could be compared fairly by R instead of dollars.`],
     ['How far each trade went for and against you','Known as MAE and MFE. The 5-minute equity lows per EA are a rough proxy; exact figures need the EA to track open positions tick by tick.'],
     ['Slippage and spread at entry','The requested price and spread at order time are not recorded, so execution quality per broker and session cannot be measured.'],
     ['A backtest to compare against','Live results cannot be checked against each EA\'s backtest or vendor stats, the quickest way to spot an EA that stopped working.'],
-    ['Singapore time','Every time and day on this desk is Singapore time, converted from the broker server clock (New York + 7 hours, so Singapore is 6 hours ahead in US winter and 5 in US summer). A day runs midnight to midnight Singapore.'],
+    ['Singapore time','Every time and day on this desk is Singapore time, converted from the broker server clock (New York + 7 hours, so Singapore is 6 hours ahead in US winter and 5 in US summer). A trading day is the broker\'s day: it starts at 06:00 Singapore time (05:00 in US summer), so a trade closed at 02:00 Singapore belongs to the day before, the same way your broker and your EAs count it.'],
     ['Transfers between your own accounts','Moves between your accounts look like deposits and withdrawals, so a single account\'s return can be overstated. The combined view cancels them out.'],
   ];
   $('#gaps').innerHTML=G.map(([k,v])=>`<li><b>${esc(k)}</b><span class="muted">${esc(v)}</span></li>`).join('');
@@ -2872,7 +2877,7 @@ new MutationObserver(render).observe(document.documentElement,{attributes:true,a
 demo();fillAccounts();render();
 
 /* ---------- live sync: PortfolioPush EA -> Supabase, read with the viewer's Supabase connector ---------- */
-const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v37';
+const SB='Supabase',PROJECT='fx-portfolio',PAGE=1000,BUILD='v38';
 let mcp=null,syncing=false,projectId=null;
 const setSync=t=>{$('#sync').textContent=t};
 function rowsOf(r){
@@ -2963,7 +2968,7 @@ async function syncNow(){
     const where=since?` where received_at > '${since.replace(/[^0-9T:. -]/g,'')}'::timestamp - interval '15 minutes'`:'';
     if(!since) setSync('Loading live accounts…');
     const trQ=`select account,platform,currency,ticket,position,symbol,type,lots,to_char(open_time,'YYYY.MM.DD HH24:MI:SS') as open_time,to_char(close_time,'YYYY.MM.DD HH24:MI:SS') as close_time,commission,swap,profit,magic,comment,sl,open_price,close_price,to_char(received_at,'YYYY-MM-DD"T"HH24:MI:SS.US') as received_at from public.trades${where}`;
-    const DAY=`e.bucket>=public.sgt_day0()`;  // 'today' = Singapore calendar day
+    const DAY=`e.bucket>=public.trade_day0()`;  // 'today' = broker trading day
     const [tr,eq,nw,pos,dd,nv,eo]=await Promise.all([
       pageAll(trQ,TC,'trades','close_time,account,ticket'),
       pageAll(`select to_char(date_trunc('hour',bucket),'YYYY.MM.DD HH24:MI:SS') as time,account,min(balance) as balance,min(equity_min) as equity,case when magic=-1 then 'ALL' else magic::text end as magic,min(floating_min) as floating,comment from public.equity group by 1,2,magic,comment`,EC,'equity','1,2,5,7'),
@@ -3187,17 +3192,17 @@ function renderAcctDetail({a,c}){
   const el=$('#acctDetail');if(!el)return;
   const st=acctStats(a,c.cap);if(!st){el.hidden=true;el.innerHTML='';return}el.hidden=curTab()!=='accounts';   // render() runs on every tab: only show it on Accounts
   const T=st.T,M=st.M,D=M.D,one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
-  const now=S.srvNow||T[T.length-1].ct,today=dayKey(now),d0=Math.floor(now/DAY)*DAY;
-  const wd=(new Date(d0).getUTCDay()+6)%7,wk0=d0-wd*DAY,mo0=Date.UTC(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth(),1);
-  const pm=new Date(mo0-DAY),pmo0=Date.UTC(pm.getUTCFullYear(),pm.getUTCMonth(),1),yr0=Date.UTC(new Date(d0).getUTCFullYear(),0,1);
+  const now=S.srvNow||T[T.length-1].ct,today=dayKey(now),d0=dayStart(now);
+  const wd=(new Date(d0).getUTCDay()+6)%7,wk0=dayAt(d0-wd*DAY),mo0=monStart(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth());
+  const pm=new Date(mo0-DAY),pmo0=monStart(pm.getUTCFullYear(),pm.getUTCMonth()),yr0=monStart(new Date(d0).getUTCFullYear(),0);
   const prevDay=[...D].reverse().find(d=>d.d<d0&&d.pnl!==0);
   // balance at the start of a period: the dense day series carries it
   const startBal=t0=>{const d=D.find(x=>x.d>=t0);return d?d.start:(D.length?D[D.length-1].end:st.bal)};
   const per=(lab,t0,t1)=>{const ts=T.filter(t=>t.ct>=t0&&t.ct<t1),p=ts.reduce((s,t)=>s+t.net,0),w=ts.filter(t=>t.net>0).length,sb=startBal(t0)+S.cash.reduce((s,x)=>inSel(x.acct,a)&&x.amt>0&&x.t>=t0&&x.t<t1?s+x.amt:s,0);
     return {lab,p,g:sb>1?p/sb:null,n:ts.length,wr:ts.length?w/ts.length:null,lots:ts.reduce((s,t)=>s+t.lots,0),best:ts.length?Math.max(...ts.map(t=>t.net)):null,worst:ts.length?Math.min(...ts.map(t=>t.net)):null}};
-  const P=[per('Today',d0,d0+DAY),prevDay?per('Previous day · '+new Date(prevDay.d).toUTCString().slice(0,11),prevDay.d,prevDay.d+DAY):null,
-    per('This week',wk0,d0+DAY),per('Last week',wk0-7*DAY,wk0),per('This month',mo0,d0+DAY),per(MON[pm.getUTCMonth()]+' (last month)',pmo0,mo0),
-    per('This year',yr0,d0+DAY),per('All time',0,Infinity)].filter(Boolean);
+  const P=[per('Today',d0,dayAt(d0+DAY)),prevDay?per('Previous day · '+new Date(prevDay.d).toUTCString().slice(0,11),prevDay.d,dayAt(prevDay.d+DAY)):null,
+    per('This week',wk0,dayAt(d0+DAY)),per('Last week',dayAt(wk0-7*DAY),wk0),per('This month',mo0,dayAt(d0+DAY)),per(MON[pm.getUTCMonth()]+' (last month)',pmo0,mo0),
+    per('This year',yr0,dayAt(d0+DAY)),per('All time',0,Infinity)].filter(Boolean);
   P[P.length-1].g=st.base?M.net/st.base:null;
 
   // live: open trades and drawdown from the balance peak
@@ -3225,7 +3230,7 @@ function renderAcctDetail({a,c}){
   // daily calendar: the last 6 weeks, Monday to Friday, with a week total
   // a Friday-night New York close lands on Saturday in Singapore, so a Sat column appears when there is any
   const nd=D.some(x=>x.d>=wk0-35*DAY&&new Date(x.d).getUTCDay()===6&&x.pnl!==0)?6:5;
-  const cal=[];for(let w=5;w>=0;w--){const ws=wk0-w*7*DAY,row=[];let tot=0;for(let i=0;i<nd;i++){const t=ws+i*DAY,dd=D.find(x=>x.d===t),v=dd?dd.pnl:0;tot+=v;row.push({t,v,has:!!dd&&dd.pnl!==0,fut:t>d0,start:dd?dd.start:0})}cal.push({ws,row,tot})}
+  const cal=[];for(let w=5;w>=0;w--){const ws=dayAt(wk0-w*7*DAY),row=[];let tot=0;for(let i=0;i<nd;i++){const t=dayAt(ws+i*DAY),dd=D.find(x=>x.d===t),v=dd?dd.pnl:0;tot+=v;row.push({t,v,has:!!dd&&dd.pnl!==0,fut:t>d0,start:dd?dd.start:0})}cal.push({ws,row,tot})}
   const big=Math.max(1,...cal.flatMap(w=>w.row.map(x=>Math.abs(x.v))));
   const tint=v=>v?`background:color-mix(in srgb,var(${v>0?'--pos':'--neg'}) ${Math.round(12+48*Math.min(1,Math.abs(v)/big))}%,var(--surface))`:'';
   // monthly returns, compounded from daily returns
@@ -3258,7 +3263,7 @@ function renderAcctDetail({a,c}){
   ${ps.length?`<p class="ad-open"><button type="button" class="btn" id="adOpen">See the ${ps.length} open trade${ps.length>1?'s':''}</button> <span class="muted">${Object.keys(cntEA).map(k=>`${esc(k)} ${cntEA[k]}`).join(' · ')}</span></p>`:''}
 
   <div class="ad-grid">
-  <section class="panel"><header><h3>Profit by period</h3><p>Closed trades, by Singapore calendar day. Gain is against the balance when the period began.</p></header>
+  <section class="panel"><header><h3>Profit by period</h3><p>Closed trades, by trading day (the broker's day, which starts at 06:00 Singapore time, 05:00 in US summer). Gain is against the balance when the period began.</p></header>
     <div class="scroll"><table id="adPer"><thead><tr><th>Period</th><th>Profit</th><th>Gain</th><th>Trades</th><th>Won</th><th>Lots</th><th>Best</th><th>Worst</th></tr></thead><tbody>${P.map(x=>`<tr><td>${esc(x.lab)}</td><td class="${cls(x.p)}"><b>${sign(x.p)}</b></td><td class="${cls(x.p)}">${x.g==null?'–':pct(x.g,2)}</td><td>${x.n}</td><td>${x.wr==null?'–':pct(x.wr,0)}</td><td>${fmt(x.lots,2)}</td><td class="${cls(x.best)}">${x.best==null?'–':money(x.best,2)}</td><td class="${cls(x.worst)}">${x.worst==null?'–':money(x.worst,2)}</td></tr>`).join('')}</tbody></table></div></section>
 
   <section class="panel"><header><h3>Daily P/L, last 6 weeks</h3><p>Each square is one trading day of closed profit. Today is outlined. Tap a day to see its trades.</p></header>
@@ -3312,14 +3317,14 @@ function renderAcctDetail({a,c}){
 // balance each day started with, counted back from today's real balance, so missing deposit records can't skew it
 function dayStartMap(ac){const nowRow=(S.now||[]).find(r=>r.acct===ac&&r.magic==='ALL'),st=nowRow?null:acctStats(ac,cfg().cap),bal=nowRow?nowRow.bal:st?st.bal:0;
   const ev=[...S.trades.filter(t=>t.acct===ac).map(t=>[t.ct,t.net]),...S.cash.filter(x=>x.acct===ac).map(x=>[x.t,x.amt])].sort((x,y)=>y[0]-x[0]);
-  const m=new Map(),days=[...new Set(ev.map(e=>Math.floor(e[0]/DAY)*DAY)),Math.floor((S.srvNow||Date.now())/DAY)*DAY].sort((x,y)=>y-x);
+  const m=new Map(),days=[...new Set(ev.map(e=>dayStart(e[0]))),dayStart(S.srvNow||Date.now())].sort((x,y)=>y-x);
   let b=bal,i=0;for(const d of days){while(i<ev.length&&ev[i][0]>=d){b-=ev[i][1];i++}m.set(d,b)}
   return {m,keys:[...m.keys()].sort((x,y)=>x-y),end:bal}}
 function dailyDD(T,E,accts,P){
   // E rows with byEq: account rows, so equity itself gives the path (exact, incl. trades closed mid-hour); else EA rows: closed so far + floating
   const SB={};for(const ac of accts)SB[ac]=dayStartMap(ac);
   const startOf=(ac,d)=>{const o=SB[ac];let v=o.m.get(d);if(v==null){let best=null;for(const k of o.keys){if(k<=d)best=k;else break}v=best!=null?o.m.get(best):o.end}return v||0};
-  const day=t=>Math.floor(t/DAY)*DAY,cashIn=(ac,d,t)=>S.cash.reduce((s,x)=>x.acct===ac&&x.t>=d&&x.t<=t?s+x.amt:s,0);
+  const day=t=>dayStart(t),cashIn=(ac,d,t)=>S.cash.reduce((s,x)=>x.acct===ac&&x.t>=d&&x.t<=t?s+x.amt:s,0);
   // % base: balance the day started with plus money added that day, so a funding day isn't divided by ~0
   const depOn=(ac,d)=>S.cash.reduce((s,x)=>x.acct===ac&&x.amt>0&&day(x.t)===d?s+x.amt:s,0);
   const baseOn=d=>accts.reduce((s,ac)=>s+startOf(ac,d)+depOn(ac,d),0);
@@ -3347,7 +3352,7 @@ function dailyDD(T,E,accts,P){
 const ddPct=v=>v<0.00005?'−<0.01%':'−'+pct(v,2);
 function ddPanel(rows,title,sub){
   if(!rows.length) return '';
-  const now=Math.floor((S.srvNow||Date.now())/DAY)*DAY,td=rows.find(r=>r.d===now),yd=rows.find(r=>r.d<now);
+  const now=dayStart(S.srvNow||Date.now()),td=rows.find(r=>r.d===now),yd=rows.find(r=>r.d<now);
   const last30=rows.filter(r=>r.d>now-30*DAY),w30=last30.reduce((b,r)=>!b||r.ddp>b.ddp?r:b,null),wAll=rows.reduce((b,r)=>!b||r.ddp>b.ddp?r:b,null);
   const lim=cfg().dl,dn=d=>new Date(d).toUTCString().slice(0,11);
   const tag=r=>r.src==='equity'?'<span class="chip pass" title="includes floating P/L from the hourly equity lows">with open trades</span>':'<span class="chip" title="no equity history for this day: closed trades only, so open-trade dips are missing">closed only</span>';
@@ -3384,10 +3389,10 @@ function adTradesOf(a){return actOnly(S.trades.filter(t=>inSel(t.acct,a)))}
 function renderAdTrades(a){
   const el=$('#adTrades');if(!el)return;
   let F=UI.adF;if(F.acct!==a)F=UI.adF={acct:a,day:null,per:'30',ea:'',sym:'',res:'',ex:'',sort:'new',n:10};
-  const all=adTradesOf(a),now=S.srvNow||Date.now(),d0=Math.floor(now/DAY)*DAY,one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
-  const wd=(new Date(d0).getUTCDay()+6)%7,mo0=Date.UTC(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth(),1);
-  const PER={today:['Today',d0],yday:['Yesterday',d0-DAY],week:['This week',d0-wd*DAY],'7':['Last 7 days',d0-6*DAY],'30':['Last 30 days',d0-29*DAY],month:['This month',mo0],'90':['Last 90 days',d0-89*DAY],all:['All time',0]};
-  const inPer=t=>F.day!=null?t.ct>=F.day&&t.ct<F.day+DAY:F.per==='yday'?t.ct>=d0-DAY&&t.ct<d0:t.ct>=PER[F.per][1];
+  const all=adTradesOf(a),now=S.srvNow||Date.now(),d0=dayStart(now),one=a!=='ALL'&&a!=='REAL'&&a!=='DEMO';
+  const wd=(new Date(d0).getUTCDay()+6)%7,mo0=monStart(new Date(d0).getUTCFullYear(),new Date(d0).getUTCMonth());
+  const PER={today:['Today',d0],yday:['Yesterday',dayAt(d0-DAY)],week:['This week',dayAt(d0-wd*DAY)],'7':['Last 7 days',dayAt(d0-6*DAY)],'30':['Last 30 days',dayAt(d0-29*DAY)],month:['This month',mo0],'90':['Last 90 days',dayAt(d0-89*DAY)],all:['All time',0]};
+  const inPer=t=>F.day!=null?t.ct>=F.day&&t.ct<dayAt(F.day+DAY):F.per==='yday'?t.ct>=PER.yday[1]&&t.ct<d0:t.ct>=PER[F.per][1];
   const EXN={so:'Stop-out',sl:'Stop loss hit',tp:'Take profit hit',ea:'Closed by EA or by hand'};
   const base=all.filter(inPer);
   const T=base.filter(t=>(!F.ea||t.fam===F.ea)&&(!F.sym||t.sym===F.sym)&&(!F.res||(F.res==='loss'?t.net<0:t.net>0))&&(!F.ex||t.ex===F.ex));
@@ -3422,7 +3427,7 @@ function renderAdTrades(a){
     <div class="ad-t"><span class="k">Costs</span><b class="${cls(cost)}">${money(cost,2)}</b><span class="tag">commission and swap</span></div>
   </div>
   ${los.length?`<div class="lbs">${brk(t=>t.fam,'By EA')}${brk(t=>t.sym,'By symbol')}${brk(t=>EXN[t.ex]||t.ex,'How they closed')}</div><p class="muted" style="font-size:12px;margin:0">Tap a bar to filter to it.</p>`:''}
-  <div class="scroll"><table id="adTr"><thead><tr><th>Closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>Closed by</th><th>Costs</th><th>P/L</th></tr></thead><tbody>${L.slice(0,F.n).map(t=>`<tr class="${t.net<0?'lossr':''}"><td>${shortT(t.ct)}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td>${t.ex==='so'?'<span class="chip fail">stop-out</span>':t.ex==='sl'?'<span class="chip warn">stop loss</span>':t.ex==='tp'?'<span class="chip pass">target</span>':'<span class="muted">EA / hand</span>'}</td><td class="${cls((t.comm||0)+(t.swap||0))}">${(t.comm||0)+(t.swap||0)?money((t.comm||0)+(t.swap||0),2):'–'}</td><td class="${cls(t.net)}"><b>${t.net>0?'+':''}${money(t.net,2)}</b></td></tr>`).join('')||'<tr><td class="muted">No closed trades match these filters.</td></tr>'}</tbody></table></div>
+  <div class="scroll"><table id="adTr"><thead><tr><th title="trading day (broker day, starts 06:00 Singapore, 05:00 in US summer)">Opened → closed</th><th>EA</th><th>Symbol</th><th>Side</th><th>Lots</th><th>Open</th><th>Close</th><th>Held</th><th>Closed by</th><th>Costs</th><th>P/L</th></tr></thead><tbody>${L.slice(0,F.n).map(t=>`<tr class="${t.net<0?'lossr':''}"><td class="oc">${shortT(t.ot)}<br><span class="muted">→ ${shortT(t.ct)}</span>${dayKey(t.ot)!==dayKey(t.ct)?'<span class="tag" title="held over the broker day change"> overnight</span>':''}</td><td>${esc(t.fam)}${!one?`<span class="tag"> ${esc(nm(t.acct))}</span>`:''}</td><td>${esc(t.sym)}</td><td><span class="chip ${t.side==='buy'?'pass':'fail'}">${esc(t.side||'')}</span></td><td>${fmt(t.lots,2)}</td><td>${t.op?pxFmt(t.op):'–'}</td><td>${t.cp?pxFmt(t.cp):'–'}</td><td>${holdTxt((t.ct-t.ot)/HOUR)}</td><td>${t.ex==='so'?'<span class="chip fail">stop-out</span>':t.ex==='sl'?'<span class="chip warn">stop loss</span>':t.ex==='tp'?'<span class="chip pass">target</span>':'<span class="muted">EA / hand</span>'}</td><td class="${cls((t.comm||0)+(t.swap||0))}">${(t.comm||0)+(t.swap||0)?money((t.comm||0)+(t.swap||0),2):'–'}</td><td class="${cls(t.net)}"><b>${t.net>0?'+':''}${money(t.net,2)}</b></td></tr>`).join('')||'<tr><td class="muted">No closed trades match these filters.</td></tr>'}</tbody></table></div>
   ${L.length>F.n?`<button type="button" class="more" data-k="more">Show ${Math.min(25,L.length-F.n)} more of ${L.length-F.n}</button>`:L.length?`<p class="muted" style="font-size:12px;margin:0">All ${L.length} trades shown.</p>`:''}`;
   cardify('adTr');
   const set=(k,v)=>{if(k==='per'){F.day=null;F.per=v||F.per}else F[k]=v;F.n=10;renderAdTrades(a)};
@@ -3711,6 +3716,24 @@ function syncArchKeys(){
   sql(`select public.ea_arch_put(array[${keys.map(k=>`'${k.replace(/[^0-9|-]/g,'')}'`).join(',')}]::text[]) as n`).then(()=>{try{localStorage.setItem('fx-archkeys',sig)}catch(e){}}).catch(e=>{ARCH_SIG=null;console.warn('archive keys',e)});
 }
 {const _rn=render;render=function(){_rn();try{syncArchKeys()}catch(e){console.warn(e)}}}
+
+// v38: is the broker's weekend on now (server clock Sat/Sun)? terminals going quiet then is normal
+function mktShut(){const d=new Date(toSrv(Date.now()+8*36e5)).getUTCDay()   /* real now on the Singapore clock, then broker clock */;return d===6||d===0}
+// v38: data health from the database, so a missing or doubled trade shows up here instead of in a decision
+let INTEG=null,INTEG_AT=0;
+function renderInteg(){
+  const el=$('#integ');if(!el)return;
+  if(!S.live||typeof mcp==='undefined'||!mcp){el.innerHTML='<div class="check"><span class="muted">Runs on live data only.</span><span></span><span></span></div>';return}
+  const draw=()=>{if(!INTEG)return;const a=$('#acct')?$('#acct').value:'ALL',R=INTEG.filter(r=>inSel(String(r.acct),a));
+    el.innerHTML=R.map(r=>{const bad=Math.abs(r.diff||0)>=.05,orph=r.orphan>0,dup=r.rbo_dup>0;
+      const why=[bad?`balance ${money(r.snap,2)} vs history ${money(r.hist,2)}`:`balance = trade history (${r.trades.toLocaleString()} trades)`,orph?`${r.orphan} trade${r.orphan>1?'s':''} opened with no close`:'',dup?`RBO opened twice on one symbol on ${r.rbo_dup} day${r.rbo_dup>1?'s':''} (last ${r.rbo_last})`:''].filter(Boolean).join(' · ');
+      const ch=bad||orph?'fail':dup?'warn':'pass';
+      return `<div class="check"><span>${esc(nm(String(r.acct)))}<span class="tag"> ${esc(why)}</span></span><span class="num">${bad?money(r.diff,2):''}</span><span class="chip ${ch}">${ch==='pass'?'Matches':ch==='warn'?'Check':'Mismatch'}</span></div>`}).join('')||'<div class="check"><span class="muted">No accounts in this selection.</span><span></span><span></span></div>'};
+  if(INTEG&&Date.now()-INTEG_AT<5*6e4)return draw();
+  INTEG_AT=Date.now();
+  sql('select public.data_health() as h').then(r=>{const h=r&&r[0]&&r[0].h;INTEG=typeof h==='string'?JSON.parse(h):h||[];draw()}).catch(e=>{INTEG_AT=0;el.innerHTML='<div class="check"><span class="muted">Could not run the check right now.</span><span></span><span></span></div>';console.warn('data health',e)});
+}
+{const _rn=render;render=function(){_rn();try{renderInteg()}catch(e){console.warn(e)}}}
 
 </script>
 
